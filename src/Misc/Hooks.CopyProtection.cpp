@@ -25,8 +25,10 @@ ASMJIT_PATCH(0x47AE36, _YR_CDFileClass_SetFileName, 8)
 	return 0x47AE3E;
 }
 
+#include <EventClass.h>
+
 // this douchebag blows your base up when it thinks you're cheating
-ASMJIT_PATCH(0x55CFDF, BlowMeUp, 0x0)
+ASMJIT_PATCH(0x55CFDF, BlowMeUp, 0x7)
 {
 	return 0x55D059;
 }

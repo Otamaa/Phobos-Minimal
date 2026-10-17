@@ -1,6 +1,7 @@
 #include "Body.h"
 #include "Trajectories/PhobosTrajectory.h"
 
+#include <Ext/Aircraft/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Building/Body.h>
@@ -41,14 +42,13 @@ int __fastcall missile_maths(
 	// ORIG: cmp against stru_ABEF10.{X,Y,Z} @ 0x5B2106-0x5B2134
 	if (!pCoordFrom->IsValid())   // ORIG: stru_ABEF10
 	{
-		const DirStruct currentPitch = pVeloc->GetDirectionFromXY();
-
+		DirStruct currentPitch = pVeloc->GetDirectionFromXY();
 		DirStruct newPitch = currentPitch;
 		DirStruct pitchTarget { 0x2000 };    // ORIG: literal 0x2000 @ 0x5B2182
 		newPitch.Func_5B29C0(pitchTarget, *pInputDir);
 
 		const double totalSpeed = pVeloc->Length();
-		const double currentPitchRad = currentPitch.GetRadian<65536>();
+		const double currentPitchRad = currentPitch.GetRad();
 
 		if (currentPitchRad != 0.0)          // ORIG: fcomp FLOAT_0_0 @ 0x5B21FF
 		{
@@ -57,7 +57,7 @@ int __fastcall missile_maths(
 			pVeloc->Y /= c;
 		}
 
-		const double newPitchRad = newPitch.GetRadian<65536>();
+		const double newPitchRad = newPitch.GetRad();
 		const double cosNew = Math::cos(newPitchRad);
 		const double sinNew = Math::sin(newPitchRad);
 
@@ -65,35 +65,22 @@ int __fastcall missile_maths(
 		pVeloc->Y *= cosNew;
 		pVeloc->Z = sinNew * totalSpeed;
 
-		pCoordTo->X += static_cast<int>(pVeloc->X);
-		pCoordTo->Y += static_cast<int>(pVeloc->Y);
-		pCoordTo->Z += static_cast<int>(pVeloc->Z);
+		pCoordTo->operator+=(pVeloc->ToCoord());
 
 		return static_cast<int>(pVeloc->Length());
 	}
 
 	// ── BRANCH B: homing toward pCoordFrom ─────────────────────────────
-	pCoordTo->X += static_cast<int>(pVeloc->X);
-	pCoordTo->Y += static_cast<int>(pVeloc->Y);
-	pCoordTo->Z += static_cast<int>(pVeloc->Z);
+	pCoordTo->operator+=(pVeloc->ToCoord());
 
-	const int distance3D = static_cast<int>((*pCoordTo - *pCoordFrom).Length());
-
+	const int distance3D = static_cast<int>((pCoordTo->operator-(*pCoordFrom)).Length());
 	const Point2D pTo2D { pCoordTo->X,   pCoordTo->Y };
 	const Point2D pFrom2D { pCoordFrom->X, pCoordFrom->Y };
 	const int distance2D = static_cast<int>((pTo2D - pFrom2D).Length());
 
-	CoordStruct deltaToTarget {
-		pCoordFrom->X - pCoordTo->X,
-		pCoordFrom->Y - pCoordTo->Y,
-		pCoordFrom->Z - pCoordTo->Z
-	};
+	CoordStruct deltaToTarget = pCoordFrom ->operator-(*pCoordTo);
 
-	VelocityClass vToTarget {
-		static_cast<double>(deltaToTarget.X),
-		static_cast<double>(deltaToTarget.Y),
-		static_cast<double>(deltaToTarget.Z)
-	};
+	VelocityClass vToTarget = VelocityClass::CoordToVel(deltaToTarget);
 
 	// ── Yaw correction ────────────────────────────────────────────────
 	DirStruct currentHeading { -pVeloc->Y,    pVeloc->X };
@@ -102,9 +89,10 @@ int __fastcall missile_maths(
 	DirStruct newHeading = currentHeading;
 	newHeading.Func_5B29C0(targetHeading, *pInputDir);
 
-	pVeloc->SetIfZeroXY();
+	pVeloc->SetXIfZeroXY();
+
 	const double horizontalSpeed = pVeloc->LengthXY();
-	const double newHeadingRad = newHeading.GetRadian<65536>();
+	const double newHeadingRad = newHeading.GetRad();
 
 	pVeloc->X = Math::cos(newHeadingRad) * horizontalSpeed;
 	pVeloc->Y = -Math::sin(newHeadingRad) * horizontalSpeed;
@@ -232,102 +220,6 @@ int __fastcall missile_maths(
 	return static_cast<int>(deltaToTarget.Length());
 }
 
-// ============================================================================
-// FakeBulletClass::_AI — integrated backport of BulletClass::AI (0x4666E0)
-//
-// All Phobos/Ares hooks listed below have been merged into the cleaned
-// helpers from the previous pass. Original control flow is preserved.
-//
-// ============================================================================
-// HOOK INTEGRATION TABLE
-// ============================================================================
-//   Address  Sz   Hook name                                  Helper
-//   -------  --   ---------------------------------------    --------------------
-//   0x4666F7  6   BulletClass_AI_Trajectories                RunEarlyTickHooks
-//   0x466705  6   BulletClass_AI                             RunEarlyTickHooks
-//   0x46670F  6   BulletClass_AI_PreImpactAnim               HandleSpawnedAnimFollowup
-//   0x466834  6   BulletClass_AI_TrailerAnim                 SpawnTrailerIfDue
-//   0x4668BD  6   BulletClass_AI_Interceptor_InvisoSkip      UpdateGuidedMotion (entry)
-//   0x466BAF  6   BulletClass_AI_MissileROTVar               UpdateGuidedMotion (homing)
-//   0x466E9F  6   BulletClass_AI_MissileSafetyAltitude       UpdateGuidedMotion (alt-safety)
-//   0x4671B9  6   BulletClass_AI_ApplyGravity                UpdateBallisticMotion (gravity)
-//   0x46745C  7   BulletClass_AI_Position_Trajectories       UpdateBallisticMotion (integrate)
-//   0x4677D3  5   BulletClass_AI_TargetCoordCheck_Trajector  CheckUnguidedTargetCell (entry)
-//   0x467927  5   BulletClass_AI_TechnoCheck_Trajectories    CheckUnguidedTargetCell (techno hit)
-//   0x467AB2  7   BulletClass_AI_Parabomb                    CheckUnguidedTargetCell (velocity copyback)
-//   0x467B94  7   BulletClass_AI_Ranged                      FinalizeBulletMotion (Set_Coord)
-//   0x467C1C  6   BulletClass_AI_UnknownTimer                FinalizeBulletMotion (degenerate skip)
-//   0x467C2E  7   BulletClass_AI_FuseCheck                   FinalizeBulletMotion (fuse)
-//   0x467CCA  6   BulletClass_AI_TargetSnapChecks            FinalizeBulletMotion (target snap)
-//   0x467E53  6   BulletClass_AI_PreDetonation_Trajectories  RunDetonation (entry)
-//   0x467E59  5   BulletClass_AI_NukeBall                    RunDetonation (NUKE/preimpact)
-//
-// ============================================================================
-// HOOK COLLISION ANALYSIS
-// ============================================================================
-// No byte overlaps detected. Sequential adjacencies (both fire in order):
-//
-//   1. Top of function (sequential, all three may fire on the same tick):
-//        0x4666F7 [6] → 0x466705 [6] → 0x46670F [6]
-//      0x4666F7 covers bytes 0x4666F7..0x4666FC (the IsAlive load)
-//      0x466705 covers bytes 0x466705..0x46670A (the SpawnNextAnim load)
-//      0x46670F covers bytes 0x46670F..0x466714 (the NextAnim load inside the
-//                                                 SpawnNextAnim==true branch)
-//      4-byte gap between 0x466705 hook and 0x46670F hook holds the
-//      `test al,al / jz` that gates the SpawnNextAnim branch — preserved.
-//
-//   2. Pre-detonation pair (both fire when control reaches the detonation
-//      phase, including via the trajectory short-circuit from 0x4666F7):
-//        0x467E53 [6] → 0x467E59 [5]
-//      0x467E53 covers bytes 0x467E53..0x467E58 (the warhead pointer load)
-//      0x467E59 covers bytes 0x467E59..0x467E5D (the "NUKE" string push)
-//
-// ============================================================================
-// POSSIBLE BUGS / VERIFY ITEMS
-// ============================================================================
-// 1. (carry-over from cleanup pass) Smoothed proximity-fuse boundary in
-//    UpdateGuidedMotion uses `>= 0.0 && < 60.0`. The asm at 0x466FE8..0x466FF9
-//    confirms this, but worth verifying the >= bound was not intended as > 0.0
-//    strictly. The boundary affects the exact tick a stalling missile detonates.
-//
-// 2. (hook 0x466834) BulletClass_AI_TrailerAnim guards with `if (delay < 0)`
-//    only — does not guard against `delay == 0`. If both ScaledSpawnDelay and
-//    SpawnDelay are zero, the subsequent `Frame % delay` is a divide-by-zero.
-//    The original vanilla code had the same flaw (it picked one branch or the
-//    other but never zero-checked). Preserved verbatim.
-//
-// 3. (hook 0x466705) Reads `pThis->GetOwningHouse()` unconditionally. If
-//    a bullet has no Owner and no fallback house in its ext, GetOwningHouse
-//    may dereference null depending on its implementation. The hook does
-//    null-check `pThis->Owner` before assigning to ext->Owner, but the
-//    `pBulletCurOwner` evaluation runs first. Preserved.
-//
-// 4. (hooks 0x467E53 + 0x4666F7) Trajectory short-circuit interaction:
-//    when 0x4666F7 returns Detonate (0x467E53), control jumps directly to
-//    the PreDetonation hook. This means OnAIPreDetonate runs even though
-//    OnAI never returned the "I handled it" path (it returned the Detonate
-//    path explicitly). Confirm this is the intended ordering — i.e., that
-//    trajectory plugins expect OnAIPreDetonate after OnAI returns true.
-//
-// 5. (hook 0x466705) The owner-tracking + LaserTrails block fires once per
-//    AI tick INCLUDING ticks where SpawnNextAnim is set. This means trails
-//    keep updating during the post-detonation NUKEBALL wait tick. Intentional?
-//    The vanilla function had no LaserTrails so we have no baseline.
-//
-// 6. (hooks 0x4666F7 + 0x466705) Both hooks update LaserTrails — 0x4666F7
-//    handles the trajectory-managed case, 0x466705 handles the non-trajectory
-//    case (gated by `!pBulletExt->Trajectory || !BlockDrawTrail`). This
-//    creates a path where BOTH update if Trajectory exists but BlockDrawTrail
-//    returns false. Double-update is likely benign (idempotent Update calls)
-//    but worth a closer look.
-//
-// 7. The original LABEL_157 (CheckUnguidedTargetCell entry) integer cell-coord
-//    rounding uses `cdq + and edx, 0xFF + add` which is sign-aware right-shift
-//    by 8. For negative coords this rounds toward zero rather than toward
-//    -infinity. Preserved as `(coord.X + ((coord.X >> 31) & 0xFF)) >> 8`.
-//
-// ============================================================================
-
 #include <CellClass.h>
 #include <MapClass.h>
 #include <RulesClass.h>
@@ -342,91 +234,390 @@ int __fastcall missile_maths(
 #include <Unsorted.h>
 #include <Notifications.h>
 
-namespace
+//#pragma optimize("", off )
+
+
+#define CXYZ(c) (c).X, (c).Y, (c).Z
+
+void FakeBulletClass::_AI()
 {
+	this->ObjectClass::Update();
 
-	// ===========================================================================
-	// Per-tick context bundling the four pieces of state that flowed through the
-	// original via the v136/v137/v138 stack triplet.
-	// ===========================================================================
-	struct BulletAITickContext
-	{
-		bool exploded = false;  // v136[0] in original
-		int  markType = 0;      // v138 in original (0/1/2)
-		bool snap_to_target = false;  // v137 in original
-		bool early_return = false;  // hook returned 0x467FEE
-		bool detonate_now = false;  // hook returned 0x467E53 (skip motion)
-		bool change_owner = false;  // bullet's owning house changed this tick
-	};
+	if (!this->IsAlive)
+		return;
 
-	// ---- forward decls --------------------------------------------------------
-	OPTIONALINLINE void RunEarlyTickHooks(FakeBulletClass* pThis, BulletAITickContext& ctx);
-	OPTIONALINLINE bool HandleSpawnedAnimFollowup(FakeBulletClass* pThis);
-	OPTIONALINLINE void AdvanceAnimFrame(BulletClass* pThis);
-	OPTIONALINLINE void SpawnTrailerIfDue(FakeBulletClass* pThis, CoordStruct const& coord);
-	OPTIONALINLINE void UpdateGuidedMotion(FakeBulletClass* pThis, CoordStruct& coord,
-										   BulletAITickContext& ctx);
-	OPTIONALINLINE void UpdateVerticalMotion(FakeBulletClass* pThis, CoordStruct& coord,
-											  VelocityClass& veloc, BulletAITickContext& ctx);
-	OPTIONALINLINE void UpdateBallisticMotion(FakeBulletClass* pThis, CoordStruct& coord,
-											   VelocityClass& veloc, BulletAITickContext& ctx);
-	OPTIONALINLINE void CheckUnguidedTargetCell(FakeBulletClass* pThis, CoordStruct& coord,
-												 VelocityClass& veloc, BulletAITickContext& ctx);
-	OPTIONALINLINE BouncePhaseResult RunBouncePhase(FakeBulletClass* pThis, CoordStruct& coord,
-											 BulletAITickContext& ctx);
-	OPTIONALINLINE void FinalizeBulletMotion(FakeBulletClass* pThis, CoordStruct& coord,
-											  BulletAITickContext& ctx);
-	OPTIONALINLINE void RunDetonation(FakeBulletClass* pThis, CoordStruct& coord,
-									  BulletAITickContext& ctx);
-	OPTIONALINLINE void UpdateLastMapCoords(BulletClass* pThis, CoordStruct const& coord);
+	auto pExt = this->_GetExtData();
+	auto pTypeExt = this->_GetTypeExtData();
 
-	// Helper for the sign-aware /256 cell rounding the original asm uses.
-	OPTIONALINLINE short CoordToCell(int leptons)
-	{
-		return static_cast<short>((leptons + ((leptons >> 31) & 0xFF)) >> 8);
-	}
-
-	// ===========================================================================
-	// RunEarlyTickHooks
-	//   Hooks 0x4666F7 (BulletClass_AI_Trajectories)
-	//   Hooks 0x466705 (BulletClass_AI)
-	//
-	// These two hooks fire near the top of the function, before the SpawnNextAnim
-	// branch. Together they handle:
-	//   - Trajectory plugin dispatch (OnAI, intercepted, IsAlive, parachute)
-	//   - Bullet owner tracking
-	//   - Bright flag check (one-shot)
-	//   - PreExplodeRange detonation trigger
-	//   - LaserTrails update (two paths: trajectory-managed and not)
-	//
-	// The context flags are set as follows:
-	//   - early_return  : trajectory says bullet is dead/intercepted
-	//   - detonate_now  : trajectory's OnAI returned true (skip motion, detonate)
-	//   - change_owner  : firer's house changed this tick (used by LaserTrails)
-	// ===========================================================================
-	OPTIONALINLINE void RunEarlyTickHooks(FakeBulletClass* pThis, BulletAITickContext& ctx)
-	{
-		auto pExt = pThis->_GetExtData();
-		auto pTypeExt = pThis->_GetTypeExtData();
-
-		// -----------------------------------------------------------------------
-		// Hook 0x4666F7 — BulletClass_AI_Trajectories
-		// -----------------------------------------------------------------------
-		auto& pTraj = pExt->Trajectory;
-
-		if (!pThis->SpawnNextAnim && pTraj)
+	// ------------------------------------------------------------------------
+	//  Debug helper: dump every coordinate flavour of the current target
+	// ------------------------------------------------------------------------
+	auto DumpTarget = [this](const char* tag)
 		{
-			if (pTraj->OnAI())
+			if (!this->Target)
 			{
-				ctx.detonate_now = true;
+				Debug::LogInfo("[B{:X} f{}]  {} target=null TargetCoords=({},{},{})", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame() , tag, CXYZ(this->TargetCoords));
 				return;
 			}
-		}
 
+			const CoordStruct getCoords = this->Target->GetCoords();
+			const CoordStruct center = this->Target->GetCenterCoords();
+			CoordStruct moving = getCoords;
+			if (auto pObj = flag_cast_to<ObjectClass*>(this->Target))
+				moving = pObj->GetTargetCoords();
+
+			Debug::LogInfo("[B{:X} f{}]  {} target={:X} what={} TargetCoords=({},{},{}) GetCoords=({},{},{}) Center=({},{},{}) TargetCoordsFn=({},{},{})",
+				reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+				tag, reinterpret_cast<std::uintptr_t>(this->Target),
+				static_cast<int>(this->Target->WhatAmI()),
+				CXYZ(this->TargetCoords), CXYZ(getCoords), CXYZ(center), CXYZ(moving));
+		};
+
+	auto OnEarlyTrajectoryUpdate = [this, pExt]()
+		{
+			bool detonate = false;
+
+			if (pExt->Trajectory)
+			{
+				detonate = pExt->Trajectory->OnAI();
+			}
+
+			return detonate && !this->SpawnNextAnim;
+		};
+
+	// ========================================================================
+	//  Detonation tail  (0x467E53)
+	// ========================================================================
+	auto ApplyNukeWarhead = [this, pExt, DumpTarget](const char* tag, bool destroy, const CoordStruct& coord)
+		{
+			//Debug::LogInfo("[B{:X} f{}]  DETONATE via={} destroy={} working=({},{},{}) Location=({},{},{}) height={} speed={:.2f} distTraveled={:.2f} range={}",
+			//	reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+			//	tag, destroy, CXYZ(coord), CXYZ(this->Location), this->GetHeight(),
+			//	this->Velocity.Length(), pExt->DistanceTraveled, this->Range);
+			//DumpTarget("DETONATE target");
+
+			//if (this->Target)
+			//{
+				//const CoordStruct center = this->Target->GetCenterCoords();
+				//Debug::LogInfo("[B{:X} f{}]  DETONATE miss: Location->Center={:.1f} working->Center={:.1f}",
+				//	reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+				//	this->Location.DistanceFrom(center), coord.DistanceFrom(center));
+			//}
+
+			// Hook 0x467E53 — PreDetonation_Trajectories
+			if (auto& pTraj = pExt->Trajectory)
+				pTraj->OnAIPreDetonate();
+
+			// Hook 0x467E59 — NukeBall
+			auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(this->WH);
+			bool allowFlash = true;
+
+			if (pExt->NukeSW && !this->WH->NukeMaker)
+			{
+				SW_NuclearMissile::CurrentNukeType = pExt->NukeSW;
+
+				if (this->GetHeight() < 0)
+					this->SetHeight(0);
+
+				auto pSWTypeExt = SWTypeExtContainer::Instance.Find(pExt->NukeSW);
+
+				if (pSWTypeExt->SW_RadarEvent)
+				{
+					auto coords = this->GetMapCoords();
+					RadarEventClass::Create(RadarEventType::SuperweaponActivated, coords);
+				}
+
+				if (pSWTypeExt->Lighting_Enabled.isset())
+					allowFlash = pSWTypeExt->Lighting_Enabled.Fetch();
+			}
+
+			const auto duration = pWarheadExt->NukeFlashDuration.Get();
+			if (allowFlash && duration > 0)
+			{
+				NukeFlash::Status = NukeFlashStatus::FadeIn;
+				ScenarioClass::Instance->AmbientTimer.Start(1);
+
+				NukeFlash::StartTime = Unsorted::CurrentFrame.get();
+				NukeFlash::Duration = duration;
+
+				SWTypeExtData::ChangeLighting(pExt->NukeSW ? pExt->NukeSW : nullptr);
+				MapClass::Instance->RedrawSidebar(1);
+			}
+
+			if (auto pPreImpact = pWarheadExt->PreImpactAnim.Get())
+			{
+				//Debug::LogInfo("[B{:X} f{}]  DETONATE PreImpactAnim present -> bullet will park at Location=({},{},{})",
+				//	reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+				//	CXYZ(this->Location));
+
+				CoordStruct anim_coord = this->Location;
+				int zadjust = -15;
+
+				AnimClass* pNewAnim = GameCreate<AnimClass>(
+					pPreImpact, &anim_coord,
+					/*timedelay*/ 0, /*loop*/ 1,
+					/*animflags*/ AnimFlag::AnimFlag_2000
+								| AnimFlag::AnimFlag_400
+								| AnimFlag::AnimFlag_200,
+					/*zadjust*/ zadjust, /*reverse*/ 0);
+
+				if (pNewAnim)
+				{
+					AnimExtData::SetAnimOwnerHouseKind(pNewAnim, pExt->Owner, nullptr, false);
+					this->NextAnim = pNewAnim;
+					this->SpawnNextAnim = true;
+					PointerExpiredNotification::NotifyInvalidAnim->Array.push_back(this);
+					this->LastMapCoords = CellClass::Coord2Cell(coord);
+					return;
+				}
+				// Fall through to normal explode if anim creation failed
+			}
+
+			this->Explode(destroy);
+			this->UnInit();
+			this->LastMapCoords = CellClass::Coord2Cell(coord);
+		};
+
+	// ========================================================================
+	//  Shared tail  (0x467B7A .. 0x467FBA)
+	// ========================================================================
+	auto MarkAndContinue = [this, pExt, ApplyNukeWarhead, DumpTarget]
+	(const char* tag, CoordStruct& coord, bool& destroy, int& markType, bool& snapToTarget)
+		{
+			//Debug::LogInfo("[B{:X} f{}]  TAIL enter tag={} coord=({},{},{}) Location=({},{},{}) destroy={} markType={} snapTo={}",
+			//	reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+			//	tag, CXYZ(coord), CXYZ(this->Location), destroy, markType, snapToTarget);
+
+			if (markType == 2)
+			{
+				//Debug::LogInfo("[B{:X} f{}]  TAIL markType==2 -> silent UnInit (left map)", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame());
+				this->Mark(MarkType::Change);
+				this->UnInit();
+				this->LastMapCoords = CellClass::Coord2Cell(coord);
+				return;
+			}
+
+			this->Mark(MarkType::Change);
+
+			// Hook 0x467B94 — Ranged + Firestorm
+			if (this->Type->Ranged)
+			{
+				CoordStruct crdOld = this->GetCoords();
+
+				int maxRange = this->Range;
+				bool useAresBehavior = true;
+
+				if (this->WeaponType)
+				{
+					auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(this->WeaponType);
+
+					useAresBehavior = pWeaponExt->ProjectileRange_UseAresBehaviour;
+
+					if (!useAresBehavior && maxRange > 0 && this->Owner &&
+						pWeaponExt->ProjectileRange_ApplyModifiers
+						.Get(FakeRulesClass::Instance->ProjectileRange_ApplyModifiers))
+					{
+						maxRange = WeaponTypeExtData::GetRangeWithModifiers(this->WeaponType, this->Owner, maxRange);
+					}
+				}
+
+				auto distance = coord.DistanceFrom(crdOld);
+				const bool destroyBefore = destroy;
+
+				if (!useAresBehavior)
+				{
+					pExt->DistanceTraveled += distance;
+					destroy |= pExt->DistanceTraveled >= (double)maxRange;
+				}
+				else
+				{
+					this->Range -= static_cast<int>(distance);
+					if (this->Range <= 0)
+						destroy = true;
+				}
+
+				//Debug::LogInfo("[B{:X} f{}]  TAIL ranged: aresMode={} maxRange={} step={:.2f} distTraveled={:.2f} Range={} destroy {}->{}",
+				//	reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+				//	useAresBehavior, maxRange, distance, pExt->DistanceTraveled, this->Range, destroyBefore, destroy);
+			}
+
+			this->SetLocation(coord);
+
+			if (HouseExtContainer::Instance.IsAnyFirestormActive && !this->Type->IgnoresFirestorm)
+			{
+				auto pCell = MapClass::Instance->GetCellAt(coord);
+
+				if (auto pBld = pCell->GetBuilding())
+				{
+					HouseClass* pOwner = this->Owner
+						? this->Owner->Owner
+						: pExt->Owner;
+
+					if (WarheadTypeExtContainer::Instance
+						.Find(FakeRulesClass::Instance()->FirestormWarhead.Get(
+							RulesClass::Instance->C4Warhead))
+						->CanAffectHouse(pBld->Owner, pOwner))
+					{
+						pOwner = nullptr;
+					}
+
+					if (BuildingExtData::IsActiveFirestormWall(pBld, pOwner))
+					{
+						//Debug::LogInfo("[B{:X} f{}]  TAIL firestorm wall hit -> removed", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame());
+						BuildingExtData::ImmolateVictim(pBld, this, false);
+						BulletExtData::HandleBulletRemove(this,
+							ScenarioClass::Instance->Random.RandomBool(), true);
+
+						this->LastMapCoords = CellClass::Coord2Cell(coord);
+						return;
+					}
+				}
+			}
+
+			bool ObstacleHandled = false;
+
+			if (auto& pTraj = pExt->Trajectory)
+			{
+				if (pTraj->OnHandleObstacleCheck())
+					ObstacleHandled = true;
+			}
+
+			if (!ObstacleHandled)
+			{
+				if (!destroy)
+				{
+					CoordStruct probe = this->Location;
+					destroy = this->IsForceToExplode(probe);
+					//Debug::LogInfo("[B{:X} f{}]  TAIL IsForceToExplode -> {} probe=({},{},{}) Location=({},{},{})",
+					//	reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+					//	destroy, CXYZ(probe), CXYZ(this->Location));
+					this->SetLocation(probe);
+				}
+
+				if (destroy && this->GetHeight() < 0)
+				{
+					//Debug::LogInfo("[B{:X} f{}]  TAIL height<0 -> SetHeight(0)", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame());
+					this->SetHeight(0);
+				}
+			}
+
+			// Hook 0x467C2E — FuseCheck / Hook 0x467C1C — UnknownTimer
+			Fuse fuse_result = Fuse::DontIgnite;
+
+			const bool fuseRan = (!pExt->Trajectory || !pExt->Trajectory->ShouldSkipRangedCheck())
+				&& (this->Type->ROT > 0 || this->Type->Ranged || this->Type->Inviso);
+
+			if (fuseRan)
+			{
+				if (this->Target)
+				{
+					//Debug::LogInfo("[B{:X} f{}]  FUSE pre: coord->Center={:.1f} coord->GetCoords={:.1f} Arm={} ",
+					//	reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+					//	coord.DistanceFrom(this->Target->GetCenterCoords()),
+					//	coord.DistanceFrom(this->Target->GetCoords()),
+					//	this->Type->Arm);
+				}
+
+				fuse_result = static_cast<Fuse>(
+					BulletExtData::FuseCheckup(this, &coord));
+			}
+
+			//Debug::LogInfo("[B{:X} f{}]  FUSE ran={} result={} (0=DontIgnite 1=Ignite 2=DistFactor) coord=({},{},{})",
+			//	reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+			//	fuseRan, static_cast<int>(fuse_result), CXYZ(coord));
+
+			if (this->Owner
+				&& this->Owner->GetTechnoType()->JumpJet
+				&& (fuse_result == Fuse::Ignite_DistaceFactor))
+			{
+				//Debug::LogInfo("[B{:X} f{}]  FUSE jumpjet override 2->1", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame());
+				fuse_result = Fuse::Ignite;
+			}
+
+			if (!destroy && (this->Type->Dropping || fuse_result == Fuse::DontIgnite))
+			{
+				//Debug::LogInfo("[B{:X} f{}]  END: still flying (Dropping={} fuse={}) coord=({},{},{})",
+				//	reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+				//	this->Type->Dropping, static_cast<int>(fuse_result), CXYZ(coord));
+
+				if (!this->Type->Inviso && this->Type->Degenerates && this->Health > 5)
+					--this->Health;
+
+				this->LastMapCoords = CellClass::Coord2Cell(coord);
+				return;
+			}
+
+			//Debug::LogInfo("[B{:X} f{}]  TAIL proceeding to detonation: destroy={} fuse={} snapTo={}",
+			//	reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+			//	destroy, static_cast<int>(fuse_result), snapToTarget);
+
+			// Hook 0x467CCA — TargetSnapChecks
+			if (this->Target && (fuse_result == Fuse::Ignite || snapToTarget))
+			{
+				bool snap_allowed = !this->Type->Airburst;
+
+				if (this->Type->Inviso)
+				{
+					snap_allowed = !this->Type->Inaccurate;
+				}
+				else if (pExt->Trajectory)
+				{
+					snap_allowed = PhobosTrajectory::CanSnap(pExt->Trajectory);
+				}
+
+				//Debug::LogInfo("[B{:X} f{}]  SNAP check: snap_allowed={} Inaccurate={} Airburst={}",
+				//	reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+				//	snap_allowed, this->Type->Inaccurate, this->Type->Airburst);
+
+				if (snap_allowed && !this->Type->Inaccurate)
+				{
+					const CoordStruct target_coord = this->Target->GetCenterCoords();
+					const CoordStruct delta {
+						coord.X - target_coord.X,
+						coord.Y - target_coord.Y,
+						(target_coord.Z + coord.Z) / 2 - target_coord.Z
+					};
+
+					const int dist = static_cast<int>(delta.Length());
+					const int dist_threshold = snapToTarget ? (dist / 3) : dist;
+					const double speed_mag = this->Velocity.Length();
+					const double snap_radius = (speed_mag * 2.0 >= 128.0)
+						? speed_mag * 2.0
+						: 128.0;
+
+					const bool doSnap = (fuse_result == Fuse::Ignite || dist_threshold <= snap_radius);
+
+					//Debug::LogInfo("[B{:X} f{}]  SNAP calc: distTarget(+Center)=({},{},{}) delta=({},{},{}) dist={} thr={} radius={:.1f} -> doSnap={}",
+						//reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+					//	CXYZ(target_coord), CXYZ(delta), dist, dist_threshold, snap_radius, doSnap);
+
+					if (doSnap)
+					{
+						CoordStruct center = this->Target->GetCoords();
+						//Debug::LogInfo("[B{:X} f{}]  SNAP applying SetLocation(GetCoords)=({},{},{}) (Location was ({},{},{}))",
+						//	reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+						//	CXYZ(center), CXYZ(this->Location));
+						this->SetLocation(center);
+					}
+				}
+			}
+			else
+			{
+				//Debug::LogInfo("[B{:X} f{}]  SNAP skipped: Target={} fuse={} snapTo={}",
+				//	reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+				//	this->Target != nullptr, static_cast<int>(fuse_result), snapToTarget);
+			}
+
+			//Debug::LogInfo("[B{:X} f{}]  TAIL final Location=({},{},{})", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(), CXYZ(this->Location));
+			ApplyNukeWarhead(tag, destroy, coord);
+		};
+
+	if (!OnEarlyTrajectoryUpdate())
+	{
 		// Targeted -> Locked status promotion (intercept book-keeping)
 		if (pExt->InterceptedStatus & InterceptedStatus::Targeted)
 		{
-			if (auto pTargetBullet = cast_to<BulletClass*>(pThis->Target))
+			if (auto pTargetBullet = cast_to<BulletClass*>(this->Target))
 			{
 				auto pTgtTypeExt = BulletTypeExtContainer::Instance.Find(pTargetBullet->Type);
 				auto pTgtExt = BulletExtContainer::Instance.Find(pTargetBullet);
@@ -435,48 +626,20 @@ namespace
 			}
 		}
 
-		// Intercepted bullets either get removed or unlock their target
 		if (pExt->InterceptedStatus & InterceptedStatus::Intercepted)
 		{
-			if (auto pTargetBullet = cast_to<BulletClass*>(pThis->Target))
+			if (auto pTargetBullet = cast_to<BulletClass*>(this->Target))
 				BulletExtContainer::Instance.Find(pTargetBullet)->InterceptedStatus
 				&= ~InterceptedStatus::Locked;
 
-			if (BulletExtData::HandleBulletRemove(pThis, pExt->DetonateOnInterception, true))
+			if (BulletExtData::HandleBulletRemove(this, pExt->DetonateOnInterception, true))
 			{
-				ctx.early_return = true;
+				//Debug::LogInfo("[B{:X} f{}]  END: removed by interception", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame());
 				return;
 			}
 		}
 
-		if (!pThis->IsAlive)
-		{
-			ctx.early_return = true;
-			return;
-		}
-
-		// Trajectory-path LaserTrails (only when trajectory does NOT block trail draw)
-		if (!PhobosTrajectory::BlockDrawTrail(pTraj))
-		{
-			if (!pExt->LaserTrails.empty())
-			{
-				CoordStruct futureCoords {
-					pThis->Location.X + static_cast<int>(pThis->Velocity.X),
-					pThis->Location.Y + static_cast<int>(pThis->Velocity.Y),
-					pThis->Location.Z + static_cast<int>(pThis->Velocity.Z)
-				};
-
-				for (auto& trail : pExt->LaserTrails)
-				{
-					if (!trail->LastLocation.isset())
-						trail->LastLocation = pThis->Location;
-					trail->Update(futureCoords);
-				}
-			}
-		}
-
-		// Parachute fall rate update (parabomb)
-		if (pThis->HasParachute)
+		if (this->HasParachute)
 		{
 			int fallRate = pExt->ParabombFallRate - pTypeExt->Parachuted_FallRate;
 			int maxFallRate = pTypeExt->Parachuted_MaxFallRate.Get(RulesClass::Instance->ParachuteMaxFallRate);
@@ -485,55 +648,54 @@ namespace
 				fallRate = maxFallRate;
 
 			pExt->ParabombFallRate = fallRate;
-			pThis->FallRate = fallRate;
+			this->FallRate = fallRate;
 		}
 
-		// -----------------------------------------------------------------------
 		// Hook 0x466705 — BulletClass_AI
-		// -----------------------------------------------------------------------
-		auto pBulletCurOwner = pThis->GetOwningHouse();
-		if (pThis->Owner && pBulletCurOwner && pBulletCurOwner != pExt->Owner)
+		auto pBulletCurOwner = this->GetOwningHouse();
+		bool ownerChanged = false;
+
+		if (this->Owner && pBulletCurOwner && pBulletCurOwner != pExt->Owner)
 		{
-			ctx.change_owner = true;
+			ownerChanged = true;
 			pExt->Owner = pBulletCurOwner;
 		}
 
-		// One-shot Bright flag check (weapon or warhead can override)
-		if (pThis->WeaponType && pThis->WH)
+		if (this->WeaponType && this->WH)
 		{
 			if (!pExt->BrightCheckDone)
 			{
-				pThis->Bright = pThis->WeaponType->Bright || pThis->WH->Bright;
+				this->Bright = this->WeaponType->Bright || this->WH->Bright;
 				pExt->BrightCheckDone = true;
 			}
 		}
 
-		// PreExplodeRange — early detonation when within N cells of target
 		if (pTypeExt->PreExplodeRange.isset())
 		{
-			const auto thisCoord = pThis->GetCoords();
-			const auto targetCoord = pThis->GetBulletTargetCoords();
+			const auto thisCoord = this->GetCoords();
+			const auto targetCoord = this->GetBulletTargetCoords();
+
+			//Debug::LogInfo("[B{:X} f{}]  PreExplodeRange dist={:.1f} limit={}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(), thisCoord.DistanceFrom(targetCoord),
+			//	pTypeExt->PreExplodeRange.Fetch() * 256);
 
 			if (Math::abs(thisCoord.DistanceFrom(targetCoord))
-				<= pTypeExt->PreExplodeRange.Get(0) * 256)
+				<= pTypeExt->PreExplodeRange.Fetch() * 256)
 			{
-				if (BulletExtData::HandleBulletRemove(pThis, true, true))
+				if (BulletExtData::HandleBulletRemove(this, true, true))
 				{
-					ctx.early_return = true;
+					//Debug::LogInfo("[B{:X} f{}]  END: PreExplodeRange removal", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame());
 					return;
 				}
 			}
 		}
 
 		// Non-trajectory LaserTrails path
-		if (!pExt->Trajectory || !PhobosTrajectory::BlockDrawTrail(pExt->Trajectory))
 		{
 			if (!pExt->LaserTrails.empty())
 			{
-				const CoordStruct& location = pThis->Location;
-				const VelocityClass& velocity = pThis->Velocity;
+				const CoordStruct& location = this->Location;
+				const VelocityClass& velocity = this->Velocity;
 
-				// Adjust LaserTrails for the vanilla one-frame-ahead drawing bug
 				CoordStruct drawnCoords {
 					static_cast<int>(location.X + velocity.X),
 					static_cast<int>(location.Y + velocity.Y),
@@ -545,1823 +707,754 @@ namespace
 					if (!trail->LastLocation.isset())
 						trail->LastLocation = location;
 
-					if (trail->Type->IsHouseColor.Get() && ctx.change_owner && pExt->Owner)
+					if (trail->Type->IsHouseColor.Get() && ownerChanged && pExt->Owner)
 						trail->CurrentColor = pExt->Owner->LaserColor;
 
 					trail->Update(drawnCoords);
 				}
 			}
 		}
-	}
 
-	// ===========================================================================
-	// HandleSpawnedAnimFollowup
-	//   Hook 0x46670F (BulletClass_AI_PreImpactAnim)
-	//
-	// Called when SpawnNextAnim is set (the post-detonation tick where the bullet
-	// is sleeping until its NUKEBALL/PreImpact anim finishes spawning). Returns
-	// true if the bullet was actually removed this tick.
-	// ===========================================================================
-	OPTIONALINLINE bool HandleSpawnedAnimFollowup(FakeBulletClass* pThis)
-	{
-		// -----------------------------------------------------------------------
-		// Hook 0x46670F — BulletClass_AI_PreImpactAnim
-		// -----------------------------------------------------------------------
-		if (pThis->NextAnim)
+		bool destroyed = false;
+		bool snapToTarget = false;
+
+		if (this->SpawnNextAnim)
 		{
-			auto pWHExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
-			if (pWHExt->PreImpact_Moves.Get())
+			if (this->NextAnim)
 			{
-				// Track the spawned anim's coords — bullet rides the anim
-				auto coords = pThis->NextAnim->GetCoords();
-				pThis->Location = coords;
-				pThis->Target = MapClass::Instance->TryGetCellAt(coords);
+				auto pWHExt = WarheadTypeExtContainer::Instance.Find(this->WH);
+
+				if (pWHExt->PreImpact_Moves.Get())
+				{
+					auto coords = this->NextAnim->GetCoords();
+					this->Location = coords;
+					this->Target = MapClass::Instance->TryGetCellAt(coords);
+				}
+				//Debug::LogInfo("[B{:X} f{}]  END: parked on PreImpact anim, Location=({},{},{})", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(), CXYZ(this->Location));
+				return;  // bullet sleeps another tick
 			}
-			return false;  // bullet sleeps another tick
-		}
 
-		// NextAnim has finished — perform the deferred cleanup
-		PointerExpiredNotification::NotifyInvalidAnim->Array.erase(pThis);
-		pThis->SpawnNextAnim = false;
-		pThis->Explode(false);
-		pThis->UnInit();
-		return true;
-	}
-
-	// ===========================================================================
-	// AdvanceAnimFrame
-	// ===========================================================================
-	OPTIONALINLINE void AdvanceAnimFrame(BulletClass* pThis)
-	{
-		auto pType = pThis->Type;
-		if (!pType->AnimLow && !pType->AnimHigh)
-			return;
-
-		if (--pThis->AnimRateCounter != 0)
-			return;
-
-		pThis->AnimRateCounter = pType->AnimRate;
-		if (++pThis->AnimFrame > pType->AnimHigh)
-			pThis->AnimFrame = pType->AnimLow;
-	}
-
-	// ===========================================================================
-	// SpawnTrailerIfDue
-	//   Hook 0x466834 (BulletClass_AI_TrailerAnim)
-	//
-	// The hook completely replaces the original trailer-spawn logic with one that
-	// uses the unified ScaledSpawnDelay/SpawnDelay fallback and routes through
-	// AnimExtData::SetAnimOwnerHouseKind for proper house ownership.
-	// ===========================================================================
-	OPTIONALINLINE void SpawnTrailerIfDue(FakeBulletClass* pThis, CoordStruct const& /*coord*/)
-	{
-		auto pType = pThis->Type;
-		if (!pType->Trailer)
-			return;
-
-		// -----------------------------------------------------------------------
-		// Hook 0x466834 — BulletClass_AI_TrailerAnim
-		// -----------------------------------------------------------------------
-		const int delay = pType->ScaledSpawnDelay ? pType->ScaledSpawnDelay : pType->SpawnDelay;
-
-		// VERIFY: hook only guards `delay < 0`, not `delay == 0`. If both
-		// ScaledSpawnDelay and SpawnDelay are 0 the modulo below crashes.
-		// Original vanilla code had the same flaw — preserved.
-		if (delay < 0)
-			return;
-
-		if ((Unsorted::CurrentFrame.get() % delay) != 0)
-			return;
-
-		auto pExt = pThis->_GetExtData();
-
-		auto pAnim = GameCreate<AnimClass>(
-			pType->Trailer,
-			pThis->Location,
-			/*timedelay*/ 1,
-			/*loop*/ 1,
-			/*animflags*/ AnimFlag::AnimFlag_600,
-			/*zadjust*/ 0,
-			/*reverse*/ false);
-
-		AnimExtData::SetAnimOwnerHouseKind(
-			pAnim,
-			pThis->Owner ? pThis->Owner->GetOwningHouse()
-						  : (pExt->Owner ? pExt->Owner : nullptr),
-			pThis->Target ? pThis->Target->GetOwningHouse() : nullptr,
-			pThis->Owner,
-			false,
-			false);
-	}
-
-	// ===========================================================================
-		// UpdateGuidedMotion (Type->ROT > 0)
-		//
-		// Hooks integrated:
-		//   0x4668BD — Inviso interceptor short-circuit at entry
-		//   0x466BAF — MissileROTVar replacement (type-ext lookup)
-		//   0x466E9F — MissileSafetyAltitude replacement (type-ext lookup)
-		//
-		// EXTENSION_ARCING: 0x466E18 — Subterranean missile height bypass
-		// ===========================================================================
-	OPTIONALINLINE void UpdateGuidedMotion(FakeBulletClass* pThis, CoordStruct& coord,
-										   BulletAITickContext& ctx)
-	{
-		auto pType = pThis->Type;
-		auto pTypeExt = pThis->_GetTypeExtData();
-		auto pVel = &pThis->Velocity;
-		auto pTarget = pThis->Target;
-
-		// -----------------------------------------------------------------------
-		// Hook 0x4668BD — Inviso interceptors detonate immediately on entry
-		// -----------------------------------------------------------------------
-		if (pType->Inviso && pThis->_GetExtData()->InterceptorTechnoType)
-		{
-			ctx.detonate_now = true;
+			//Debug::LogInfo("[B{:X} f{}]  pending anim finished -> Explode(false) at Location=({},{},{})", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(), CXYZ(this->Location));
+			PointerExpiredNotification::NotifyInvalidAnim->Array.erase(this);
+			this->SpawnNextAnim = false;
+			this->Explode(false);
+			this->UnInit();
 			return;
 		}
 
-		// ---------- (a) course-lock gate ---------------------------------------
-		double current_speed = Math::sqrt(pVel->X * pVel->X +
-										   pVel->Y * pVel->Y +
-										   pVel->Z * pVel->Z);
-		double speed_target = static_cast<double>(pThis->Speed);
+		// ====================================================================
+		//  Normal flight
+		// ====================================================================
+		if (this->Type->Dropping && !this->IsFallingDown)
+			destroyed = true;
 
-		if (pType->CourseLockDuration > 0)
+		if (this->Type->AnimLow || this->Type->AnimHigh)
 		{
-			if (pThis->CourseLockCounter < pType->CourseLockDuration)
+			const auto decreased = --this->AnimRateCounter;
+
+			if (!decreased)
 			{
-				if (++pThis->CourseLockCounter >= pType->CourseLockDuration)
-					pThis->CourseLock = false;
+				this->AnimRateCounter = this->Type->AnimRate;
+				if (++this->AnimFrame > this->Type->AnimHigh)
+					this->AnimFrame = this->Type->AnimLow;
 			}
 		}
-		else if (pThis->Speed >= 40 || speed_target <= current_speed + 0.5)
-		{
-			pThis->CourseLock = false;
-		}
 
-		// ---------- (b) acceleration value -------------------------------------
-		int accel_value = pType->Acceleration;
-		if (pThis->CourseLock && pType->CourseLockDuration == 0)
+		if (this->Type->Trailer)
 		{
-			accel_value = (Unsorted::CurrentFrame.get() % 2 == 0) ? 1 : 0;
-		}
+			// Hook 0x466834 — BulletClass_AI_TrailerAnim
+			const int delay = this->Type->ScaledSpawnDelay ?
+				this->Type->ScaledSpawnDelay : this->Type->SpawnDelay;
 
-		// ---------- (c) speed adjust + normalize -------------------------------
-		if (current_speed != speed_target)
-		{
-			if (current_speed > speed_target)
+			if (delay > 0)
 			{
-				current_speed -= accel_value / 2;
-				if (current_speed < 0.0)
-					current_speed = 0.0;
+				if ((Unsorted::CurrentFrame.get() % delay) == 0)
+				{
+					auto pAnim = GameCreate<AnimClass>(
+						this->Type->Trailer,
+						this->Location,
+						/*timedelay*/ 1,
+						/*loop*/ 1,
+						/*animflags*/ AnimFlag::AnimFlag_600,
+						/*zadjust*/ 0,
+						/*reverse*/ false);
+
+					AnimExtData::SetAnimOwnerHouseKind(
+						pAnim,
+						this->Owner ? this->Owner->GetOwningHouse()
+									  : (pExt->Owner ? pExt->Owner : nullptr),
+						this->Target ? this->Target->GetOwningHouse() : nullptr,
+						this->Owner,
+						false,
+						false);
+				}
 			}
-			else
+		}
+
+		CoordStruct _thisCoord = this->Location;
+		int markType = 0;
+
+		//Debug::LogInfo("[B{:X} f{}]  FRAME Location=({},{},{}) Vel=({:.3f},{:.3f},{:.3f}) |Vel|={:.2f} Speed={} height={} ROT={} Vertical={} Ranged={} Inviso={} Airburst={} VeryHigh={} Level={} CourseLock={} Dropping={}",
+		//	reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+		//	CXYZ(this->Location), this->Velocity.X, this->Velocity.Y, this->Velocity.Z,
+		//	this->Velocity.Length(), this->Speed, this->GetHeight(),
+		//	this->Type->ROT, this->Type->Vertical, this->Type->Ranged, this->Type->Inviso,
+		//	this->Type->Airburst, this->Type->VeryHigh, this->Type->Level,
+		//	this->CourseLock, this->Type->Dropping);
+		//DumpTarget("FRAME");
+
+		// ====================================================================
+		//  Homing (ROT > 0)
+		// ====================================================================
+		if (this->Type->ROT > 0)
+		{
+			// Hook 0x4668BD — Inviso interceptors detonate immediately
+			if (this->Type->Inviso && this->_GetExtData()->InterceptorTechnoType)
+			{
+				//Debug::LogInfo("[B{:X} f{}]  END: inviso interceptor detonation", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame());
+				this->Explode(destroyed);
+				this->UnInit();
+				this->LastMapCoords = CellClass::Coord2Cell(_thisCoord);
+				return;
+			}
+
+			// ---------- (a) course-lock gate -------------------------------
+			double current_speed = this->Velocity.Length();
+			const double speed_target = static_cast<double>(this->Speed);
+			const bool lockBefore = this->CourseLock;
+
+			if (this->Type->CourseLockDuration > 0)
+			{
+				if (this->CourseLockCounter < this->Type->CourseLockDuration)
+				{
+					if (++this->CourseLockCounter >= this->Type->CourseLockDuration)
+						this->CourseLock = false;
+				}
+			}
+			else if (this->Speed >= 40 || speed_target <= current_speed + 0.5)
+			{
+				this->CourseLock = false;
+			}
+
+			//Debug::LogInfo("[B{:X} f{}]  ROT(a) courseLock {}->{} lockDur={} lockCounter={}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+			//	lockBefore, this->CourseLock, this->Type->CourseLockDuration, this->CourseLockCounter);
+
+			// ---------- (b) acceleration value -----------------------------
+			int accel_value = this->Type->Acceleration;
+			if (this->CourseLock && this->Type->CourseLockDuration == 0)
+				accel_value = (Unsorted::CurrentFrame() % 2 == 0) ? 1 : 0;
+
+			// ---------- (c) speed adjust + rescale -------------------------
+			auto RescaleVelocity = [this](double speed)
+				{
+					this->Velocity.SetXIfZeroXYZ();
+					const double k = speed / this->Velocity.Length();
+					this->Velocity *= k;
+				};
+
+			const double speedBefore = current_speed;
+
+			if (current_speed < speed_target)
 			{
 				current_speed += accel_value;
 				if (current_speed >= speed_target)
 					current_speed = speed_target;
+
+				RescaleVelocity(current_speed);
+			}
+			else if (current_speed > speed_target)
+			{
+				current_speed -= static_cast<double>(accel_value / 2);
+				if (current_speed <= 0.0)
+					current_speed = 0.0;
+
+				RescaleVelocity(current_speed);
 			}
 
-			if (pVel->X == 0.0 && pVel->Y == 0.0 && pVel->Z == 0.0)
-				pVel->X = 100.0;
+			//Debug::LogInfo("[B{:X} f{}]  ROT(c) accel={} speed {:.2f}->{:.2f} target={:.1f} |Vel|now={:.2f}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+			//	accel_value, speedBefore, current_speed, speed_target, this->Velocity.Length());
 
-			double mag = Math::sqrt(pVel->X * pVel->X +
-									 pVel->Y * pVel->Y +
-									 pVel->Z * pVel->Z);
-			double scale = current_speed / mag;
-			pVel->X *= scale;
-			pVel->Y *= scale;
-			pVel->Z *= scale;
-		}
+			// ---------- (d) homing turn ------------------------------------
+			auto GetTargetCoords = [this, pTypeExt]() -> CoordStruct
+				{
+					if (pTypeExt->MissileKeepTargetCoord.Get(FakeRulesClass::Instance()->MissileKeepTargetCoord))
+					{
+						if (!this->Target)
+						{
+							return this->TargetCoords;
+						}
+					}
 
-		// ---------- (d) homing turn --------------------------------------------
-		VelocityClass veloc = *pVel;
-		CoordStruct pCoordTarget = CoordStruct::Empty;
-	
-		auto GetTargetCoords = [pThis, pTypeExt](AbstractClass* pTarget) {
-			if (pTypeExt->MissileKeepTargetCoord.Get(FakeRulesClass::Instance()->MissileKeepTargetCoord)) {
-				if (!pTarget) {
-					return pThis->TargetCoords;
+					if (auto pObject = flag_cast_to<ObjectClass*>(this->Target))
+						return pObject->GetTargetCoords();
+
+					return this->Target ? this->Target->GetCenterCoords() : CoordStruct::Empty;
+				};
+
+			CoordStruct pCoordTarget = GetTargetCoords();
+			const bool aimIsDefault = (pCoordTarget == CoordStruct::Empty);
+
+			//Debug::LogInfo("[B{:X} f{}]  ROT(d) aim=({},{},{}) aimIsDefault={} keepTargetCoord={} isObjectFlag={}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+			//	CXYZ(pCoordTarget), aimIsDefault,
+			//	pTypeExt->MissileKeepTargetCoord.Get(FakeRulesClass::Instance()->MissileKeepTargetCoord),
+			//	flag_cast_to<ObjectClass*>(this->Target) != nullptr);
+
+			// Hook 0x466BAF — MissileROTVar (type-ext override)
+			const int    nFrame = (Unsorted::CurrentFrame.get() + this->Fetch_ID()) % 15;
+			const double nMissileROTVar = pTypeExt->MissileROTVar.Get(RulesClass::Instance->MissileROTVar);
+
+			int rot_amount = static_cast<int>(
+				(Math::sin(static_cast<double>(nFrame)
+					* Math::ONE_FIFTEENTH
+					* Math::GAME_TWOPI) * nMissileROTVar
+					+ nMissileROTVar + 1.0)
+				* static_cast<double>(this->Type->ROT));
+
+			const CoordStruct pCenter = this->GetCoords();
+			const CoordStruct homing_offset = pCenter - pCoordTarget;
+			const int homingDist = static_cast<int>(homing_offset.Length());
+
+			if (homingDist < 256)
+				rot_amount = static_cast<int>(rot_amount * 1.5);
+
+			const CoordStruct pre_motion_coord = _thisCoord;
+
+			const bool target_is_aircraft = cast_to<AircraftClass*>(this->Target) != nullptr;
+
+			DirStruct dir { };
+			if (!this->CourseLock)
+				dir.Raw = static_cast<unsigned short>((rot_amount & 0xFF) << 8);
+
+			//Debug::LogInfo("[B{:X} f{}]  ROT(d) nFrame={} rotVar={:.3f} rot={} (x1.5 if <256) center=({},{},{}) homingDist={} aircraftTarget={} dirRaw={}",
+			//	reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+			//	nFrame, nMissileROTVar, rot_amount, CXYZ(pCenter), homingDist, target_is_aircraft, dir.Raw);
+
+			const int new_height = missile_maths(&_thisCoord, &this->Velocity, &pCoordTarget, &dir,
+				target_is_aircraft,
+				this->Type->Airburst,
+				this->Type->VeryHigh,
+				this->Type->Level);
+
+			//Debug::LogInfo("[B{:X} f{}]  ROT(d) missile_maths ret={} coord ({},{},{})->({},{},{}) Vel=({:.3f},{:.3f},{:.3f}) aimAfter=({},{},{})", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+			//	new_height, CXYZ(pre_motion_coord), CXYZ(_thisCoord),
+			//	this->Velocity.X, this->Velocity.Y, this->Velocity.Z, CXYZ(pCoordTarget));
+
+			auto pCellAfter = MapClass::Instance->GetCellAt(_thisCoord);
+
+			// ---------- (e) altitude safety overrides ----------------------
+			const double speed_after = this->Velocity.Length();
+			const int cur_height = this->GetHeight();
+
+			const bool condA = (speed_after * 0.5 >= new_height);
+			const bool condB = (cur_height <= 0);
+
+			//Debug::LogInfo("[B{:X} f{}]  ROT(e) speedAfter={:.2f} half={:.2f} new_height={} condA(half>=new_height)={} cur_height={} condB(height<=0)={}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+			//	speed_after, speed_after * 0.5, new_height, condA, cur_height, condB);
+
+			if (condA || condB)
+			{
+				destroyed = true;
+				markType = 1;
+
+				//Debug::LogInfo("[B{:X} f{}]  ROT(e) IMPACT FLAGGED by {}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(), condA ? "condA (speed/2 >= motion)" : "condB (height<=0)");
+
+				if (cur_height > 0
+					&& !this->Type->Airburst
+					&& !aimIsDefault)
+				{
+					//Debug::LogInfo("[B{:X} f{}]  ROT(e) coord snapped to aim ({},{},{})", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(), CXYZ(pCoordTarget));
+					_thisCoord = pCoordTarget;
 				}
 			}
 
-			if (auto pObject = flag_cast_to<ObjectClass*>(pTarget))
-				return pObject->GetCenterCoords();
-
-			return pTarget ? pTarget->GetCoords() : CoordStruct::Empty;
-		};
-
-		pCoordTarget = GetTargetCoords(pTarget);
-
-		// -----------------------------------------------------------------------
-		// Hook 0x466BAF — MissileROTVar (type-ext override)
-		// -----------------------------------------------------------------------
-		const int    nFrame = (Unsorted::CurrentFrame.get() + pThis->Fetch_ID()) % 15;
-		const double nMissileROTVar = pTypeExt->MissileROTVar.Get(RulesClass::Instance->MissileROTVar);
-
-		int rot_amount = static_cast<int>(
-			(Math::sin(static_cast<double>(nFrame)
-				* Math::ONE_FIFTEENTH
-				* Math::GAME_TWOPI) * nMissileROTVar
-				+ nMissileROTVar + 1.0)
-			* static_cast<double>(pType->ROT));
-
-		auto pCenter = pThis->GetCoords();
-		CoordStruct homing_offset = pCenter - pCoordTarget;
-
-		int homing_dist = static_cast<int>(Math::sqrt(
-			static_cast<double>(homing_offset.X) * homing_offset.X +
-			static_cast<double>(homing_offset.Y) * homing_offset.Y +
-			static_cast<double>(homing_offset.Z) * homing_offset.Z));
-
-		if (homing_dist < 256)
-			rot_amount = static_cast<int>(rot_amount * 1.5);
-
-		CoordStruct pre_motion_coord = coord;
-
-		bool target_is_aircraft = (pTarget &&
-								   pTarget->WhatAmI() == AbstractType::Aircraft);
-
-		DirStruct dir {};
-		if (!pThis->CourseLock)
-			dir.Raw = static_cast<unsigned short>((rot_amount & 0xFF) << 8);
-
-		int new_height = missile_maths(&coord, &veloc, &pCoordTarget, &dir,
-										   target_is_aircraft,
-										   pType->Airburst,
-										   pType->VeryHigh,
-										   pType->Level);
-
-		auto pCellAfter = MapClass::Instance->GetCellAt(coord);
-		*pVel = veloc;
-
-		// ---------- (e) Z/altitude safety overrides ----------------------------
-		double speed_after = Math::sqrt(pVel->X * pVel->X +
-										 pVel->Y * pVel->Y +
-										 pVel->Z * pVel->Z);
-
-		// EXTENSION_ARCING: 0x466E18 — Subterranean missile height bypass
-		// ----------------------------------------------------------------------
-		// Default behavior: any guided bullet with height <= 0 force-detonates
-		// at the target snap. The extension lets bullets flagged
-		// `!SubjectToGround` continue flying underground (straight-line
-		// missiles tunneling under terrain).
-		//
-		// When enabled, the second disjunct of the height-termination check
-		// becomes conditional on the per-bullet status flag. The first
-		// disjunct (speed_after * 0.5 < new_height — i.e. the projectile is
-		// arriving faster than it can correct) is unaffected.
-		//
-		// COLLISION NOTE: hook is at 0x466E18, which is *inside* the original
-		// `Get_Height ; test eax, eax ; jle` sequence. Pure replacement,
-		// no overlap with any other Phobos hook.
-		// ----------------------------------------------------------------------
-		bool height_termination = (pThis->GetHeight() <= 0);
-#if 0  // EXTENSION_ARCING: pending BulletStatus save/load
-		if (height_termination)
-		{
-			if (auto status = BulletExt::GetStatus(pThis))
+			// Hook 0x466E9F — MissileSafetyAltitude (type-ext override)
+			if (aimIsDefault)
 			{
-				if (!status->SubjectToGround)
-					height_termination = false;
-			}
-		}
-#endif
+				//Debug::LogInfo("[B{:X} f{}]  ROT(e) aim is default; safetyAlt={} cur_height={}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+				//	pTypeExt->GetMissileSaveAltitude(RulesClass::Instance()), cur_height);
 
-		if (speed_after * 0.5 >= new_height || height_termination)
-		{
-			ctx.exploded = true;
-			ctx.markType = 1;
-
-			if (pThis->GetHeight() > 0
-				&& !pType->Airburst
-				&& (pCoordTarget.IsValid()))
-			{
-				coord = pCoordTarget;
-			}
-		}
-
-		// -----------------------------------------------------------------------
-		// Hook 0x466E9F — MissileSafetyAltitude (type-ext override)
-		// -----------------------------------------------------------------------
-		if (!pCoordTarget.IsValid())
-		{
-			const int safety_alt = pTypeExt->GetMissileSaveAltitude(RulesClass::Instance());
-			if (pThis->GetHeight() >= safety_alt)
-			{
-				ctx.exploded = true;
-				ctx.markType = 1;
-			}
-		}
-
-		// ---------- (f) smoothed proximity-fuse trigger ------------------------
-		CoordStruct to_target_pre = pre_motion_coord - pCoordTarget;
-
-		int dist_pre = static_cast<int>(Math::sqrt(
-			static_cast<double>(to_target_pre.X) * to_target_pre.X +
-			static_cast<double>(to_target_pre.Y) * to_target_pre.Y +
-			static_cast<double>(to_target_pre.Z) * to_target_pre.Z));
-
-		CoordStruct to_target_post = coord - pCoordTarget;
-
-		int dist_post = static_cast<int>(Math::sqrt(
-			static_cast<double>(to_target_post.X) * to_target_post.X +
-			static_cast<double>(to_target_post.Y) * to_target_post.Y +
-			static_cast<double>(to_target_post.Z) * to_target_post.Z));
-
-		int dist_delta = dist_pre - dist_post;
-
-		if (!pThis->CourseLock)
-		{
-			if (pThis->TrendSampleCount < 60)
-			{
-				++pThis->TrendSampleCount;
-				pThis->SmoothedDistanceDelta += dist_delta;
-			}
-			else
-			{
-
-				pThis->SmoothedDistanceDelta = pThis->SmoothedDistanceDelta * Math:: ProximityFuseDecayFactor + dist_delta;
-
-				if (pThis->SmoothedDistanceDelta >= 0.0
-					&& pThis->SmoothedDistanceDelta < 60.0)
+				if (cur_height >= pTypeExt->GetMissileSaveAltitude(RulesClass::Instance()))
 				{
-					if (!pType->Airburst && !pType->VeryHigh)
+					//Debug::LogInfo("[B{:X} f{}]  ROT(e) IMPACT FLAGGED by safety altitude", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame());
+					destroyed = true;
+					markType = 1;
+				}
+			}
+
+			// ---------- (f) smoothed "no progress" trigger -----------------
+			const int dist_pre = static_cast<int>((pre_motion_coord - pCoordTarget).Length());
+			const int dist_post = static_cast<int>((_thisCoord - pCoordTarget).Length());
+			const int dist_delta = dist_pre - dist_post;
+
+			//Debug::LogInfo("[B{:X} f{}]  ROT(f) dist_pre={} dist_post={} delta={} CourseLock={} trendCount={} smoothed={:.2f}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+			//	dist_pre, dist_post, dist_delta, this->CourseLock, this->TrendSampleCount,
+			//	this->SmoothedDistanceDelta);
+
+			if (!this->CourseLock)
+			{
+				if (this->TrendSampleCount < 60)
+				{
+					++this->TrendSampleCount;
+					this->SmoothedDistanceDelta += dist_delta;
+				}
+				else
+				{
+					this->SmoothedDistanceDelta = this->SmoothedDistanceDelta
+						* Math::ProximityFuseDecayFactor + dist_delta;
+
+					//Debug::LogInfo("[B{:X} f{}]  ROT(f) smoothed now {:.2f}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(), this->SmoothedDistanceDelta);
+
+					if (this->SmoothedDistanceDelta >= 0.0 && this->SmoothedDistanceDelta < 60.0)
 					{
-						ctx.exploded = true;
-						ctx.markType = 1;
-						return;
+						if (!this->Type->Airburst && !this->Type->VeryHigh)
+						{
+							//Debug::LogInfo("[B{:X} f{}]  ROT(f) STALL TRIGGER", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame());
+							destroyed = true;
+							markType = 1;
+							MarkAndContinue("ROT-stall", _thisCoord, destroyed, markType, snapToTarget);
+							return;
+						}
 					}
 				}
 			}
-		}
 
-		if (ctx.markType != 0)
-			return;
-
-		// ---------- (g) wall-top Z crossing test -------------------------------
-		if (pCellAfter->ContainsBridgeHead()
-			|| MapClass::Instance->GetCellAt(pre_motion_coord)->ContainsBridgeHead())
-		{
-			int wall_top = MapClass::Instance->GetCellFloorHeight(coord) + CellClass::BridgeHeight;
-
-			if (coord.Z > wall_top && pre_motion_coord.Z < wall_top)
+			// ---------- (g) wall-top Z crossing ----------------------------
+			if (markType == 0
+				&& (pCellAfter->ContainsBridgeHead()
+					|| MapClass::Instance->GetCellAt(pre_motion_coord)->ContainsBridgeHead()))
 			{
-				ctx.markType = 1;
-				coord.Z = wall_top;
-				ctx.exploded = true;
-				return;
-			}
-			if (coord.Z < wall_top && pre_motion_coord.Z > wall_top)
-			{
-				ctx.markType = 1;
-				coord.Z = wall_top;
-				ctx.exploded = true;
-				return;
-			}
-		}
-	}
+				const int wall_top = MapClass::Instance->GetCellFloorHeight(_thisCoord) + CellClass::BridgeHeight;
 
-	// ===========================================================================
-	// UpdateVerticalMotion (Type->Vertical)
-	// ===========================================================================
-	OPTIONALINLINE void UpdateVerticalMotion(FakeBulletClass* pThis, CoordStruct& coord,
-											  VelocityClass& veloc, BulletAITickContext& ctx)
-	{
-		auto pType = pThis->Type;
-		auto pVel = &pThis->Velocity;
+				//Debug::LogInfo("[B{:X} f{}]  ROT(g) bridge cell: wall_top={} z {}->{}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(), wall_top, pre_motion_coord.Z, _thisCoord.Z);
 
-		veloc = *pVel;
-
-		if (Math::sqrt(veloc.X * veloc.X +
-			veloc.Y * veloc.Y +
-			veloc.Z * veloc.Z) < 8.0)
-		{
-			ctx.markType = 1;
-		}
-
-		// Accelerate up to Speed
-		double mag = Math::sqrt(pVel->X * pVel->X +
-								 pVel->Y * pVel->Y +
-								 pVel->Z * pVel->Z);
-
-		if (mag < pThis->Speed)
-		{
-			double new_mag = mag + pType->Acceleration;
-
-			if (pVel->X == 0.0 && pVel->Y == 0.0 && pVel->Z == 0.0)
-				pVel->X = 100.0;
-
-			double cur_mag = Math::sqrt(pVel->X * pVel->X +
-										 pVel->Y * pVel->Y +
-										 pVel->Z * pVel->Z);
-			double scale = new_mag / cur_mag;
-			pVel->X *= scale;
-			pVel->Y *= scale;
-			pVel->Z *= scale;
-		}
-
-		CoordStruct pre = coord;
-		coord.X += static_cast<int>(pVel->X);
-		coord.Y += static_cast<int>(pVel->Y);
-		coord.Z += static_cast<int>(pVel->Z);
-
-		if (coord.Z > pType->DetonationAltitude)
-		{
-			ctx.markType = 1;
-			ctx.exploded = true;
-			return;
-		}
-		if (pThis->GetHeight() < 0)
-		{
-			ctx.markType = 1;
-			ctx.exploded = true;
-			return;
-		}
-
-		// Wall-top crossing
-		int wall_top = MapClass::Instance->GetCellFloorHeight(coord) + CellClass::BridgeHeight;
-		auto pCellNew = MapClass::Instance->GetCellAt(coord);
-		auto pCellPre = MapClass::Instance->GetCellAt(pre);
-
-		if (pCellNew->ContainsBridgeHead() || pCellPre->ContainsBridgeHead())
-		{
-			if (coord.Z < wall_top)
-			{
-				if (pre.Z >= wall_top)
+				if ((_thisCoord.Z > wall_top && pre_motion_coord.Z < wall_top)
+					|| (_thisCoord.Z < wall_top && pre_motion_coord.Z > wall_top))
 				{
-					ctx.markType = 1;
-					ctx.exploded = true;
+					//Debug::LogInfo("[B{:X} f{}]  ROT(g) IMPACT FLAGGED by wall-top crossing", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame());
+					markType = 1;
+					_thisCoord.Z = wall_top;
+					destroyed = true;
 				}
 			}
-			else if (pre.Z < wall_top)
+
+			MarkAndContinue("ROT-end", _thisCoord, destroyed, markType, snapToTarget);
+			return; // end ROT projectile update
+		}
+
+		// ====================================================================
+		//  Non-homing: shared target / techno proximity (0x4677D3)
+		// ====================================================================
+		VelocityClass vel_copy = this->Velocity;
+		const double vel_len = vel_copy.Length();
+
+		auto CheckBuildingCell = [this, pExt, &destroyed, &markType, &snapToTarget, MarkAndContinue, ApplyNukeWarhead]
+		(CoordStruct& coords, VelocityClass& veloc)
 			{
-				ctx.markType = 1;
-				ctx.exploded = true;
-			}
-		}
-	}
+				//Debug::LogInfo("[B{:X} f{}]  CBC enter coords=({},{},{}) destroyed={} markType={}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(), CXYZ(coords), destroyed, markType);
 
-	// ===========================================================================
-		// UpdateBallisticMotion (gravity + bounce)
-		//
-		// Hooks integrated:
-		//   0x4671B9 — ApplyGravity (type-ext override)
-		//   0x46745C — Position_Trajectories (Phobos plugin velocity/position)
-		//
-		// EXTENSION_ARCING: 0x46745C — Arcing per-tick velocity refresh
-		//                   (COLLIDES with Position_Trajectories — see note)
-		// ===========================================================================
-	OPTIONALINLINE void UpdateBallisticMotion(FakeBulletClass* pThis, CoordStruct& coord,
-											   VelocityClass& veloc, BulletAITickContext& ctx)
-	{
-		auto pType = pThis->Type;
-		auto pVel = &pThis->Velocity;
-		auto pExt = pThis->_GetExtData();
+				// Hook 0x4677D3 — TargetCoordCheck_Trajectories
+				bool skip_building_check = false;
+				if (auto& pTraj = pExt->Trajectory)
+				{
+					switch (pTraj->OnAITargetCoordCheck(coords))
+					{
+					case TrajectoryCheckReturnType::SkipGameCheck: //0x4678F8
+					{
+						skip_building_check = true;
+						break;
+					}
+					case TrajectoryCheckReturnType::SatisfyGameCheck: //0x467879
+					{
+						markType = 1;
+						destroyed = true;
+						snapToTarget = true;
+						MarkAndContinue("CBC-traj-satisfy", coords, destroyed, markType, snapToTarget);
+						return;
+					}
+					case TrajectoryCheckReturnType::Detonate: //0x467E53
+					{
+						ApplyNukeWarhead("CBC-traj-detonate", destroyed, coords);
+						return;
+					}
+					default:
+						break;
+					}
+				}
 
-		veloc = *pVel;
+				// ---------- (a) target cell / building footprint -------------
+				if (!skip_building_check)
+				{
+					const CellStruct cell_now = CellClass::Coord2Cell(coords);
+					const CellStruct cell_target = CellClass::Coord2Cell(this->TargetCoords);
 
-		if (Math::sqrt(veloc.X * veloc.X +
-			veloc.Y * veloc.Y +
-			veloc.Z * veloc.Z) < 8.0)
+					const bool target_cell_match = (cell_now.X == cell_target.X)
+						&& (cell_now.Y == cell_target.Y)
+						&& !this->Type->Vertical
+						&& this->GetHeight() < 2 * Unsorted::LevelHeight;
+
+					//Debug::LogInfo("[B{:X} f{}]  CBC(a) cellNow=({},{}) cellTarget=({},{}) height={} cap={} match={}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+					//	cell_now.X, cell_now.Y, cell_target.X, cell_target.Y,
+					//	this->GetHeight(), 2 * Unsorted::LevelHeight, target_cell_match);
+
+					if (target_cell_match)
+					{
+						markType = 1;
+						destroyed = true;
+						snapToTarget = true;
+						MarkAndContinue("CBC-target-cell", coords, destroyed, markType, snapToTarget);
+						return;
+					}
+
+					auto pBldNow = MapClass::Instance->GetCellAt(cell_now)->GetBuilding();
+					auto pBldTarget = MapClass::Instance->GetCellAt(cell_target)->GetBuilding();
+
+					const bool building_footprint_hit = pBldNow
+						&& !this->Type->Vertical
+						&& pBldNow == pBldTarget
+						&& this->GetHeight() < 2 * Unsorted::LevelHeight;
+
+					if (building_footprint_hit)
+					{
+						markType = 1;
+						destroyed = true;
+						snapToTarget = true;
+						MarkAndContinue("CBC-building-footprint", coords, destroyed, markType, snapToTarget);
+						return;
+					}
+				}
+
+				// ---------- (b) techno-on-cell / in-map / ground-hug ---------
+				auto FinishFlight = [this, &markType, &destroyed, &snapToTarget, MarkAndContinue]
+				(CoordStruct& c, VelocityClass& v)
+					{
+						if (!MapClass::Instance->IsValid(c))
+						{
+							//Debug::LogInfo("[B{:X} f{}]  CBC(b) coord outside map -> markType=2", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame());
+							markType = 2;
+							destroyed = true;
+							c = this->Location;
+							MarkAndContinue("CBC-out-of-map", c, destroyed, markType, snapToTarget);
+							return;
+						}
+
+						// Hook 0x467AB2 — Parabomb
+						if (!this->Type->Vertical && !this->HasParachute)
+							this->Velocity = v;
+
+						//Debug::LogInfo("[B{:X} f{}]  CBC(b) stored Vel=({:.3f},{:.3f},{:.3f}) |Vel|={:.2f} height={}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+						//	this->Velocity.X, this->Velocity.Y, this->Velocity.Z,
+						//	this->Velocity.Length(), this->GetHeight());
+
+						if (this->Velocity.Length() < 10.0 && this->GetHeight() < 10)
+						{
+							//Debug::LogInfo("[B{:X} f{}]  CBC(b) IMPACT FLAGGED: slow + low", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame());
+							markType = 1;
+							destroyed = true;
+						}
+
+						MarkAndContinue("CBC-finish", c, destroyed, markType, snapToTarget);
+					};
+
+				auto pCellAtCoord = MapClass::Instance->GetCellAt(coords);
+				auto pTechnoOnCell = pCellAtCoord->FindTechnoNearestTo(Point2D::Empty, false, nullptr);
+
+				//Debug::LogInfo("[B{:X} f{}]  CBC(b) technoOnCell={:X}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(), reinterpret_cast<std::uintptr_t>(pTechnoOnCell));
+
+				// Hook 0x467927 — trajectory techno check
+				if (auto& pTraj = pExt->Trajectory)
+				{
+					switch (pTraj->OnAITechnoCheck(pTechnoOnCell))
+					{
+					case TrajectoryCheckReturnType::SkipGameCheck: //0x467A2B
+					{
+						FinishFlight(coords, veloc);
+						return;
+					}
+					case TrajectoryCheckReturnType::SatisfyGameCheck://0x4679EB
+					{
+						markType = 1;
+						destroyed = true;
+						if (!this->Type->Inaccurate)
+							coords = pTechnoOnCell->Location;
+						MarkAndContinue("CBC-traj-techno-satisfy", coords, destroyed, markType, snapToTarget);
+						return;
+					}
+					case TrajectoryCheckReturnType::Detonate://0x467E53
+					{
+						ApplyNukeWarhead("CBC-traj-techno-detonate", destroyed, coords);
+						return;
+					}
+					default:
+						break;
+					}
+				}
+
+				const auto pPayback = this->Owner;
+				const bool is_self_hit = pTechnoOnCell && pPayback && (pTechnoOnCell == pPayback);
+				const bool is_ally_hit = pTechnoOnCell && pPayback && pPayback->Owner->IsAlliedWith(pTechnoOnCell);
+				const bool techno_close_enough = pTechnoOnCell
+					&& (coords - pTechnoOnCell->Location).Length() < 128.0;
+
+				//Debug::LogInfo("[B{:X} f{}]  CBC(b) self={} ally={} close={}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(), is_self_hit, is_ally_hit, techno_close_enough);
+
+				if (!is_self_hit && !is_ally_hit && techno_close_enough)
+				{
+					markType = 1;
+					destroyed = true;
+
+					if (!this->Type->Inaccurate)
+						coords = pTechnoOnCell->Location;
+
+					MarkAndContinue("CBC-techno-hit", coords, destroyed, markType, snapToTarget);
+					return;
+				}
+
+				FinishFlight(coords, veloc);
+			};
+
+		// ====================================================================
+		//  Non-homing: vertical
+		// ====================================================================
+		if (this->Type->Vertical)
 		{
-			ctx.markType = 1;
+			if (static_cast<int>(vel_len) < this->Speed)
+			{
+				const double new_speed = static_cast<double>(static_cast<int>(vel_len) + this->Type->Acceleration);
+
+				this->Velocity.SetXIfZeroXYZ();
+				const double cur_mag = this->Velocity.Length();
+
+				this->Velocity *= (new_speed / cur_mag);
+				//Debug::LogInfo("[B{:X} f{}]  VERT accel: new_speed={:.1f}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(), new_speed);
+			}
+
+			const CoordStruct pre = _thisCoord;
+			_thisCoord.operator+=(this->Velocity.ToCoord());
+
+			//Debug::LogInfo("[B{:X} f{}]  VERT coord ({},{},{})->({},{},{}) detAlt={} height={}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+			//	CXYZ(pre), CXYZ(_thisCoord), this->Type->DetonationAltitude, this->GetHeight());
+
+			if (_thisCoord.Z > this->Type->DetonationAltitude)
+			{
+				//Debug::LogInfo("[B{:X} f{}]  VERT IMPACT: above detonation altitude", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame());
+				markType = 1;
+				destroyed = true;
+			}
+			else if (this->GetHeight() < 0)
+			{
+				//Debug::LogInfo("[B{:X} f{}]  VERT IMPACT: height<0", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame());
+				markType = 1;
+				destroyed = true;
+			}
+			else
+			{
+				const int wall_top = MapClass::Instance->GetCellFloorHeight(_thisCoord) + CellClass::BridgeHeight;
+				auto pCellNew = MapClass::Instance->GetCellAt(_thisCoord);
+				auto pCellPre = MapClass::Instance->GetCellAt(pre);
+
+				if (pCellNew->ContainsBridgeHead() || pCellPre->ContainsBridgeHead())
+				{
+					const bool crossed = (_thisCoord.Z < wall_top)
+						? (pre.Z >= wall_top)
+						: (pre.Z < wall_top);
+
+					//Debug::LogInfo("[B{:X} f{}]  VERT bridge wall_top={} crossed={}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(), wall_top, crossed);
+
+					if (crossed)
+					{
+						markType = 1;
+						destroyed = true;
+					}
+				}
+			}
+
+			CheckBuildingCell(_thisCoord, vel_copy);
+			return;
 		}
+
+		// ====================================================================
+		//  Non-homing: ballistic
+		// ====================================================================
+		VelocityClass newVel = this->Velocity;
+
+		if (vel_len < 8.0)
+			markType = 1;
 
 		Vector3D<double> pos_ {
-			static_cast<double>(coord.X) ,
-			static_cast<double>(coord.Y) ,
-			static_cast<double>(coord.Z)
+			static_cast<double>(_thisCoord.X),
+			static_cast<double>(_thisCoord.Y),
+			static_cast<double>(_thisCoord.Z)
 		};
 
-		// -----------------------------------------------------------------------
-		// Hook 0x4671B9 — ApplyGravity (BulletTypeExtData::GetAdjustedGravity)
-		// -----------------------------------------------------------------------
-		double gravity = BulletTypeExtData::GetAdjustedGravity(pType);
+		// Hook 0x4671B9 — ApplyGravity
+		const double gravity = pTypeExt->GetAdjustedGravity();
+		newVel.Z -= gravity;
 
-		auto pPayback = pThis->Owner;
+		//Debug::LogInfo("[B{:X} f{}]  BALL start pos=({:.1f},{:.1f},{:.1f}) vel=({:.3f},{:.3f},{:.3f}) gravity={:.3f} (Rules={} Floater={}) slow(<8)={}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+		//	pos_.X, pos_.Y, pos_.Z, newVel.X, newVel.Y, newVel.Z, gravity,
+		//	RulesClass::Instance->Gravity, this->Type->Floater, vel_len < 8.0);
 
-		veloc.Z = veloc.Z - gravity;
+		const CoordStruct prevCoord = _thisCoord;
 
-		CoordStruct old_pos {
-			static_cast<int>(pos_.X),
-			static_cast<int>(pos_.Y),
-			static_cast<int>(pos_.Z)
-		};
-
-		// -----------------------------------------------------------------------
 		// Hook 0x46745C — Position_Trajectories (Phobos)
-		// -----------------------------------------------------------------------
 		if (pExt->Trajectory)
 		{
-			VelocityClass position_as_velocity {
-				pos_.X, pos_.Y, pos_.Z
-			};
-			pExt->Trajectory->OnAIVelocity(&veloc, &position_as_velocity);
+			VelocityClass position_as_velocity { pos_.X, pos_.Y, pos_.Z };
+
+			pExt->Trajectory->OnAIVelocity(&this->Velocity, &position_as_velocity);
+
 			pos_.X = position_as_velocity.X;
 			pos_.Y = position_as_velocity.Y;
 			pos_.Z = position_as_velocity.Z;
 
 			if (!pExt->LaserTrails.empty())
 			{
-				CoordStruct futureCoords {
-					static_cast<int>(veloc.X + position_as_velocity.X),
-					static_cast<int>(veloc.Y + position_as_velocity.Y),
-					static_cast<int>(veloc.Z + position_as_velocity.Z)
-				};
+				CoordStruct futureCoords = (newVel + position_as_velocity).ToCoord();
+
 				for (auto& trail : pExt->LaserTrails)
 				{
 					if (!trail->LastLocation.isset())
-						trail->LastLocation = pThis->Location;
+						trail->LastLocation = this->Location;
 					trail->Update(futureCoords);
 				}
 			}
 		}
 
-		// EXTENSION_ARCING: 0x46745C — Arcing per-tick velocity refresh
-		// ----------------------------------------------------------------------
-		// HOOK COLLISION: this hook lives at the SAME address as Phobos's
-		// Position_Trajectories. The two cannot stack as raw ASMJIT patches
-		// — only one can win. They have different intents though, so the
-		// merged C++ form runs both sequentially:
-		//
-		//   1. Phobos trajectory plugin gets first crack at velocity/position
-		//   2. The Arcing extension overwrites velocity from pThis->Velocity
-		//      directly (used when scripts mutate Velocity mid-flight and the
-		//      bullet needs to pick up the new value)
-		//   3. If LocationLocked is also set, Z velocity is forced to 0
-		//      (the bullet hovers at its current altitude)
-		//
-		// ORDER RATIONALE: extension wins because LocationLocked is the more
-		// aggressive constraint — a hovering bullet should hover regardless
-		// of what a trajectory plugin computes. Flip the order if your
-		// plugin authors disagree.
-		//
-		// PAIRED WITH: 0x4677C7 — that hook freezes the X/Y position too,
-		// completing the "hover in place" mode.
-		// ----------------------------------------------------------------------
-#if 0  // EXTENSION_ARCING: pending BulletStatus save/load
-		if (auto status = BulletExt::GetStatus(pThis))
+		pos_ += (*reinterpret_cast<Vector3D<double>*>(&newVel));
+
+		CoordStruct newCoord = VelocityClass::Vec3DToVel(pos_).ToCoord();
+
+		const int groundZ = MapClass::Instance->GetCellFloorHeight(newCoord);
+		const int groundBias = groundZ + CellClass::BridgeHeight;
+		CellClass* pCell = MapClass::Instance->GetCellAt(newCoord);
+
+		bool fellThrough = false;
+		bool risenThrough = false;
+
+		if (pCell->ContainsBridgeHead() || MapClass::Instance->GetCellAt(prevCoord)->ContainsBridgeHead())
 		{
-			if (status->IsArcing() && status->SpeedChanged)
-			{
-				veloc.X = pThis->Velocity.X;
-				veloc.Y = pThis->Velocity.Y;
-				veloc.Z = status->LocationLocked ? 0.0 : pThis->Velocity.Z;
-			}
-		}
-#endif
-
-		// Integrate velocity into double position
-		pos_.X += veloc.X;
-		pos_.Y += veloc.Y;
-		pos_.Z += veloc.Z;
-
-		CoordStruct new_pos {
-			static_cast<int>(pos_.X),
-			static_cast<int>(pos_.Y),
-			static_cast<int>(pos_.Z)
-		};
-
-		int terrain_z = MapClass::Instance->GetCellFloorHeight(new_pos);
-		int wall_top = terrain_z + CellClass::BridgeHeight;
-		auto pCellNew = MapClass::Instance->GetCellAt(new_pos);
-
-		bool crossed_top_descending = false;
-		bool crossed_top_ascending = false;
-
-		if(pExt->Trajectory && !pExt->Trajectory->ShouldSkipBridgeCheck()){
-			if (pCellNew->ContainsBridgeHead() || MapClass::Instance->GetCellAt(old_pos)->ContainsBridgeHead()) {
-				if (new_pos.Z < wall_top)
-				{
-					if (old_pos.Z >= wall_top)
-						crossed_top_ascending = true;
-				}
-				else if (old_pos.Z < wall_top)
-				{
-					crossed_top_descending = true;
-				}
-			}
-		}
-
-		bool blocked = false;
-
-		bool inside_terrain_window = !crossed_top_ascending
-			&& !crossed_top_descending
-			&& (pos_.Z >= static_cast<double>(terrain_z))
-			&& (pos_.Z - 150.0 < static_cast<double>(terrain_z));
-
-		if (inside_terrain_window)
-		{
-			auto pBuilding = pCellNew->GetBuilding();
-			if (!pBuilding && !pCellNew->ConnectsToOverlay(-1, -1))
-			{
-				// Nothing to bounce off
-			}
+			if (newCoord.Z < groundBias)
+				fellThrough = prevCoord.Z >= groundBias;
 			else
-			{
-				blocked = true;
-				if (pBuilding)
-				{
-					if (pBuilding == pPayback)
-						blocked = false;
-					if (pBuilding->Type->LaserFence && pBuilding->LaserFenceFrame >= 8)
-						blocked = false;
-					if (pBuilding->IsStrange())
-						blocked = false;
-
-					if (pPayback && pPayback->Owner
-						&& pPayback->Owner->IsAlliedWith(pBuilding))
-					{
-						blocked = false;
-					}
-				}
-			}
+				risenThrough = prevCoord.Z < groundBias;
 		}
 
-		if (!blocked && pos_.Z >= static_cast<double>(terrain_z)
-			&& !crossed_top_ascending && !crossed_top_descending)
+		auto BallisticHitsBuilding = [](BulletClass* pBullet, CellClass* pHitCell)
+			{
+				BuildingClass* pBuilding = pHitCell->GetBuilding();
+				if (!pBuilding)
+					return pHitCell->ConnectsToOverlay(-1, -1); // wall check
+
+				TechnoClass* pPayback = pBullet->Owner;
+				bool hit = true;
+
+				if (static_cast<TechnoClass*>(pBuilding) == pPayback
+					|| (pBuilding->Type->LaserFence && pBuilding->LaserFenceFrame >= 8))
+					hit = false;
+
+				if (pBuilding->IsStrange())
+					hit = false;
+
+				if (pPayback && pPayback->Owner->IsAlliedWith(pBuilding))
+					hit = false;
+
+				return hit;
+			};
+
+		bool hitBuilding = false;
+		if (!fellThrough && !risenThrough)
 		{
-			coord.X = static_cast<int>(pos_.X);
-			coord.Y = static_cast<int>(pos_.Y);
-			coord.Z = static_cast<int>(pos_.Z);
-			return;
+			const double dGround = static_cast<double>(groundZ);
+			if (pos_.Z >= dGround && pos_.Z - 150.0 < dGround)
+				hitBuilding = BallisticHitsBuilding(this, pCell);
 		}
 
-		if (pPayback)
+		const bool belowGround = pos_.Z < static_cast<double>(groundZ);
+
+		//Debug::LogInfo("[B{:X} f{}]  BALL new pos=({:.1f},{:.1f},{:.1f}) newCoord=({},{},{}) groundZ={} bias={} fell={} risen={} hitBuilding={} belowGround={}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(),
+		//	pos_.X, pos_.Y, pos_.Z, CXYZ(newCoord), groundZ, groundBias,
+		//	fellThrough, risenThrough, hitBuilding, belowGround);
+
+		if (!belowGround && !fellThrough && !risenThrough && !hitBuilding)
 		{
-			if (crossed_top_ascending)
-				pos_.Z = wall_top;
-			else if (crossed_top_descending)
-				pos_.Z = wall_top - 20;
-			else
-			{
-				coord.X = static_cast<int>(pos_.X);
-				coord.Y = static_cast<int>(pos_.Y);
-				coord.Z = static_cast<int>(pos_.Z);
-				return;
-			}
+			_thisCoord = VelocityClass::Vec3DToVel(pos_).ToCoord();
 		}
 		else
 		{
-			if (crossed_top_ascending)
-				pos_.Z = wall_top;
-			else if (crossed_top_descending)
-				pos_.Z = wall_top - 20;
-			else
+			bool impact = true;
+
+			if (this->Owner)
 			{
-				int floor_minus = terrain_z - 100;
-				if (floor_minus < pos_.Z)
-					pos_.Z = static_cast<double>(terrain_z);
-			}
-
-			int ramp = TacticalClass::Instance->GetRamp(&new_pos);
-			Matrix3D ramp_matrix;
-			Game::GetRampMtx(&ramp_matrix, ramp);
-			Matrix3D inv;
-			Matrix3D::TransposeMatrix(&inv, &ramp_matrix);
-
-			Vector3D<float> v_in(static_cast<float>(veloc.X),
-								 static_cast<float>(-veloc.Y),
-								 static_cast<float>(veloc.Z));
-
-			Vector3D<float> v_local = inv.RotateVector(v_in);
-
-			v_local *= static_cast<float>(pType->Elasticity);
-			v_local.Z = -v_local.Z;
-
-			Vector3D<float> v_out = ramp_matrix.RotateVector(v_local);
-
-			veloc.X = v_out.X;
-			veloc.Y = -v_out.Y;
-			veloc.Z = v_out.Z;
-		}
-
-		ctx.markType = 1;
-		ctx.exploded = true;
-
-		coord.X = static_cast<int>(pos_.X);
-		coord.Y = static_cast<int>(pos_.Y);
-		coord.Z = static_cast<int>(pos_.Z);
-	}
-
-	// ===========================================================================
-		// CheckUnguidedTargetCell (LABEL_157 in the original)
-		//
-		// Hooks integrated:
-		//   0x4677D3 — TargetCoordCheck_Trajectories (full-phase override)
-		//   0x467927 — TechnoCheck_Trajectories (techno-collision override)
-		//   0x467AB2 — Parabomb (skip velocity copyback for parachute bullets)
-		//
-		// EXTENSION_ARCING: 0x4677C7 — LocationLocked position freeze
-		// ===========================================================================
-	OPTIONALINLINE void CheckUnguidedTargetCell(FakeBulletClass* pThis, CoordStruct& coord,
-												 VelocityClass& veloc, BulletAITickContext& ctx)
-	{
-		auto pType = pThis->Type;
-
-		// EXTENSION_ARCING: 0x4677C7 — LocationLocked position freeze
-		// ----------------------------------------------------------------------
-		// Sits at the very entry to LABEL_157 (the cell-rounding block). For
-		// LocationLocked Arcing bullets, the post-motion `coord` is forcibly
-		// reset to pThis->Location — i.e. the bullet didn't move this tick.
-		//
-		// PAIRED WITH: 0x46745C above (Z velocity zero). Together they create
-		// a "hover in place" mode that still runs all subsequent fuse and
-		// detonation logic, just without ballistic motion.
-		//
-		// PLACEMENT: must run BEFORE the cell_now computation, otherwise the
-		// building footprint snap and techno-on-cell checks would use the
-		// wrong (post-motion) cell coordinates.
-		// ----------------------------------------------------------------------
-#if 0  // EXTENSION_ARCING: pending BulletStatus save/load
-		if (auto status = BulletExt::GetStatus(pThis))
-		{
-			if (status->IsArcing() && status->SpeedChanged && status->LocationLocked)
-			{
-				coord = pThis->Location;
-			}
-		}
-#endif
-
-		// -----------------------------------------------------------------------
-		// Hook 0x4677D3 — TargetCoordCheck_Trajectories
-		// -----------------------------------------------------------------------
-		{
-			const auto traj_result = PhobosTrajectory::OnAITargetCoordCheck(pThis, coord);
-			if (traj_result != 0u)
-			{
-				return;
-			}
-		}
-
-		// ---------- (a) building footprint snap --------------------------------
-		CellStruct cell_now {
-			CoordToCell(coord.X),
-			CoordToCell(coord.Y)
-		};
-		CellStruct cell_target {
-			CoordToCell(pThis->TargetCoords.X),
-			CoordToCell(pThis->TargetCoords.Y)
-		};
-
-		bool target_cell_match = (cell_now.X == cell_target.X)
-			&& (cell_now.Y == cell_target.Y)
-			&& !pType->Vertical
-			&& pThis->GetHeight() < 2 * Unsorted::LevelHeight;
-
-		if (target_cell_match)
-		{
-			ctx.markType = 1;
-			ctx.exploded = true;
-			ctx.snap_to_target = true;
-			return;
-		}
-
-		auto pCellNow = MapClass::Instance->GetCellAt(cell_now);
-		auto pCellTarget = MapClass::Instance->GetCellAt(cell_target);
-		auto pBldNow = pCellNow->GetBuilding();
-		auto pBldTarget = pCellTarget->GetBuilding();
-
-		bool building_footprint_hit = pBldNow
-			&& !pType->Vertical
-			&& pBldNow == pBldTarget
-			&& pThis->GetHeight() < 2 * Unsorted::LevelHeight;
-		if (building_footprint_hit)
-		{
-			ctx.markType = 1;
-			ctx.exploded = true;
-			ctx.snap_to_target = true;
-			return;
-		}
-
-		// ---------- (b) techno-on-cell collision -------------------------------
-		Point2D point_zero { 0, 0 };
-		auto pCellAtCoord = MapClass::Instance->GetCellAt(coord);
-		auto pTechnoOnCell = pCellAtCoord->FindTechnoNearestTo(point_zero, false, nullptr);
-
-		if (pTechnoOnCell)
-		{
-			const auto techno_result = PhobosTrajectory::OnAITechnoCheck(pThis, pTechnoOnCell);
-			if (techno_result != 0u)
-			{
-				pTechnoOnCell = nullptr;
-			}
-		}
-
-		auto pPayback = pThis->Owner;
-		bool techno_present = pTechnoOnCell != nullptr;
-		bool payback_present = pPayback != nullptr;
-
-		bool is_self_hit = techno_present && payback_present
-			&& (pTechnoOnCell == pPayback);
-
-		bool is_ally_hit = false;
-		if (techno_present && payback_present)
-			is_ally_hit = pPayback->Owner->IsAlliedWith(pTechnoOnCell);
-
-		bool techno_close_enough = false;
-		if (pTechnoOnCell)
-		{
-			CoordStruct delta {
-				coord.X - pTechnoOnCell->Location.X,
-				coord.Y - pTechnoOnCell->Location.Y,
-				coord.Z - pTechnoOnCell->Location.Z
-			};
-			if (Math::sqrt(static_cast<double>(delta.X) * delta.X +
-				static_cast<double>(delta.Y) * delta.Y +
-				static_cast<double>(delta.Z) * delta.Z) < 128.0)
-			{
-				techno_close_enough = true;
-			}
-		}
-
-		if (!is_self_hit && !is_ally_hit && techno_close_enough)
-		{
-			ctx.markType = 1;
-			ctx.exploded = true;
-			if (!pType->Inaccurate)
-				coord = pTechnoOnCell->Location;
-			return;
-		}
-
-		// ---------- (c) in-map bounds ------------------------------------------
-		if (!MapClass::Instance->IsValid(coord))
-		{
-			ctx.markType = 2;
-			ctx.exploded = true;
-			coord = pThis->Location;
-			return;
-		}
-
-		// -----------------------------------------------------------------------
-		// Hook 0x467AB2 — Parabomb
-		// -----------------------------------------------------------------------
-		if (!pType->Vertical && !pThis->HasParachute)
-		{
-			pThis->Velocity = veloc;
-		}
-
-		// ---------- (d) terminate when hugging ground at near-zero velocity ----
-		if (Math::sqrt(pThis->Velocity.X * pThis->Velocity.X +
-			pThis->Velocity.Y * pThis->Velocity.Y +
-			pThis->Velocity.Z * pThis->Velocity.Z) < 10.0
-			&& pThis->GetHeight() < 10)
-		{
-			ctx.markType = 1;
-			ctx.exploded = true;
-		}
-	}
-
-	// ============================================================================
-	// FinalizeBulletMotion — refactored to integrate BounceTrajectory cleanly
-	//
-	// The bounce intercept is structured as an early branch that decides whether
-	// the bullet (a) keeps flying after a bounce, (b) detonates immediately due to
-	// exhausted bounces, or (c) wasn't a bouncing trajectory and falls through to
-	// vanilla logic. No gotos, no skipped initializers.
-	//
-	// Drop-in replacement for the existing FinalizeBulletMotion in the anonymous
-	// namespace of FakeBulletClass_AI.cpp.
-	// ============================================================================
-
-	OPTIONALINLINE void FinalizeBulletMotion(FakeBulletClass* pThis, CoordStruct& coord,
-											  BulletAITickContext& ctx)
-	{
-		auto pType = pThis->Type;
-		auto pTarget = pThis->Target;
-
-		// markType==2 short-circuit: mark only, no Set_Coord, no explode
-		if (ctx.markType == 2)
-		{
-			pThis->Mark(MarkType::Up);
-			UpdateLastMapCoords(pThis, coord);
-			return;
-		}
-
-		pThis->Mark(MarkType::Up);
-
-		// -----------------------------------------------------------------------
-		// Hook 0x467B94 — Ranged + Firestorm
-		// -----------------------------------------------------------------------
-		{
-			if (pType->Ranged)
-			{
-				CoordStruct crdOld = pThis->GetCoords();
-				
-				auto pExt = pThis->_GetExtData();
-				int maxRange = pThis->Range;
-				bool useAresBehavior = false;
-
-				if(pThis->WeaponType){
-					auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pThis->WeaponType);
-
-					useAresBehavior = pWeaponExt->ProjectileRange_UseAresBehaviour;
-					
-					//the range modifiers only apply to Phobos behavior, with ares behavior the range is already applied to the projectile range directly
-					//updating it require them to calculate the projectile range before the bullet lauched, but it allow the range modifier to affect the projectile range directly instead of just being a check at the end of the projectile movement
-					if (!useAresBehavior && maxRange > 0 && pThis->Owner && pWeaponExt->ProjectileRange_ApplyModifiers.Get(FakeRulesClass::Instance->ProjectileRange_ApplyModifiers)) {
-						maxRange = WeaponTypeExtData::GetRangeWithModifiers(pThis->WeaponType, pThis->Owner, maxRange);
-					}		
-				}
-
-				auto distance = coord.DistanceFrom(crdOld);
-
-				if(!useAresBehavior){
-					pExt->DistanceTraveled += distance;
-					ctx.exploded |= pExt->DistanceTraveled >= (double)maxRange;
-				} else {
-					//max range doesnt affect the projectile range direcly with ares implementation
-					//the range need to applied before the projectile itself move
-					pThis->Range -= static_cast<int>(distance);
-					if (pThis->Range <= 0)
-						ctx.exploded = true;
-				}
-
-			}
-
-			pThis->SetLocation(coord);
-
-			if (HouseExtContainer::Instance.IsAnyFirestormActive && !pType->IgnoresFirestorm)
-			{
-				auto pCell = MapClass::Instance->GetCellAt(coord);
-				if (auto pBld = pCell->GetBuilding())
-				{
-					HouseClass* pOwner = pThis->Owner
-						? pThis->Owner->Owner
-						: pThis->_GetExtData()->Owner;
-
-					if (WarheadTypeExtContainer::Instance
-							.Find(FakeRulesClass::Instance()->FirestormWarhead.Get(
-				  RulesClass::Instance->C4Warhead))
-							->CanAffectHouse(pBld->Owner, pOwner))
-					{
-						pOwner = nullptr;
-					}
-
-					if (BuildingExtData::IsActiveFirestormWall(pBld, pOwner))
-					{
-						BuildingExtData::ImmolateVictim(pBld, pThis, false);
-						BulletExtData::HandleBulletRemove(pThis,
-							ScenarioClass::Instance->Random.RandomBool(), true);
-						UpdateLastMapCoords(pThis, coord);
-						return;
-					}
-				}
-			}
-		}
-
-		// -----------------------------------------------------------------------
-		// Bounce trajectory intercept
-		//
-		// Runs BEFORE Is_Forced_To_Explode so a bouncing bullet can refuse the
-		// forced detonation. Returns one of:
-		//
-		//   ContinueVanilla — not a bouncing trajectory, fall through normally
-		//   KeepFlying      — bullet bounced, skip the forced-explode check this
-		//                     tick, fall through to fuse/snap/detonate which will
-		//                     find no reason to detonate and let the bullet
-		//                     continue on its new trajectory
-		//   ForceDetonate   — bounces exhausted, detonate immediately (skip fuse
-		//                     and target snap, go straight to RunDetonation)
-		// -----------------------------------------------------------------------
-
-		const auto bounce_outcome = RunBouncePhase(pThis, coord, ctx);
-
-		if (bounce_outcome == BouncePhaseResult::ForceDetonate)
-		{
-			// Skip fuse, target snap, and the still-flying check entirely.
-			// Go straight to detonation.
-			if (pThis->GetHeight() < 0)
-				pThis->SetHeight(0);
-			RunDetonation(pThis, coord, ctx);
-			return;
-		}
-
-		// -----------------------------------------------------------------------
-		// Is_Forced_To_Explode override (custom-trigger explode)
-		//
-		// Skipped when a bounce kept the bullet flying — the bullet has just
-		// changed direction and shouldn't be auto-detonated by the same trigger
-		// that caused the bounce.
-		// -----------------------------------------------------------------------
-		bool forced = false;
-		if (bounce_outcome != BouncePhaseResult::KeepFlying && !ctx.exploded)
-		{
-			CoordStruct here = pThis->Location;
-			forced = pThis->IsForceToExplode(here);
-			pThis->SetLocation(here);
-			if (forced)
-				ctx.exploded = true;
-		}
-
-		if (ctx.exploded || forced)
-		{
-			if (pThis->GetHeight() < 0)
-				pThis->SetHeight(0);
-		}
-
-		// -----------------------------------------------------------------------
-		// Hook 0x467C2E — FuseCheck (extended fuse checkup)
-		// Hook 0x467C1C — BulletClass_AI_UnknownTimer
-		// -----------------------------------------------------------------------
-		Fuse fuse_result = Fuse::DontIgnite;
-		if (!pThis->_GetExtData()->Trajectory || !pThis->_GetExtData()->Trajectory->ShouldSkipRangedCheck()) {
-			// Only run the fuse check if the bullet has a reason to have one.
-			// This avoids unnecessary calls to FuseCheckup for bullets that
-			// don't have a fuse (e.g. non-ROT, non-ranged, non-inviso).
-			if (pType->ROT > 0 || pType->Ranged || pType->Inviso)
-			{
-				fuse_result = static_cast<Fuse>(
-					BulletExtData::FuseCheckup(pThis, &coord));
-			}
-		}
-
-		// JumpJet target override
-		auto pPayback = pThis->Owner;
-		if (pPayback
-			&& pPayback->GetTechnoType()->JumpJet
-			&& fuse_result == Fuse::Ignite_DistaceFactor)
-		{
-			fuse_result = Fuse::Ignite;
-		}
-
-		// -----------------------------------------------------------------------
-		// "Still flying" early-out
-		// Hook 0x467C1C — Inviso bullets skip the IsDegenerate damage tick
-		// -----------------------------------------------------------------------
-		if (!ctx.exploded)
-		{
-			if (pType->Dropping || fuse_result == Fuse::DontIgnite)
-			{
-				if (!pType->Inviso && pType->Degenerates && pThis->Health > 5)
-					--pThis->Health;
-
-				UpdateLastMapCoords(pThis, coord);
-				return;
-			}
-		}
-
-		// -----------------------------------------------------------------------
-		// Hook 0x467CCA — TargetSnapChecks
-		//
-		// Skipped on KeepFlying outcome — a bouncing bullet shouldn't snap to its
-		// original target after deflection.
-		// -----------------------------------------------------------------------
-		if (bounce_outcome != BouncePhaseResult::KeepFlying
-			&& pTarget
-			&& (fuse_result == Fuse::Ignite || ctx.snap_to_target))
-		{
-			bool snap_allowed;
-			if (pType->Inviso)
-			{
-				snap_allowed = !pType->Inaccurate;
-			}
-			else
-			{
-				auto pExt = pThis->_GetExtData();
-				if (pExt->Trajectory && PhobosTrajectory::CanSnap(pExt->Trajectory))
-					snap_allowed = !pType->Inaccurate;
+				if (fellThrough)
+					pos_.Z = static_cast<double>(groundBias);
+				else if (risenThrough)
+					pos_.Z = static_cast<double>(groundBias - 20);
 				else
-					snap_allowed = !pType->Airburst && !pType->Inaccurate;
+					impact = false;
 			}
-
-			if (snap_allowed)
+			else
 			{
-				CoordStruct target_coord;
-				pTarget->GetCoords(&target_coord);
+				if (fellThrough)
+					pos_.Z = static_cast<double>(groundBias);
+				else if (risenThrough)
+					pos_.Z = static_cast<double>(groundBias - 20);
+				else if (static_cast<double>(groundZ - 100) < pos_.Z)
+					pos_.Z = static_cast<double>(groundZ);
 
-				CoordStruct delta {
-					coord.X - target_coord.X,
-					coord.Y - target_coord.Y,
-					(target_coord.Z + coord.Z) / 2 - target_coord.Z
-				};
-				int dist = static_cast<int>(Math::sqrt(
-					static_cast<double>(delta.X) * delta.X +
-					static_cast<double>(delta.Z) * delta.Z +
-					static_cast<double>(delta.Y) * delta.Y));
+				auto BounceOffRamp = [](CoordStruct& impactCoord, VelocityClass& vel, double elasticity)
+					{
+						Matrix3D tmpRamp { };
+						const Matrix3D ramp = *Game::GetRampMtx(&tmpRamp, TacticalClass::Instance->GetRamp(&impactCoord));
+						const Matrix3D inv = ramp.InvertRigid();
 
-				int dist_threshold = ctx.snap_to_target ? (dist / 3) : dist;
+						Vector3D<float> in {
+							static_cast<float>(vel.X),
+							static_cast<float>(-vel.Y),
+							static_cast<float>(vel.Z)
+						};
 
-				double speed_mag = Math::sqrt(
-					pThis->Velocity.X * pThis->Velocity.X +
-					pThis->Velocity.Y * pThis->Velocity.Y +
-					pThis->Velocity.Z * pThis->Velocity.Z);
-				double snap_radius = (speed_mag * 2.0 >= 128.0)
-					? speed_mag * 2.0
-					: 128.0;
+						Vector3D<float> rotated = inv.RotateVector(in);
 
-				if (fuse_result == Fuse::Ignite
-					|| dist_threshold <= snap_radius)
-				{
-					CoordStruct center;
-					pTarget->GetCoords(&center);
-					pThis->SetLocation(center);
-				}
+						const float e = static_cast<float>(elasticity);
+						rotated.X *= e;
+						rotated.Y *= e;
+						rotated.Z *= e;
+						rotated.Z = -rotated.Z;
+
+						Vector3D<float> out = ramp.RotateVector(rotated);
+
+						vel.X = static_cast<double>(out.X);
+						vel.Y = static_cast<double>(-out.Y);
+						vel.Z = static_cast<double>(out.Z);
+					};
+
+				BounceOffRamp(newCoord, newVel, this->Type->Elasticity);
 			}
-		}
 
-		// Detonation pipeline
-		RunDetonation(pThis, coord, ctx);
-	}
+			//Debug::LogInfo("[B{:X} f{}]  BALL collision: hasOwner={} impact={} finalPosZ={:.1f}", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame(), this->Owner != nullptr, impact, pos_.Z);
 
-	// ===========================================================================
-	// RunDetonation
-	//
-	// Hooks integrated:
-	//   0x467E53 — PreDetonation_Trajectories (notify trajectory plugin)
-	//   0x467E59 — NukeBall (replace hardcoded NUKE warhead check with WH-ext lookup)
-	//
-	// Also reachable directly via the trajectory short-circuit from RunEarlyTickHooks
-	// (when ctx.detonate_now is true).
-	// ===========================================================================
-	OPTIONALINLINE void RunDetonation(FakeBulletClass* pThis, CoordStruct& coord,
-									  BulletAITickContext& ctx)
-	{
-		auto pExt = pThis->_GetExtData();
-
-		// -----------------------------------------------------------------------
-		// Hook 0x467E53 — PreDetonation_Trajectories
-		// -----------------------------------------------------------------------
-		if (auto& pTraj = pExt->Trajectory)
-			pTraj->OnAIPreDetonate();
-
-		// -----------------------------------------------------------------------
-		// Hook 0x467E59 — NukeBall (universal NukeFlash + PreImpact anim)
-		//
-		// Replaces the hardcoded `Warhead == "NUKE"` check with:
-		//   - SW NuclearMissile bullet detection (gets a radar event)
-		//   - NukeFlashDuration warhead-ext for the screen flash
-		//   - PreImpactAnim warhead-ext for the deferred-detonation anim
-		// -----------------------------------------------------------------------
-		auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
-		bool allowFlash = true;
-
-		// SW Nuclear missile bullet path
-		if (pExt->NukeSW && !pThis->WH->NukeMaker)
-		{
-			SW_NuclearMissile::CurrentNukeType = pExt->NukeSW;
-
-			if (pThis->GetHeight() < 0)
-				pThis->SetHeight(0);
-
-			auto pSWTypeExt = SWTypeExtContainer::Instance.Find(pExt->NukeSW);
-
-			if (pSWTypeExt->SW_RadarEvent)
+			if (impact)
 			{
-				auto coords = pThis->GetMapCoords();
-				RadarEventClass::Create(RadarEventType::SuperweaponActivated, coords);
+				markType = 1;
+				destroyed = true;
 			}
 
-			if (pSWTypeExt->Lighting_Enabled.isset())
-				allowFlash = pSWTypeExt->Lighting_Enabled.Fetch();
+			_thisCoord = VelocityClass::Vec3DToVel(pos_).ToCoord();
 		}
 
-		// Optional screen flash (replaces NukeFlash::FadeIn call)
-		const auto duration = pWarheadExt->NukeFlashDuration.Get();
-		if (allowFlash && duration > 0)
-		{
-			NukeFlash::Status = NukeFlashStatus::FadeIn;
-			ScenarioClass::Instance->AmbientTimer.Start(1);
-
-			NukeFlash::StartTime = Unsorted::CurrentFrame.get();
-			NukeFlash::Duration = duration;
-
-			SWTypeExtData::ChangeLighting(pExt->NukeSW ? pExt->NukeSW : nullptr);
-			MapClass::Instance->RedrawSidebar(1);
-		}
-
-		// PreImpact anim — defer detonation by spawning anim and parking the bullet
-		if (auto pPreImpact = pWarheadExt->PreImpactAnim.Get())
-		{
-			AnimClass* pNewAnim = nullptr;
-
-			CoordStruct anim_coord = pThis->Location;
-			int zadjust = -15;
-
-			pNewAnim = GameCreate<AnimClass>(
-				pPreImpact, &anim_coord,
-				/*timedelay*/ 0, /*loop*/ 1,
-				/*animflags*/ AnimFlag::AnimFlag_2000
-							| AnimFlag::AnimFlag_400
-							| AnimFlag::AnimFlag_200,
-				/*zadjust*/ zadjust, /*reverse*/ 0);
-
-			if (pNewAnim)
-			{
-				pThis->NextAnim = pNewAnim;
-				pThis->SpawnNextAnim = true;
-				PointerExpiredNotification::NotifyInvalidAnim->Array.push_back(pThis);
-				UpdateLastMapCoords(pThis, coord);
-				return;
-			}
-			// Fall through to normal explode if anim creation failed
-		}
-
-		// Normal detonation
-		pThis->Explode(ctx.exploded);
-		pThis->UnInit();
-		UpdateLastMapCoords(pThis, coord);
-	}
-
-	// ===========================================================================
-	// UpdateLastMapCoords — packed cell coords for the bullet's "last seen at"
-	// field. Original asm packs cy<<16 | cx via two `mov word ptr` writes.
-	// ===========================================================================
-	OPTIONALINLINE void UpdateLastMapCoords(BulletClass* pThis, CoordStruct const& coord)
-	{
-		pThis->LastMapCoords = CellClass::Coord2Cell(coord);
-	}
-
-	OPTIONALINLINE BouncePhaseResult RunBouncePhase(FakeBulletClass* pThis, CoordStruct& coord,
-													 BulletAITickContext& ctx)
-	{
-		auto pExt = pThis->_GetExtData();
-		if (!pExt->Trajectory)
-			return BouncePhaseResult::ContinueVanilla;
-
-		bool force_detonate_from_bounce = false;
-		const auto bounce_result = pExt->Trajectory->OnBounceCheck(
-			coord, force_detonate_from_bounce);
-
-		switch (bounce_result)
-		{
-		case BounceCheckResult::NotHandled:
-			return BouncePhaseResult::ContinueVanilla;
-
-		case BounceCheckResult::BouncedKeepFlying:
-			// Reflection happened. Velocity has been updated by OnBounceCheck;
-			// re-commit the location to be safe and clear any prior explode
-			// flag from upstream phases (Range decay, etc. don't apply when
-			// a bounce keeps us alive).
-			ctx.exploded = false;
-			pThis->SetLocation(coord);
-			return BouncePhaseResult::KeepFlying;
-
-		case BounceCheckResult::BouncedDetonate:
-			ctx.exploded = true;
-			return force_detonate_from_bounce
-				? BouncePhaseResult::ForceDetonate
-				: BouncePhaseResult::ContinueVanilla;
-		}
-
-		return BouncePhaseResult::ContinueVanilla;
-	}
-
-}  // anonymous namespace
-
-// ===========================================================================
-// FakeBulletClass::_AI — orchestrator
-// ===========================================================================
-void FakeBulletClass::_AI()
-{
-	auto pThis = static_cast<BulletClass*>(this);
-
-	pThis->ObjectClass::Update();
-
-	BulletAITickContext ctx;
-
-	// ---- Early hooks (0x4666F7 + 0x466705) --------------------------------
-	RunEarlyTickHooks(this, ctx);
-
-	if (ctx.early_return)
-		return;
-
-	if (ctx.detonate_now)
-	{
-		// Trajectory plugin's OnAI returned true → skip motion entirely and
-		// jump straight to the detonation pipeline (matches the original
-		// 0x4666F7 → 0x467E53 jump).
-		CoordStruct coord = pThis->Location;
-		RunDetonation(this, coord, ctx);
-		return;
-	}
-
-	if (!pThis->IsAlive)
-		return;
-
-	// ---- SpawnNextAnim sleep tick (NUKEBALL/PreImpact follow-up) ----------
-	if (pThis->SpawnNextAnim)
-	{
-		HandleSpawnedAnimFollowup(this);
-		return;
-	}
-
-	auto pType = pThis->Type;
-
-	// IsDropping bullets explode immediately the first frame they're not
-	// falling (the "release from carrier" gate).
-	if (pType->Dropping && !pThis->IsFallingDown)
-		ctx.exploded = true;
-
-	AdvanceAnimFrame(pThis);
-
-	CoordStruct coord = pThis->Location;
-
-	SpawnTrailerIfDue(this, coord);
-
-	if (pType->ROT > 0)
-	{
-		// Guided / homing missile path
-		UpdateGuidedMotion(this, coord, ctx);
-
-		// Guided path can also short-circuit to detonate (Inviso interceptor)
-		if (ctx.detonate_now)
-		{
-			RunDetonation(this, coord, ctx);
-			return;
-		}
+		CheckBuildingCell(_thisCoord, newVel);
 	}
 	else
 	{
-		VelocityClass veloc;
-
-		if (pType->Vertical)
-			UpdateVerticalMotion(this, coord, veloc, ctx);
-		else
-			UpdateBallisticMotion(this, coord, veloc, ctx);
-
-		CheckUnguidedTargetCell(this, coord, veloc, ctx);
+		//Debug::LogInfo("[B{:X} f{}]  END: early trajectory detonation", reinterpret_cast<std::uintptr_t>(this), Unsorted::CurrentFrame());
+		ApplyNukeWarhead("early-trajectory", false, this->Location);
+		return;
 	}
-
-	FinalizeBulletMotion(this, coord, ctx);
 }
+
+#undef CXYZ
+
+//#pragma optimize("", on )
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4740, FakeBulletClass::_AI);
-
-#ifdef _old
-ASMJIT_PATCH(0x46670F, BulletClass_AI_PreImpactAnim, 6)
-{
-	GET(BulletClass*, pThis, EBP);
-
-	const auto pWarheadTypeExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
-
-	if (!pThis->NextAnim)
-		return 0x46671D;
-
-	if (pWarheadTypeExt->PreImpact_Moves.Get())
-	{
-		auto coords = pThis->NextAnim->GetCoords();
-		pThis->Location = coords;
-		pThis->Target = MapClass::Instance->TryGetCellAt(coords);
-	}
-
-	return 0x467FEE;
-}
-
-ASMJIT_PATCH(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
-{
-	enum { SkipAirburstCheck = 0x467CDE, SkipSnapFunc = 0x467E53 };
-
-	GET(FakeBulletClass*, pThis, EBP);
-
-	retfunc_fixed nRet(R, SkipAirburstCheck , pThis->Type);
-
-	// Do not require Airburst=no to check target snapping for Inviso / Trajectory=Straight projectiles
-	if (pThis->Type->Inviso)
-	{
-		return nRet();
-	}
-	else
-	{
-		auto const pExt = pThis->_GetExtData();
-
-		if (pExt->Trajectory && PhobosTrajectory::CanSnap(pExt->Trajectory))
-		{
-			return nRet();
-		}
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x466705, BulletClass_AI, 0x6) //8
-{
-	enum { retContunue = 0x0 , retDead = 0x466781 };
-	GET(FakeBulletClass* const, pThis, EBP);
-
-	const auto pBulletExt = pThis->_GetExtData();
-	bool bChangeOwner = false;
-	auto const pBulletCurOwner = pThis->GetOwningHouse();
-
-	if (pThis->Owner && pBulletCurOwner && pBulletCurOwner != pBulletExt->Owner)
-	{
-		bChangeOwner = true;
-		pBulletExt->Owner = pBulletCurOwner;
-	}
-
-	if (pThis->WeaponType && pThis->WH)
-	{
-		if (!pBulletExt->BrightCheckDone)
-		{
-			pThis->Bright = pThis->WeaponType->Bright || pThis->WH->Bright;
-			pBulletExt->BrightCheckDone = true;
-		}
-	}
-
-	auto const pTypeExt = pThis->_GetTypeExtData();
-
-	if (pTypeExt->PreExplodeRange.isset())
-	{
-		const auto ThisCoord = pThis->GetCoords();
-		const auto TargetCoords = pThis->GetBulletTargetCoords();
-
-		if (Math::abs(ThisCoord.DistanceFrom(TargetCoords))
-			<= pTypeExt->PreExplodeRange.Get(0) * 256)
-			if (BulletExtData::HandleBulletRemove(pThis, true, true))
-				return retDead;
-	}
-
-	if(!pBulletExt->Trajectory || !PhobosTrajectory::BlockDrawTrail(pBulletExt->Trajectory)){
-
-		// LaserTrails update routine is in BulletClass::AI hook because BulletClass::Draw
-		// doesn't run when the object is off-screen which leads to visual bugs - Kerbiter
-		if ((!pBulletExt->LaserTrails.empty()))
-		{
-			const CoordStruct& location = pThis->Location;
-			const VelocityClass& velocity = pThis->Velocity;
-
-			// We adjust LaserTrails to account for vanilla bug of drawing stuff one frame ahead.
-			// Pretty meh solution but works until we fix the bug - Kerbiter
-			CoordStruct drawnCoords
-			{
-				(int)(location.X + velocity.X),
-				(int)(location.Y + velocity.Y),
-				(int)(location.Z + velocity.Z)
-			};
-
-			for (auto& trail : pBulletExt->LaserTrails)
-			{
-				// We insert initial position so the first frame of trail doesn't get skipped - Kerbiter
-				// TODO move hack to BulletClass creation
-				if (!trail->LastLocation.isset())
-					trail->LastLocation = location;
-
-				if (trail->Type->IsHouseColor.Get() && bChangeOwner && pBulletExt->Owner)
-					trail->CurrentColor = pBulletExt->Owner->LaserColor;
-
-				trail->Update(drawnCoords);
-			}
-		}
-
-		/*TrailsManager::AI(pThis->_AsBullet());*/
-	}
-	//if (!pThis->Type->Inviso && pBulletExt->InitialBulletDir.has_value())
-	//	pBulletExt->InitialBulletDir = DirStruct((-1) * std::atan2(pThis->Velocity.Y, pThis->Velocity.X));
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x4671B9, BulletClass_AI_ApplyGravity, 0x6)
-{
-	//GET(BulletClass* const, pThis, EBP);
-	GET(BulletTypeClass* const, pType, EAX);
-
-	auto const nGravity = BulletTypeExtData::GetAdjustedGravity(pType);
-	__asm { fld nGravity };
-
-	return 0x4671BF;
-}
-
-// Inviso bullets behave differently in BulletClass::AI when their target is bullet and
-// seemingly (at least partially) adopt characteristics of a vertical projectile.
-// This is a potentially slightly hacky solution to that, as proper solution
-// would likely require making sense of BulletClass::AI and ain't nobody got time for that.
-ASMJIT_PATCH(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
-{
-	enum { DetonateBullet = 0x467F9B, Continue = 0x0 };
-	GET(FakeBulletClass*, pThis, EBP);
-	return (pThis->Type->Inviso && pThis->_GetExtData()->InterceptorTechnoType)
-		? DetonateBullet : Continue;
-}
-
-
-ASMJIT_PATCH(0x466BAF, BulletClass_AI_MissileROTVar, 0x6)
-{
-	GET(FakeBulletClass*, pThis, EBP);
-
-	const auto nFrame = (Unsorted::CurrentFrame + pThis->Fetch_ID()) % 15;
-	const double nMissileROTVar = pThis->_GetTypeExtData()->MissileROTVar.Get(RulesClass::Instance->MissileROTVar);
-
-	R->EAX(int(Math::sin(static_cast<double>(nFrame) *
-		Math::ONE_FIFTEENTH *
-		Math::GAME_TWOPI) *
-		nMissileROTVar + nMissileROTVar + 1.0) *
-		static_cast<double>(pThis->Type->ROT)
-	);
-
-	return 0x466C14;
-}
-
-ASMJIT_PATCH(0x466E9F, BulletClass_AI_MissileSafetyAltitude, 0x6)
-{
-	GET(FakeBulletClass*, pThis, EBP);
-	GET(int, comparator, EAX);
-	return comparator >= pThis->_GetTypeExtData()->GetMissileSaveAltitude(RulesClass::Instance)
-		? 0x466EAD : 0x466EB6;
-}
-
-
-ASMJIT_PATCH(0x4666F7, BulletClass_AI_Trajectories, 0x6)
-{
-	enum { Detonate = 0x467E53 };
-
-	GET(FakeBulletClass*, pThis, EBP);
-
-	auto pExt = pThis->_GetExtData();
-	auto pTypeExt  = pThis->_GetTypeExtData();
-
-	auto& pTraj = pExt->Trajectory;
-
-	if (!pThis->SpawnNextAnim && pTraj) {
-		return pTraj->OnAI() ? Detonate : 0x0;
-	}
-
-	if (pExt->InterceptedStatus & InterceptedStatus::Targeted) {
-		if (const auto pTarget = cast_to<BulletClass*>(pThis->Target)) {
-			const auto pTargetTypeExt = BulletTypeExtContainer::Instance.Find(pTarget->Type);
-			const auto pTargetExt = BulletExtContainer::Instance.Find(pTarget);
-
-			if (!pTargetTypeExt->Armor.isset())
-				pTargetExt->InterceptedStatus |= InterceptedStatus::Locked;
-		}
-	}
-
-	if (pExt->InterceptedStatus & InterceptedStatus::Intercepted)
-	{
-		if (const auto pTarget = cast_to<BulletClass*>(pThis->Target))
-			BulletExtContainer::Instance.Find(pTarget)->InterceptedStatus &= ~InterceptedStatus::Locked;
-
-		if (BulletExtData::HandleBulletRemove(pThis, pExt->DetonateOnInterception, true))
-			return 0x467FEE;
-	}
-
-	if (!pThis->IsAlive) {
-        return 0x467FEE;
-    }
-
-	if (!PhobosTrajectory::BlockDrawTrail(pTraj)) {
-
-		if(!pExt->LaserTrails.empty()) {
-			CoordStruct futureCoords
-			{
-				pThis->Location.X + static_cast<int>(pThis->Velocity.X),
-				pThis->Location.Y + static_cast<int>(pThis->Velocity.Y),
-				pThis->Location.Z + static_cast<int>(pThis->Velocity.Z)
-			};
-
-			for (auto& trail : pExt->LaserTrails)
-			{
-				if (!trail->LastLocation.isset())
-					trail->LastLocation = pThis->Location;
-
-				trail->Update(futureCoords);
-			}
-		}
-
-		/*TrailsManager::AI(pThis->_AsBullet());*/
-	}
-
-	if (pThis->HasParachute)
-	{
-		int fallRate = pExt->ParabombFallRate - pTypeExt->Parachuted_FallRate;
-		int maxFallRate = pTypeExt->Parachuted_MaxFallRate.Get(RulesClass::Instance->ParachuteMaxFallRate);
-
-		if (fallRate < maxFallRate)
-			fallRate = maxFallRate;
-
-		pExt->ParabombFallRate = fallRate;
-		pThis->FallRate = fallRate;
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x467AB2, BulletClass_AI_Parabomb, 0x7)
-{
-	GET(BulletClass*, pThis, EBP);
-
-	if (pThis->HasParachute)
-		return 0x467B1A;
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x467E53, BulletClass_AI_PreDetonation_Trajectories, 0x6)
-{
-	GET(FakeBulletClass*, pThis, EBP);
-
-	if (auto& pTraj = pThis->_GetExtData()->Trajectory)
-		pTraj->OnAIPreDetonate();
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x46745C, BulletClass_AI_Position_Trajectories, 0x7)
-{
-	GET(FakeBulletClass*, pThis, EBP);
-	LEA_STACK(VelocityClass*, pSpeed, STACK_OFFS(0x1AC, 0x11C));
-	LEA_STACK(VelocityClass*, pPosition, STACK_OFFS(0x1AC, 0x144));
-
-	auto pExt =  pThis->_GetExtData();
-
-	if (auto& pTraj = pExt->Trajectory)
-		pTraj->OnAIVelocity(pSpeed, pPosition);
-
-
-	// Trajectory can use Velocity only for turning Image's direction
-	// The true position in the next frame will be calculate after here
-	if (pExt->Trajectory) {
-
-		if(!pExt->LaserTrails.empty()){
-			CoordStruct futureCoords
-			{
-				static_cast<int>(pSpeed->X + pPosition->X),
-				static_cast<int>(pSpeed->Y + pPosition->Y),
-				static_cast<int>(pSpeed->Z + pPosition->Z)
-			};
-			for (auto& trail : pExt->LaserTrails)
-			{
-				if (!trail->LastLocation.isset())
-					trail->LastLocation = pThis->Location;
-				trail->Update(futureCoords);
-			}
-		}
-
-		/*TrailsManager::AI(pThis->_AsBullet());*/
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x4677D3, BulletClass_AI_TargetCoordCheck_Trajectories, 0x5)
-{
-	GET(BulletClass*, pThis, EBP);
-	REF_STACK(CoordStruct, coords, STACK_OFFS(0x1A8, 0x184));
-
-	return PhobosTrajectory::OnAITargetCoordCheck(pThis, coords);
-}
-
-ASMJIT_PATCH(0x467927, BulletClass_AI_TechnoCheck_Trajectories, 0x5)
-{
-
-	GET(BulletClass*, pThis, EBP);
-	GET(TechnoClass*, pTechno, ESI);
-
-	return PhobosTrajectory::OnAITechnoCheck(pThis, pTechno);
-}
-
-// deferred explosion. create a nuke ball anim and, when that is over, go boom.
-ASMJIT_PATCH(0x467E59, BulletClass_AI_NukeBall, 5)
-{
-	// changed the hardcoded way to just do this if the warhead is called NUKE
-		// to a more universal approach. every warhead can get this behavior.
-	GET(BulletClass* const, pThis, EBP);
-
-	auto const pExt = BulletExtContainer::Instance.Find(pThis);
-	auto const pWarheadExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
-
-	enum { Default = 0u, FireNow = 0x467F9Bu, PreImpact = 0x467ED0 };
-
-	auto allowFlash = true;
-	// flashDuration = 0;
-
-	// this is a bullet launched by a super weapon
-	if (pExt->NukeSW && !pThis->WH->NukeMaker)
-	{
-		SW_NuclearMissile::CurrentNukeType = pExt->NukeSW;
-
-		if (pThis->GetHeight() < 0)
-		{
-			pThis->SetHeight(0);
-		}
-
-		// cause yet another radar event
-		auto const pSWTypeExt = SWTypeExtContainer::Instance.Find(pExt->NukeSW);
-
-		if (pSWTypeExt->SW_RadarEvent)
-		{
-			auto const coords = pThis->GetMapCoords();
-			RadarEventClass::Create(
-				RadarEventType::SuperweaponActivated, coords);
-		}
-
-		if (pSWTypeExt->Lighting_Enabled.isset())
-			allowFlash = pSWTypeExt->Lighting_Enabled.Get();
-	}
-
-	// does this create a flash?
-	auto const duration = pWarheadExt->NukeFlashDuration.Get();
-
-	if (allowFlash && duration > 0)
-	{
-		// replaces call to NukeFlash::FadeIn
-
-		// manual light stuff
-		NukeFlash::Status = NukeFlashStatus::FadeIn;
-		ScenarioClass::Instance->AmbientTimer.Start(1);
-
-		// enable the nuke flash
-		NukeFlash::StartTime = Unsorted::CurrentFrame;
-		NukeFlash::Duration = duration;
-
-		SWTypeExtData::ChangeLighting(pExt->NukeSW ? pExt->NukeSW : nullptr);
-		MapClass::Instance->RedrawSidebar(1);
-	}
-
-	if (auto pPreImpact = pWarheadExt->PreImpactAnim.Get())
-	{
-		R->EDI(pPreImpact);
-		return PreImpact;
-	}
-
-	return FireNow;
-}
-
-ASMJIT_PATCH(0x467B94, BulletClass_AI_Ranged, 7)
-{
-	GET(BulletClass*, pThis, EBP);
-	REF_STACK(bool, Destroy, 0x18);
-	REF_STACK(CoordStruct, CrdNew, 0x24);
-
-	// range check
-	if (pThis->Type->Ranged)
-	{
-		CoordStruct crdOld = pThis->GetCoords();
-
-		pThis->Range -= int(CrdNew.DistanceFrom(crdOld));
-		if (pThis->Range <= 0)
-		{
-			Destroy = true;
-		}
-	}
-
-	// replicate replaced instruction
-	pThis->SetLocation(CrdNew);
-
-	// firestorm wall check
-	if (HouseExtContainer::Instance.IsAnyFirestormActive && !pThis->Type->IgnoresFirestorm)
-	{
-		auto const pCell = MapClass::Instance->GetCellAt(CrdNew);
-
-		if (auto const pBld = pCell->GetBuilding())
-		{
-			HouseClass* pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
-			if (WarheadTypeExtContainer::Instance.Find(FakeRulesClass::Instance()->FirestormWarhead)->CanAffectHouse(pBld->Owner, pOwner))
-				pOwner =  nullptr; // clear the pointer if can affect the bullet owner
-
-			if (BuildingExtData::IsActiveFirestormWall(pBld, pOwner))
-			{
-				BuildingExtData::ImmolateVictim(pBld , pThis, false);
-				BulletExtData::HandleBulletRemove(pThis, ScenarioClass::Instance->Random.RandomBool(), true);
-				return 0x467FBA;
-			}
-		}
-	}
-
-	return 0x467BA4;
-}
-
-
-ASMJIT_PATCH(0x467C1C, BulletClass_AI_UnknownTimer, 0x6)
-{
-	GET(BulletTypeClass*, projectile, EAX);
-	return projectile->Inviso ? 0x467C2A : 0;
-}
-
-ASMJIT_PATCH(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
-{
-	GET(BulletClass*, pThis, EBP);
-	GET(CoordStruct*, pCoord, ECX);
-
-	R->EAX(BulletExtData::FuseCheckup(pThis, pCoord));
-
-	return 0x467C3A;
-}
-
-
-ASMJIT_PATCH(0x466834, BulletClass_AI_TrailerAnim, 0x6)
-{
-	GET(BulletClass* const, pThis, EBP);
-	const int delay = pThis->Type->ScaledSpawnDelay ? pThis->Type->ScaledSpawnDelay : pThis->Type->SpawnDelay;
-
-	if (delay < 0)
-		return 0x4668BD;
-
-	if (!(Unsorted::CurrentFrame % delay))
-	{
-
-		auto const pExt = BulletExtContainer::Instance.Find(pThis);
-		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pThis->Type->Trailer, pThis->Location, 1, 1, AnimFlag::AnimFlag_600, 0, false),
-			pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner) ? pExt->Owner : nullptr,
-			pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis->Owner,
-			false,
-			false
-		);
-	}
-
-	return 0x4668BD;
-}
-
-#endif
+DEFINE_FUNCTION_JUMP(LJMP, 0x4666E0, FakeBulletClass::_AI);

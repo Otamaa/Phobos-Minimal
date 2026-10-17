@@ -866,7 +866,7 @@ ASMJIT_PATCH(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 	return DoActionHeal;
 }
 
-ASMJIT_PATCH(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
+ASMJIT_PATCH(0x73FDBD, UnitClass_GetActionOnObject_Heal, 0xA)
 {
 	enum { ContinueCheck = 0x73FE48, CheckIfTargetIsBuilding = 0x73FE2F, DoActionSelect = 0x73FE3B, DoActionGRepair = 0x73FE22, CheckObjectHP = 0x73FE08 };
 	GET(UnitClass*, pThis, ESI);

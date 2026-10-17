@@ -22,7 +22,7 @@ UnitExtContainer UnitExtContainer::Instance;
 
 UnitExtData::UnitExtData(UnitClass* pObj) : FootExtData(pObj)
 {
-	this->CurrentType = pObj->Type;
+	this->PreviousType = this->CreatedType = pObj->Type;
 	this->Name = pObj->Type->ID;
 	this->AbsType = UnitClass::AbsID;
 	this->TypeExtData = UnitTypeExtContainer::Instance.Find(pObj->Type);

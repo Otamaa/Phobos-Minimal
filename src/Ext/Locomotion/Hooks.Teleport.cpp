@@ -52,7 +52,7 @@ ASMJIT_PATCH(0x719BD9, TeleportLocomotionClass_Process_ChronosphereDelay2, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 0x6)
+ASMJIT_PATCH(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 0x5)
 {
 	GET_LOCO(ESI);
 
@@ -97,7 +97,7 @@ ASMJIT_PATCH(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 
 	return 0x7195BC;
 }
 
-ASMJIT_PATCH(0x719742, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0x6)
+ASMJIT_PATCH(0x719742, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0x5)
 {
 	GET_LOCO(ESI);
 
@@ -122,7 +122,7 @@ ASMJIT_PATCH(0x719742, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0
 	return 0x719796;
 }
 
-ASMJIT_PATCH(0x719827, TeleportLocomotionClass_ILocomotion_Process_WarpAway, 0x6)
+ASMJIT_PATCH(0x719827, TeleportLocomotionClass_ILocomotion_Process_WarpAway, 0x5)
 {
 	GET_LOCO(ESI);
 

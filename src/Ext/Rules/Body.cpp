@@ -2840,7 +2840,7 @@ ASMJIT_PATCH(0x7272B5, TriggerTypeClass_LoadFromINI_House, 6)
 	return 0x7272C1;
 }
 
-ASMJIT_PATCH(0x72749B, TriggerTypeClass_LoadFromINI_Buffers, 0x8)
+ASMJIT_PATCH(0x72749B, TriggerTypeClass_LoadFromINI_Buffers, 0x7)
 {
 	GET(TriggerTypeClass*, pThis, EBP);
 	GET_STACK(CCINIClass*, pINI, 0x248);

@@ -16,7 +16,7 @@
 
 #include <Fundamentals.h>
 
-ASMJIT_PATCH(0x46B1D6, BulletClass_DrawVXL_Palette, 0x6)
+ASMJIT_PATCH(0x46B1D6, BulletClass_DrawVXL_Palette, 0x5)
 {
 	GET_STACK(BulletClass*, pThis, STACK_OFFS(0xF8, 0xE4));
 	GET(BulletTypeClass*, pThisType, EDX);

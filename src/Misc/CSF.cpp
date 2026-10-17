@@ -1062,7 +1062,7 @@ const wchar_t* __fastcall CSFLoader::FetchStringManager(const char* label,
 // HOOKS
 // =============================================================================
 
-ASMJIT_PATCH(0x7346A0, CSF_Init_FullReplace, 6)
+ASMJIT_PATCH(0x7346A0, CSF_Init_FullReplace, 5)
 {
 	const char* pFileName = R->ECX<const char*>();
 	R->EAX(CSFLoader::PhobosInit(pFileName) ? 1 : 0);

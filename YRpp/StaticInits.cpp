@@ -1910,7 +1910,11 @@ void DSurface::DSurfaceDrawText(const wchar_t* pText, Point2D* pLoction, COLORRE
 	TextDrawing::Fancy_Text_Print_Wide_NoFormat(pText, this, &rect, pLoction, (unsigned int)Color, 0, TextPrintType::NoShadow);
 }
 
-DirStruct VelocityClass::GetDirectionFromXY()
+DirStruct VelocityClass::GetDirectionFromXY() {
+	return DirStruct { static_cast<int>(static_cast<int64_t>(this->GetPitchRad())) };
+}
+
+double VelocityClass::GetPitchRad()
 {
 	// Compute 2D magnitude (XZ plane)
 	double horizontalLength = this->LengthXY();
@@ -1924,6 +1928,5 @@ DirStruct VelocityClass::GetDirectionFromXY()
 	// Convert to engine's binary angle format
 	//static_assert(-10430.06004058427 == Math::BINARY_ANGLE_MAGIC, "Binary Angle Magic Missmatch !");
 	//static_assert(1.570796326794897 == Math::DEG90_AS_RAD, "DEG90_AS_RAD Missmatch !");
-
-	return DirStruct { static_cast<int>(static_cast<int64_t>(adjustedPitch * Math::BINARY_ANGLE_MAGIC)) };
+	return adjustedPitch * Math::BINARY_ANGLE_MAGIC;
 }

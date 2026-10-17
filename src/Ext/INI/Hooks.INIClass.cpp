@@ -355,7 +355,7 @@ int __fastcall IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper(INIClass* pThis
 
 DEFINE_FUNCTION_JUMP(CALL, 0x545FD4, IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper);
 
-ASMJIT_PATCH(0x474964, CCINIClass_ReadPipScale_add, 0x6)
+ASMJIT_PATCH(0x474964, CCINIClass_ReadPipScale_add, 0x7)
 {
 	enum { seteax = 0x47499C, retzero = 0x47498B, seteaxwithEdi = 0x474995 };
 

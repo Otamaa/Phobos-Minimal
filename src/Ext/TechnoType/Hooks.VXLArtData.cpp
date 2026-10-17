@@ -274,7 +274,7 @@ static Matrix3D* __fastcall BounceClass_ShadowMatrix(BounceClass* self, void*, M
 DEFINE_FUNCTION_JUMP(CALL, 0x749CAC, BounceClass_ShadowMatrix);
 
 //the deeper part
-ASMJIT_PATCH(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
+ASMJIT_PATCH(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x6)
 {
 	//Debug::LogInfo(__FUNCTION__" Exec");
 	GET(FootClass*, pThis, EBX);//Maybe Techno later

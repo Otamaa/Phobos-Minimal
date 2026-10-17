@@ -496,7 +496,7 @@ VelocityClass BulletExtData::GenerateVelocity(BulletClass* pThis, AbstractClass*
 		velocity.X *= (double)nMult_Cos;
 		velocity.Y *= (double)nMult_Cos;
 		velocity.Z *= nMult_Sin * nThirdMag;
-		velocity.SetIfZeroXYZ();
+		velocity.SetXIfZeroXYZ();
 
 		const double nFullMag = velocity.Length();
 		const double nDevidedBySpeed = nSpeed / nFullMag;
@@ -522,7 +522,7 @@ VelocityClass BulletExtData::GenerateVelocity(BulletClass* pThis, AbstractClass*
 		velocity.Y *= nMult_Cos;
 		velocity.Z *= nMult_Sin * nThirdMag;
 
-		velocity.SetIfZeroXYZ();
+		velocity.SetXIfZeroXYZ();
 	}
 
 	return velocity;
@@ -844,7 +844,8 @@ bool BulletExtData::HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool 
 			pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
 		}
 
-		GameDelete<true, false>(pThis);
+		pThis->UnInit();
+		pThis->LastMapCoords = CellClass::Coord2Cell(pThis->Location);
 		return true;
 	}
 

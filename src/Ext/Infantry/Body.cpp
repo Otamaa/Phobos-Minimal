@@ -10,7 +10,7 @@ InfantryExtData::InfantryExtData(InfantryClass* pObj) : FootExtData(pObj)
 {
 	this->Name = pObj->Type->ID;
 	this->AbsType = InfantryClass::AbsID;
-	this->CurrentType = pObj->Type;
+	this->PreviousType = this->CreatedType = pObj->Type;
 	this->TypeExtData = InfantryTypeExtContainer::Instance.Find(pObj->Type);
 }
 

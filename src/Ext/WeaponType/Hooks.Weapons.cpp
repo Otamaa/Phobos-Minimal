@@ -157,7 +157,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x7177C0, FakeTechnoTypeClass::__GetWeapon);
 DEFINE_FUNCTION_JUMP(LJMP, 0x7177E0, FakeTechnoTypeClass::__GetEliteWeapon);
 DEFINE_FUNCTION_JUMP(LJMP, 0x7178B0, FakeTechnoTypeClass::__GetWeaponTurretIndex);
 
-ASMJIT_PATCH(0x747BCF, UnitTypeClass_LoadFromINI_Turrets, 5)
+ASMJIT_PATCH(0x747BCF, UnitTypeClass_LoadFromINI_Turrets, 8)
 {
 	GET(UnitTypeClass*, pThis, ESI);
 	GET(CCINIClass*, pINI, EBX);

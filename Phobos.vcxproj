@@ -23,6 +23,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Commands\AssignRallyPoint.cpp" />
+    <ClCompile Include="src\Commands\AutoLoad.cpp" />
     <ClCompile Include="src\Commands\BuildLastOfTab.cpp" />
     <ClCompile Include="src\Commands\ClearObserverUICards.cpp" />
     <ClCompile Include="src\Commands\CycleSelection.cpp" />
@@ -591,6 +592,7 @@
     <ClCompile Include="src\Utilities\Patch.cpp" />
     <ClCompile Include="src\Utilities\Template.cpp" />
     <ClCompile Include="src\Utilities\TranslucencyLevel.cpp" />
+    <ClCompile Include="src\Commands\VariantSelect.cpp" />
     <ClCompile Include="YRpp\CCFileClass.cpp" />
     <ClCompile Include="YRpp\INIEntry.cpp" />
     <ClCompile Include="YRpp\INISection.cpp" />
@@ -600,6 +602,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Commands\AssignRallyPoint.h" />
+    <ClInclude Include="src\Commands\AutoLoad.h" />
     <ClInclude Include="src\Commands\BuildLastOfTab.h" />
     <ClInclude Include="src\Commands\ClearObserverUICards.h" />
     <ClInclude Include="src\Commands\CycleSelection.h" />
@@ -1109,6 +1112,7 @@
     <ClInclude Include="src\New\Entity\TheaterSpecificSHP.h" />
     <ClInclude Include="src\Utilities\THandle.h" />
     <ClInclude Include="src\Utilities\TranslucencyLevel.h" />
+    <ClInclude Include="src\Commands\VariantSelect.h" />
     <ClInclude Include="src\Utilities\VectorHelper.h" />
     <ClInclude Include="src\Utilities\VectorNames.h" />
     <ClInclude Include="src\Utilities\VectorSet.h" />
@@ -1217,7 +1221,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>

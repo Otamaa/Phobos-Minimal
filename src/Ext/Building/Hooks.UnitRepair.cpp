@@ -773,7 +773,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4108, FakeBuildingClass::_Mission_Repair);
 //	return 0;
 //}
 
-ASMJIT_PATCH(0x6F4CF0, TechnoClass_ReceiveCommand_Repair, 0x5)
+ASMJIT_PATCH(0x6F4CF0, TechnoClass_ReceiveCommand_Repair, 0xA)
 {
 	enum { AnswerNegative = 0x6F4CB4 , Continue = 0x0 };
 

@@ -238,7 +238,7 @@ ASMJIT_PATCH(0x4C25CB, EBolt_Draw_Color2, 5)
 	return 0x4C25FD;
 }
 
-ASMJIT_PATCH(0x4C26CF, EBolt_Draw_Color3, 5)
+ASMJIT_PATCH(0x4C26CF, EBolt_Draw_Color3, 6)
 {
 	R->EAX(EboltTemp::Data->Color[2]);
 	return 0x4C26EE;

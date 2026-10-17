@@ -806,7 +806,7 @@ ASMJIT_PATCH(0x41E471, AITriggerTypeClass_CTOR, 0x7)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x41E4AF, AITriggerTypeClass_DTOR, 0x6)
+ASMJIT_PATCH(0x41E4AF, AITriggerTypeClass_DTOR, 0x7)
 {
 	GET(AITriggerTypeClass*, pThis, ESI);
 	AITriggerTypeExtContainer::Instance.Remove(pThis);

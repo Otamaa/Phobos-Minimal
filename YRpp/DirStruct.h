@@ -701,6 +701,16 @@ struct DirStruct
 		SetValue<Bits>(value & Max); // mask to prevent overflow
 	}
 
+	// easier shorthand , common pattern
+	// commonly used in game
+	FORCEDINLINE double GetRad() {
+		return ((Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC);
+	}
+
+	FORCEDINLINE void SetRadFrom(float X, float Y) {
+		Raw = static_cast<short>((Math::atan2(X,Y) - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC);
+	}
+
 	unsigned short Raw;  // The actual binary angle, 0x0000=North, clockwise positive
 
 private:

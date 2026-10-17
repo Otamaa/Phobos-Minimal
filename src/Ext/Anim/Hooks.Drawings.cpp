@@ -5,7 +5,7 @@
 
 #include <TacticalClass.h>
 
-ASMJIT_PATCH(0x423855, AnimClass_DrawIt_ShadowLocation, 0x7)
+ASMJIT_PATCH(0x423855, AnimClass_DrawIt_ShadowLocation, 0x6)
 {
 	enum { SkipGameCode = 0x42385D };
 

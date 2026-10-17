@@ -533,6 +533,38 @@ public:
 		};
 	}
 
+	// Computes the inverse of a rigid-body transform (rotation + translation).
+	// Assumes the upper-left 3x3 block is orthonormal (pure rotation).
+	// Result: [ R^T   -R^T * t ; 0 0 0 1 ]
+	COMPILETIMEEVAL Matrix3D InvertRigid() const
+	{
+		Matrix3D inv { };
+			inv.MakeIdentity();
+
+		// Transpose the 3x3 rotation block: inv.R = A.R^T
+		for (int r = 0; r < 3; ++r)
+			for (int c = 0; c < 3; ++c)
+				inv.Row[r][c] = this->Row[c][r];
+
+		// Translation: inv.t = -R^T * t
+		const float tx = this->Row[0][3];
+		const float ty = this->Row[1][3];
+		const float tz = this->Row[2][3];
+
+		for (int r = 0; r < 3; ++r) {
+			inv.Row[r][3] = -(inv.Row[r][0] * tx
+						  + inv.Row[r][1] * ty
+						  + inv.Row[r][2] * tz);
+		}
+
+		// Bottom row is already (0,0,0,1) from identity()
+		return inv;
+	}
+
+	// Computes the inverse of a rigid-body transform (rotation + translation).
+	// Assumes the upper-left 3x3 block is orthonormal (pure rotation).
+	// Result: [ R^T   -R^T * t ; 0 0 0 1 ]
+	static Matrix3D* __fastcall InvertRigidFor(Matrix3D* inv, Matrix3D* A) { JMP_FAST(0x5AFC20); }
 	static Quaternion* __fastcall FromMatrix(Quaternion* ret, Matrix3D* Mtx) { JMP_FAST(0x00646730); }
 	// Idk : Otamaa
 	static Quaternion FromMatrix(Matrix3D& Mtx)

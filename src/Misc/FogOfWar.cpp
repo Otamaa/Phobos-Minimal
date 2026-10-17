@@ -617,7 +617,7 @@ ASMJIT_PATCH(0x577EBF, MapClass_Reveal, 0x6)
 	return 0x577EE9;
 }
 
-ASMJIT_PATCH(0x586683, CellClass_DiscoverTechno, 0x5)
+ASMJIT_PATCH(0x586683, CellClass_DiscoverTechno, 0x8)
 {
 	GET(TechnoClass*, pTechno, EAX);
 	GET(CellClass*, pThis, ESI);

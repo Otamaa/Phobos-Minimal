@@ -875,7 +875,7 @@ ASMJIT_PATCH(0x4586D6, BuildingClass_KillOccupiers, 0x9)
 }
 
 // do not crash if the EMP cannon primary has no Report sound
-ASMJIT_PATCH(0x44D4CA, BuildingClass_Mission_Missile_NoReport, 0x9)
+ASMJIT_PATCH(0x44D4CA, BuildingClass_Mission_Missile_NoReport, 0x6)
 {
 	GET(TechnoTypeClass*, pType, EAX);
 	GET(WeaponTypeClass*, pWeapon, EBP);
@@ -1881,18 +1881,22 @@ ASMJIT_PATCH(0x4556E1, BuildingClass_SensorArrayDeactivate, 7)
 // powered state changed
 // ???
 
-ASMJIT_PATCH(0x4549F8, BuildingClass_UpdatePowered_SensorArray, 6)
+ASMJIT_PATCH(0x4549F8, BuildingClass_UpdatePowered_Additionals, 6)
 {
-	GET(BuildingClass*, pBld, ESI);
+	GET(FakeBuildingClass*, pBld, ESI);
 	TechnoExtData::UpdateSensorArray(pBld);
+	// Update disguise detection when building power state changes
+	pBld->_GetExtData()->UpdateDetectDisguise();
 	return 0;
-}ASMJIT_PATCH_AGAIN(0x454B5F, BuildingClass_UpdatePowered_SensorArray, 6)
+}ASMJIT_PATCH_AGAIN(0x454B5F, BuildingClass_UpdatePowered_Additionals, 6)
 
 // something changed to the worse, like toggle power
-ASMJIT_PATCH(0x4524A3, BuildingClass_DisableThings, 6)
+ASMJIT_PATCH(0x4524A3, BuildingClass_DisableThings_Additionals, 6)
 {
-	GET(BuildingClass*, pBld, EDI);
+	GET(FakeBuildingClass*, pBld, EDI);
 	TechnoExtData::UpdateSensorArray(pBld);
+	//  disguise detection when building is disabled by EMP or toggled off
+	pBld->_GetExtData()->UpdateDetectDisguise();
 	return 0;
 }
 

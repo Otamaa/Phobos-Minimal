@@ -142,7 +142,8 @@ public:
 	std::unique_ptr<ShiftSchedule> QueuedShift { nullptr };
 	TechnoClass* ShiftApplier { nullptr };
 	HouseClass* ShiftApplierHouse { nullptr };
-	TechnoTypeClass* CurrentType { nullptr };
+	TechnoTypeClass* PreviousType { nullptr };
+	TechnoTypeClass* CreatedType { nullptr };
 	TechnoTypeExtData* TypeExtData { nullptr };
 	BuildingLightClass* BuildingLight { nullptr };
 	HouseTypeClass* OriginalHouseType { nullptr };

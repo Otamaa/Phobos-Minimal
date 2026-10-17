@@ -372,7 +372,7 @@ DEFINE_JUMP(LJMP, 0x687683 , 0x687694)
 DEFINE_JUMP(LJMP, 0x535331 , 0x535342)
 
 //stupid crash
-ASMJIT_PATCH(0x68796B, _ReadScenario_ConfigureAdvancedCommandBar, 0x6)
+ASMJIT_PATCH(0x68796B, _ReadScenario_ConfigureAdvancedCommandBar, 0x5)
 {
 	const bool isSinglePlayer = SessionClass::Instance->IsSingleplayer();
 	RulesClass::Instance->Read_AdvancedCommandBar(CCINIClass::INI_UIMD.operator->(), isSinglePlayer ? 0 : 1);

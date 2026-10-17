@@ -32,6 +32,7 @@
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>
 
+#include <fstream>
 #include <TerrainClass.h>
 
 #ifndef FireAt_Backport
@@ -268,6 +269,8 @@ static void HandlePostBulletLogic(
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  Main function
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#pragma optimize("", off )
+
 BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 	TechnoClass* pThis, discard_t,
 	AbstractClass* pTarget, int which)
@@ -482,7 +485,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 	}
 
 	// ── Target coordinate ─────────────────────────────────────────────────────
-	CoordStruct    coord1 {};
+	CoordStruct    targetCoords {};
 	AbstractClass* pEffectiveTarget = pTarget;
 
 	if (pTechnoType->SprayAttack)
@@ -496,41 +499,44 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 				? (sz / pWeapon->Burst + pThis->SprayOffsetIndex) % sz
 				: ScenarioClass::Instance->Random.RandomRanged(0, sz - 1);
 			const CoordStruct& off = extOffsets[pThis->SprayOffsetIndex];
-			coord1 = { pThis->Location.X + off.X,
+			targetCoords = { pThis->Location.X + off.X,
 					   pThis->Location.Y + off.Y,
 					   pThis->Location.Z + off.Z };
 		}
 		// LABEL_51: SprayAttack always re-fetches target
-		pEffectiveTarget = MapClass::Instance->GetCellAt(coord1);
+		pEffectiveTarget = MapClass::Instance->GetCellAt(targetCoords);
 	}
-	else if (pWeapon->AreaFire) // hook 0x6FE140
+	else 
 	{
-		auto c = pThis->GetCoords();
-		// ???????
-		CellStruct cell = CellClass::Coord2Cell(c);
-		CellClass* refCell = MapClass::Instance->GetCellAt(cell);
-		coord1 = refCell->GetCoords();
-		CellClass* pCell = MapClass::Instance->GetCellAt(coord1);
-
-		// ╔═══ HOOK: TechnoClass_FireAt_AreaFire @ 0x6FE19A ════════════════════╗
-		switch (TechnoExtData::ApplyAreaFire(pThis, pCell, pWeapon))
+		if (pWeapon->AreaFire) // hook 0x6FE140
 		{
-		case AreaFireReturnFlag::DoNotFire:
-			RunEndHook(pThis, pWeapon); return nullptr;
-		case AreaFireReturnFlag::SkipSetTarget:
-			pEffectiveTarget = pThis; break;
-		default: // Continue
-			pEffectiveTarget = pCell; break;
-		}
-		// ╚═══════════════════════════════════════════════════════════════════╝
-	}
-	else
-	{
-		coord1 = pTargetFoot
-			? pTargetFoot->GetTargetCoords()
-			: pTarget->GetCoords();
-	}
+			auto c = pThis->GetCoords();
+			// ???????
+			CellStruct cell = CellClass::Coord2Cell(c);
+			CellClass* refCell = MapClass::Instance->GetCellAt(cell);
+			targetCoords = refCell->GetCoords();
+			CellClass* pCell = MapClass::Instance->GetCellAt(targetCoords);
 
+			// ╔═══ HOOK: TechnoClass_FireAt_AreaFire @ 0x6FE19A ════════════════════╗
+			switch (TechnoExtData::ApplyAreaFire(pThis, pCell, pWeapon))
+			{
+			case AreaFireReturnFlag::DoNotFire:
+				RunEndHook(pThis, pWeapon); return nullptr;
+			case AreaFireReturnFlag::SkipSetTarget:
+				pEffectiveTarget = pThis; break;
+			default: // Continue
+				pEffectiveTarget = pCell; break;
+			}
+			// ╚═══════════════════════════════════════════════════════════════════╝
+		}
+		else
+		{
+			targetCoords = pTargetFoot
+				? pTargetFoot->GetTargetCoords()
+				: pTarget->GetCenterCoords();
+		}
+	}
+	
 	const bool bulletHasROTorDropping =
 		pBulletType->ROT > 0 || pBulletType->Dropping;
 
@@ -597,9 +603,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 
 	// ── Bullet creation ───────────────────────────────────────────────────────
 	// ╔═══ HOOK: TechnoClass_FireAt_CreateBullet @ 0x6FE53F ════════════════════╗
-	const int dist2d = (int)Math::sqrt(
-		(double)((coord1.Y - fireOrigin.Y) * (coord1.Y - fireOrigin.Y)
-			+ (coord1.X - fireOrigin.X) * (coord1.X - fireOrigin.X)));
+	const int dist2d = (int)targetCoords.DistanceFromXY(fireOrigin);
 
 	int bulletSpeed = pWeapon->GetWeaponSpeed(dist2d);
 	
@@ -620,6 +624,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 	pBullet->WeaponType = pWeapon;
 	pBullet->Limbo();
 
+	//the fuck
 	if (pThisFoot) {
 		if (pThisFoot->Locomotor->Is_Moving() && !pTechnoType->JumpJet)
 			pBullet->IsInaccurate = true;
@@ -634,62 +639,71 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 	// ── Delta / scatter / direction ───────────────────────────────────────────
 	CoordStruct pTgtCoord;
 	pThis->GetMovingTargetCoords(&pTgtCoord);
-	CoordStruct delta { pTgtCoord.X - fireOrigin.X, pTgtCoord.Y - fireOrigin.Y, pTgtCoord.Z - fireOrigin.Z };
-	CoordStruct scatterDelta = delta;
-
-	if(!pBulletTypeExt->BallisticScatter_Chance.isset() || ScenarioClass::Instance->Random.RandomRanged(0, 100) > pBulletTypeExt->BallisticScatter_Chance.Fetch() * 100)
-	{
-		const bool isBlilistic = !pBulletType->FlakScatter || pBulletType->Inviso;
-		int min_s = pBulletTypeExt->BallisticScatterMin.Get(isBlilistic ? Leptons(RulesClass::Instance->BallisticScatter / 2) : Leptons(0));
-		int max_s = pBulletTypeExt->BallisticScatterMax.Get(Leptons(RulesClass::Instance->BallisticScatter));
-
-
-		if (pBulletTypeExt->BallisticScatter_IncreaseByRange) {
-			const int minInMinRange = pBulletTypeExt->BallisticScatter_Min_InMinRange.Get(Leptons(min_s));
-			const int minInMaxRange = pBulletTypeExt->BallisticScatter_Min_InMaxRange.Get(Leptons(min_s));
-			const int maxInMinRange = pBulletTypeExt->BallisticScatter_Max_InMinRange.Get(Leptons(max_s));
-			const int maxInMaxRange = pBulletTypeExt->BallisticScatter_Max_InMaxRange.Get(Leptons(max_s));
-			const int minRange = pBulletTypeExt->BallisticScatter_MinRange.Get(Leptons(pWeapon->MinimumRange));
-			const int maxRange = pBulletTypeExt->BallisticScatter_MaxRange.Get(Leptons(pWeapon->Range));
-			const int deltaRange = maxRange - minRange;
-			const int deltaRangeReal = static_cast<int>((pTarget->GetCoords() - pThis->GetCoords()).Length()) - minRange;
-			const double rangePercent = std::clamp(int(deltaRange == 0 ? 0.5 : deltaRangeReal / static_cast<double>(deltaRange)), 0, 1);
-			min_s = minInMinRange + static_cast<int>(rangePercent * (minInMaxRange - minInMinRange));
-			max_s = maxInMinRange + static_cast<int>(rangePercent * (maxInMaxRange - maxInMinRange));
+	// For aircraft, avoid predictive leading from GetMovingTargetCoords which can
+	// sometimes target an incorrect offset; use raw target center/target coords.
+/*	if (rtti == AbstractType::Aircraft) {
+		if (pTargetFoot) {
+			pTgtCoord = pTargetFoot->GetTargetCoords();
+		} else {
+			pTarget->GetCenterCoords(&pTgtCoord);
 		}
+	} else {
+		pTgtCoord = movingCoords;
+	}*/
 
-		const int sd = ScenarioClass::Instance->Random.RandomRanged(min_s, max_s);
+	CoordStruct delta = pTgtCoord - fireOrigin;
 
-		// ╔═══ HOOK: TechnoClass_FireAt_BallisticScatter1/2 @ 0x6FE709 / 0x6FE7FE ╗
-		if (isBlilistic)
-		{
-			// Mode 1: proportional 3D (hook 0x6FE7FE)
-			const double d3 = Math::sqrt((double)delta.X * delta.X
-										   + (double)delta.Y * delta.Y
-										   + (double)delta.Z * delta.Z);
+	if(pBulletType->Inaccurate && pBulletType->Arcing) {
+		if(!pBulletTypeExt->BallisticScatter_Chance.isset() 
+			|| ScenarioClass::Instance->Random.RandomRanged(0, 100) > pBulletTypeExt->BallisticScatter_Chance.Fetch() * 100
+		) {
+			const bool isBlilistic = !pBulletType->FlakScatter || pBulletType->Inviso;
+			int min_s = pBulletTypeExt->BallisticScatterMin.Get(isBlilistic ? Leptons(RulesClass::Instance->BallisticScatter / 2) : Leptons(0));
+			int max_s = pBulletTypeExt->BallisticScatterMax.Get(Leptons(RulesClass::Instance->BallisticScatter));
 
-			const int   rng = pThis->GetWeaponRange(which);
-			const double pr = rng > 0 ? d3 * sd / (double)rng : 0.0;
-			const double rd = ScenarioClass::Instance->Random.RandomDouble() * Math::GAME_TWOPI - Math::DEG90_AS_RAD;
-			const double ra = (double)((int16_t)(int)(rd * Math::BINARY_ANGLE_MAGIC) - 0x3FFF)
-				* Math::DIRECTION_FIXED_MAGIC;
-			scatterDelta.Y = (int)((double)delta.Y - Math::sin(ra) * pr);
-			scatterDelta.X = (int)(Math::cos(ra) * pr + (double)delta.X);
+
+			if (pBulletTypeExt->BallisticScatter_IncreaseByRange) {
+				const int minInMinRange = pBulletTypeExt->BallisticScatter_Min_InMinRange.Get(Leptons(min_s));
+				const int minInMaxRange = pBulletTypeExt->BallisticScatter_Min_InMaxRange.Get(Leptons(min_s));
+				const int maxInMinRange = pBulletTypeExt->BallisticScatter_Max_InMinRange.Get(Leptons(max_s));
+				const int maxInMaxRange = pBulletTypeExt->BallisticScatter_Max_InMaxRange.Get(Leptons(max_s));
+				const int minRange = pBulletTypeExt->BallisticScatter_MinRange.Get(Leptons(pWeapon->MinimumRange));
+				const int maxRange = pBulletTypeExt->BallisticScatter_MaxRange.Get(Leptons(pWeapon->Range));
+				const int deltaRange = maxRange - minRange;
+				const int deltaRangeReal = static_cast<int>((pTarget->GetCoords() - pThis->GetCoords()).Length()) - minRange;
+				const double rangePercent = std::clamp(int(deltaRange == 0 ? 0.5 : deltaRangeReal / static_cast<double>(deltaRange)), 0, 1);
+				min_s = minInMinRange + static_cast<int>(rangePercent * (minInMaxRange - minInMinRange));
+				max_s = maxInMinRange + static_cast<int>(rangePercent * (maxInMaxRange - maxInMinRange));
+			}
+
+			const int sd = ScenarioClass::Instance->Random.RandomRanged(min_s, max_s);
+
+			// ╔═══ HOOK: TechnoClass_FireAt_BallisticScatter1/2 @ 0x6FE709 / 0x6FE7FE ╗
+			if (isBlilistic)
+			{
+				// Mode 1: proportional 3D (hook 0x6FE7FE)
+				const double d3 = delta.Length();
+
+				const int   rng = pThis->GetWeaponRange(which);
+				const double pr = rng > 0 ? d3 * sd / (double)rng : 0.0;
+				const double rd = ScenarioClass::Instance->Random.RandomDouble() * Math::GAME_TWOPI - Math::DEG90_AS_RAD;
+				const double ra = (double)((int16_t)(int)(rd * Math::BINARY_ANGLE_MAGIC) - 0x3FFF)
+					* Math::DIRECTION_FIXED_MAGIC;
+				delta.Y = (int)((double)delta.Y - Math::sin(ra) * pr);
+				delta.X = (int)(Math::cos(ra) * pr + (double)delta.X);
+			}
+			else
+			{
+				// Mode 2: 2D polar (hook 0x6FE709)
+
+				const double rd = ScenarioClass::Instance->Random.RandomDouble() * Math::GAME_TWOPI - Math::DEG90_AS_RAD;
+				const double ra = (double)((int16_t)(int)(rd * Math::BINARY_ANGLE_MAGIC) - 0x3FFF)
+					* Math::DIRECTION_FIXED_MAGIC;
+				delta.Y = (int)((double)delta.Y - Math::sin(ra) * sd);
+				delta.X = (int)(Math::cos(ra) * sd + (double)delta.X);
+			}
+			// ╚═══════════════════════════════════════════════════════════════════╝
 		}
-		else
-		{
-			// Mode 2: 2D polar (hook 0x6FE709)
-
-			const double rd = ScenarioClass::Instance->Random.RandomDouble() * Math::GAME_TWOPI - Math::DEG90_AS_RAD;
-			const double ra = (double)((int16_t)(int)(rd * Math::BINARY_ANGLE_MAGIC) - 0x3FFF)
-				* Math::DIRECTION_FIXED_MAGIC;
-			scatterDelta.Y = (int)((double)delta.Y - Math::sin(ra) * sd);
-			scatterDelta.X = (int)(Math::cos(ra) * sd + (double)delta.X);
-		}
-		// ╚═══════════════════════════════════════════════════════════════════╝
-
-		delta.X = scatterDelta.X;
-		delta.Y = scatterDelta.Y;
 	}
 
 	// Horizontal direction (use DirStruct helpers instead of raw math)
@@ -707,12 +721,9 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 	}
 
 	// Speed clamp to half 3D distance
-	const double dist3d = Math::sqrt(
-		(double)scatterDelta.X * scatterDelta.X
-	  + (double)delta.Y * delta.Y
-	  + (double)delta.Z * delta.Z);
+	const double scatterDelt = delta.Length();
 
-	if ((double)bulletSpeed > dist3d / 2.0) bulletSpeed = (int)(dist3d / 2.0);
+	if ((double)bulletSpeed > scatterDelt / 2.0) bulletSpeed = (int)(scatterDelt / 2.0);
 
 	const int radialSegs = pTechnoType->RadialFireSegments;
 	if (pBulletType->ROT > 0 || pBulletType->Vertical) {
@@ -721,31 +732,30 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 	}
 
 	// Build velocity vector
-	velocity.X = (double)bulletSpeed;
+	const auto v67 = (double)bulletSpeed / Math::sqrt(10000.0);
+
+	velocity.X = v67 * 100.0;
 	velocity.Y = 0.0;
 	velocity.Z = 0.0;
 
-	velocity *= bulletSpeed / Math::sqrt(10000.0);
-
 	if (radialSegs <= 0) {
-		velocity.SetIfZeroXY();
+		velocity.SetXIfZeroXY();
 		const double xyLen = velocity.LengthXY();
-		const double radH = horzDirDS.GetRadian<32>();
+		const double radH = horzDirDS.GetRad();
 		velocity.X = Math::cos(radH) * xyLen;
 		velocity.Y = -Math::sin(radH) * xyLen;
 	} else {
 		const double radOffset = Math::GAME_PI / (double)radialSegs
 			* (double)pThis->__RadialFireCounter_43C - Math::DEG90_AS_RAD;
 		auto pFacing = pThis->PrimaryFacing.Current();
-		const double faceRad = (double)((int16_t)pFacing.Raw - 0x3FFF)
-			* Math::DIRECTION_FIXED_MAGIC;
-		const DirStruct radDirDS = DirStruct((int16_t)(int)(
+		const double faceRad = pFacing.GetRad();
+		DirStruct radDirDS = DirStruct((int16_t)(int)(
 			(faceRad + radOffset - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC));
 
-		velocity.SetIfZeroXY();
+		velocity.SetXIfZeroXY();
 
 		const double xyLen2 = velocity.LengthXY();
-		const double radH2 = radDirDS.GetRadian<32>();
+		const double radH2 = radDirDS.GetRad();
 
 		velocity.X = Math::cos(radH2) * xyLen2;
 		velocity.Y = -Math::sin(radH2) * xyLen2;
@@ -764,8 +774,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 		double gravity = BulletTypeExtData::GetAdjustedGravity(pBulletType);
 		// ╚═══════════════════════════════════════════════════════════════════╝
 
-		const double xyDist = Math::sqrt(
-			(double)delta.Y * delta.Y + (double)scatterDelta.X * scatterDelta.X);
+		const double xyDist = delta.LengthXY();
 		directionLegal = (bool)Game::func_48A8D0_Legal(
 			pThis->CanReachTarget(which),
 			bulletSpeed, (int)xyDist, delta.Z, gravity, &elevDir);
@@ -783,7 +792,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 		int absZ = Math::abs(delta.Z);
 		if (absZ > 200)
 		{
-			double zOffset = 0.0;
+			double zOffset = 20.0;
 
 			if (auto pBldTarcom = cast_to<BuildingClass*>(pThis->TarCom)) {
 				CoordStruct wc;
@@ -794,13 +803,12 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 				if ((double)absZ < 20.0) zOffset = 0.0;
 			}
 
-			const double xyFlat = MaxImpl(Math::sqrt(
-				(double)delta.Y * delta.Y + (double)scatterDelta.X * scatterDelta.X), 0.05);
+			const double xyFlat = MaxImpl(delta.LengthXY(), 0.05);
 
 			double elev = Math::atan2((float)(absZ - zOffset), (float)xyFlat);
 
 			if (delta.Z < 0) elev = -elev;
-				elevDir.Raw = (int16_t)(int)((elev - (float)Math::DEG90_AS_RAD) * (float)Math::BINARY_ANGLE_MAGIC);
+				elevDir.Raw = (uint16_t)(int)((elev - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC);
 		}
 	}
 
@@ -813,16 +821,33 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 
 	if (pitchRad != 0.0) {
 		const double cosPitch = Math::cos(pitchRad);
-		if (cosPitch != 0.0) { velocity.X /= cosPitch; velocity.Y/= cosPitch; }
+		velocity.X /= cosPitch; velocity.Y /= cosPitch;
 	}
 
-	const double elevRad = elevDir.GetRadian<32>();
+	const double elevRad = elevDir.GetRad();
 	const float cos_elevRad = Math::cos(elevRad);
 	velocity.X *= cos_elevRad;
 	velocity.Y *= cos_elevRad;
 	velocity.Z = Math::sin(elevRad) * speed3d;
 
 	// ── Unlimbo ───────────────────────────────────────────────────────────────
+	//{
+	//	double _xyDist = delta.LengthXY();
+	//	double _xySpeed3d = velocity.LengthXY();
+	//	double _speed3d = velocity.Length();
+	//	double _pitchRaw = Math::atan2(velocity.Z, _xySpeed3d) - Math::DEG90_AS_RAD;
+	//	double _pitchRad = (double)((int16_t)(int)(_pitchRaw * Math::BINARY_ANGLE_MAGIC) - 0x3FFF) * Math::DIRECTION_FIXED_MAGIC;
+	//	double _elevRad = elevDir.GetRad();
+	//	double _gravity = pBulletType->Arcing ? BulletTypeExtData::GetAdjustedGravity(pBulletType) : 0.0;
+	//	Debug::Log("DETAILED Frame=%d ShooterType=%d fireOrigin=(%d,%d,%d) chosen=(%d,%d,%d) delta=(%d,%d,%d) Dist=%f xyDist=%f bulletSpeed=%d xySpeed3d=%f pitchRaw=%f pitchRad=%f elevDirRaw=%d elevRad=%f gravity=%f vel=(%f,%f,%f)\n",
+	//		Unsorted::CurrentFrame.get(), (int)rtti,
+	//		fireOrigin.X, fireOrigin.Y, fireOrigin.Z,
+	//		pTgtCoord.X, pTgtCoord.Y, pTgtCoord.Z,
+	//		delta.X, delta.Y, delta.Z,
+	//		_xyDist, bulletSpeed, _speed3d ,_xySpeed3d, _pitchRaw, _pitchRad, elevDir.Raw, _elevRad, _gravity,
+	//		velocity.X, velocity.Y, velocity.Z);
+	//}
+
 	if (directionLegal && pBullet->MoveTo(fireOrigin, velocity)) {
 	// ── Unlimbo success ───────────────────────────────────────────────────────
 
@@ -850,9 +875,10 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 					}
 				}
 			}
+
 			if (HouseExtContainer::Instance.IsAnyFirestormActive && !pBullet->Type->IgnoresFirestorm)
 			{
-				const CoordStruct crdSrc = fireOrigin, crdTgt = coord1;
+				const CoordStruct crdSrc = fireOrigin, crdTgt = targetCoords;
 				const auto crd = MapClass::Instance->FindFirstFirestorm(
 					crdSrc, crdTgt, pBullet->Owner->Owner);
 				if (crd.IsValid())
@@ -885,11 +911,46 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 			TechnoExtContainer::Instance.Find(pThis)->RecordRecoilData();
 		// ╚═══════════════════════════════════════════════════════════════════════╝
 
+		// Optional runtime dump: define FIREAT_DUMP to enable logging to FireAtCoords.log
+	//#ifdef FIREAT_DUMP
+		{
+			//call original function
+			CoordStruct targetCenter = { };
+			if (pTargetFoot) targetCenter = pTargetFoot->GetTargetCoords(); else pTarget->GetCenterCoords(&targetCenter);
+			Debug::Log("FireAtCoords: Frame=%d ShooterType=%d fireOrigin=(%d,%d,%d) delta=(%d,%d,%d) chosen=(%d,%d,%d) targetCenter=(%d,%d,%d)\n",
+				Unsorted::CurrentFrame.get(), (int)rtti,
+				fireOrigin.X, fireOrigin.Y, fireOrigin.Z,
+				delta.X, delta.Y, delta.Z,
+				pTgtCoord.X, pTgtCoord.Y, pTgtCoord.Z,
+				targetCenter.X, targetCenter.Y, targetCenter.Z);
+
+			Debug::Log("CurrentFireAt: Frame=%d ShooterType=%d targetCoords=(%d,%d,%d) sourceCoords=(%d,%d,%d) LastMapCoords=(%d,%d,%d) Vel=(%f,%f,%f) \n",
+				Unsorted::CurrentFrame.get(), (int)rtti,
+				fireOrigin.X, fireOrigin.Y, fireOrigin.Z,
+				pBullet->TargetCoords.X, pBullet->TargetCoords.Y, pBullet->TargetCoords.Z,
+				pBullet->SourceCoords.X, pBullet->SourceCoords.Y, pBullet->SourceCoords.Z,
+				pBullet->LastMapCoords.X, pBullet->LastMapCoords.Y,
+				pBullet->Velocity.X, pBullet->Velocity.Y, pBullet->Velocity.Z
+			);
+
+			//auto pFireAtBullet = pThis->TechnoClass::Fire(pTarget, which);
+
+			//Debug::Log("FireAtOriginal: Frame=%d ShooterType=%d targetCoords=(%d,%d,%d) sourceCoords=(%d,%d,%d) LastMapCoords=(%d,%d,%d) Vel=(%f,%f,%f) \n",
+			//	Unsorted::CurrentFrame.get(), (int)rtti,
+			//	fireOrigin.X, fireOrigin.Y, fireOrigin.Z,
+			//	pFireAtBullet->TargetCoords.X, pFireAtBullet->TargetCoords.Y, pFireAtBullet->TargetCoords.Z,
+			//	pFireAtBullet->SourceCoords.X, pFireAtBullet->SourceCoords.Y, pFireAtBullet->SourceCoords.Z,
+			//	pFireAtBullet->LastMapCoords.X, pFireAtBullet->LastMapCoords.Y,
+			//	pFireAtBullet->Velocity.X, pFireAtBullet->Velocity.Y , pFireAtBullet->Velocity.Z
+			//);
+		}
+		//#endif
+		// 
 		// ╔═══ HOOK: TechnoClass_FireAt_Additionals_Start @ 0x6FF15F ═══════════════╗
 		// W7: §PARTICLES / §ROF / §ANIM / §SOUND are dead code.
 		{
 			FireAtTemp::pObstacleCell = TrajectoryHelper::FindFirstObstacle(
-				fireOrigin, coord1, pWeapon->Projectile, pThis->Owner);
+				fireOrigin, targetCoords, pWeapon->Projectile, pThis->Owner);
 			pExt->FiringObstacleCell = FireAtTemp::pObstacleCell;
 			AbstractClass* pObstacleOrTarget = FireAtTemp::pObstacleCell
 				? FireAtTemp::pObstacleCell : pTarget;
@@ -926,69 +987,71 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 
 			AnimTypeClass* pFiringAnim = nullptr;
 
-			if (pThis->CanOccupyFire())
 			{
-				if (pWeaponExt->OccupantAnim_UseMultiple.Get() && !pWeaponExt->OccupantAnims.empty())
+				if (pThis->CanOccupyFire())
 				{
-					if (pWeaponExt->OccupantAnims.size() == 1)
+					if (pWeaponExt->OccupantAnim_UseMultiple.Get() && !pWeaponExt->OccupantAnims.empty())
 					{
-						pFiringAnim = pWeaponExt->OccupantAnims[0];
+						if (pWeaponExt->OccupantAnims.size() == 1)
+						{
+							pFiringAnim = pWeaponExt->OccupantAnims[0];
+						}
+						else
+						{
+							pFiringAnim = pWeaponExt->OccupantAnims[ScenarioClass::Instance->Random.RandomFromMax(pWeaponExt->OccupantAnims.size() - 1)];
+						}
 					}
 					else
 					{
-						pFiringAnim = pWeaponExt->OccupantAnims[ScenarioClass::Instance->Random.RandomFromMax(pWeaponExt->OccupantAnims.size() - 1)];
+						pFiringAnim = pWeapon->OccupantAnim;
 					}
 				}
 				else
 				{
-					pFiringAnim = pWeapon->OccupantAnim;
-				}
-			}
-			else
-			{
-				if (pWeapon->Anim.Count > 0)
-				{
-					int nIdx = -1;
-
-					if (pWeapon->Anim.Count == 1)
-						nIdx = 0;
-					else
+					if (pWeapon->Anim.Count > 0)
 					{
-						DirStruct facing {};
-						pThis->GetRealFacing(&facing);
+						int nIdx = -1;
 
-						if (pWeapon->Anim.Count == 8)
-						{
-							nIdx = (facing.GetFacing<8>() + 8 / 8) % 8;
-						}
-						else if (pWeapon->Anim.Count == 16)
-						{
-							nIdx = (facing.GetFacing<16>() + 16 / 8) % 16;
-						}
-						else if (pWeapon->Anim.Count == 32)
-						{
-							nIdx = (facing.GetFacing<32>() + 32 / 8) % 32;
-						}
-						else if (pWeapon->Anim.Count == 64)
-						{
-							nIdx = (facing.GetFacing<64>() + 64 / 8) % 64;
-						}
+						if (pWeapon->Anim.Count == 1)
+							nIdx = 0;
 						else
 						{
-							//only execute if the anim count is more than 1
-							const auto highest = Conversions::Int2Highest(pWeapon->Anim.Count);
+							DirStruct facing { };
+							pThis->GetRealFacing(&facing);
 
-							// 2^highest is the frame count, 3 means 8 frames
-							if (highest >= 3)
+							if (pWeapon->Anim.Count == 8)
 							{
-								nIdx = facing.GetValue(highest, 1u << (highest - 3));
+								nIdx = (facing.GetFacing<8>() + 8 / 8) % 8;
 							}
+							else if (pWeapon->Anim.Count == 16)
+							{
+								nIdx = (facing.GetFacing<16>() + 16 / 8) % 16;
+							}
+							else if (pWeapon->Anim.Count == 32)
+							{
+								nIdx = (facing.GetFacing<32>() + 32 / 8) % 32;
+							}
+							else if (pWeapon->Anim.Count == 64)
+							{
+								nIdx = (facing.GetFacing<64>() + 64 / 8) % 64;
+							}
+							else
+							{
+								//only execute if the anim count is more than 1
+								const auto highest = Conversions::Int2Highest(pWeapon->Anim.Count);
 
-							nIdx %= pWeapon->Anim.Count;
+								// 2^highest is the frame count, 3 means 8 frames
+								if (highest >= 3)
+								{
+									nIdx = facing.GetValue(highest, 1u << (highest - 3));
+								}
+
+								nIdx %= pWeapon->Anim.Count;
+							}
 						}
-					}
 
-					pFiringAnim = pWeapon->Anim.Items[nIdx];
+						pFiringAnim = pWeapon->Anim.Items[nIdx];
+					}
 				}
 			}
 
@@ -999,19 +1062,23 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 				VocClass::SafeImmedietelyPlayAt(pWeapon->Report[idx], &fireOrigin, nullptr);
 			}
 
-			auto TryFeedbackWeapon = [&](WeaponTypeClass* fbWpn) -> bool
-				{
-					if (!pThis->InOpenToppedTransport || fbWpn->FireInTransport)
+			{
+				auto TryFeedbackWeapon = [&](WeaponTypeClass* fbWpn) -> bool
 					{
-						WeaponTypeExtData::DetonateAt1(fbWpn, pThis, pThis, true, nullptr);
-						if (!pThis->IsAlive) return false;
-					}
-					return true;
-				};
+						if (!pThis->InOpenToppedTransport || fbWpn->FireInTransport)
+						{
+							WeaponTypeExtData::DetonateAt1(fbWpn, pThis, pThis, true, nullptr);
+							if (!pThis->IsAlive) return false;
+						}
+						return true;
+					};
 
-			if (auto* fbWpn = pWeaponExt->FeedbackWeapon.Get()) {
-				if (!TryFeedbackWeapon(fbWpn)) {
-					return pBullet; //the user are die , just bail
+				if (auto* fbWpn = pWeaponExt->FeedbackWeapon.Get())
+				{
+					if (!TryFeedbackWeapon(fbWpn))
+					{
+						return pBullet; //the user are die , just bail
+					}
 				}
 			}
 
@@ -1090,11 +1157,11 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 				}
 
 					// Redirect to obstacle cell if any
-					FireAtTemp::originalTargetCoords = coord1;
+					FireAtTemp::originalTargetCoords = targetCoords;
 					FireAtTemp::pOriginalTarget = pTarget;
 
 					if (FireAtTemp::pObstacleCell) {
-						coord1 = FireAtTemp::pObstacleCell->GetCoordsWithBridge();
+						targetCoords = FireAtTemp::pObstacleCell->GetCoordsWithBridge();
 						pTarget = FireAtTemp::pObstacleCell;
 					}
 
@@ -1179,14 +1246,14 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 			{
 				WaveType nType = pWeapon->IsMagBeam ? WaveType::Magnetron
 						: (pWeaponExt->Wave_IsBigLaser ? WaveType::BigLaser : WaveType::Laser);
-					pThis->Wave = WaveExtData::Create(fireOrigin, coord1, pThis, nType, pTarget, pWeapon, which);		
+					pThis->Wave = WaveExtData::Create(fireOrigin, targetCoords, pThis, nType, pTarget, pWeapon, which);		
 			}
 			// ╚═══════════════════════════════════════════════════════════════════════╝
 
 			TechnoExtData::DecreaseAmmo(pThis, pWeapon);
 
 			// Restore original target / coords
-			coord1 = FireAtTemp::originalTargetCoords;
+			targetCoords = FireAtTemp::originalTargetCoords;
 			pTarget = FireAtTemp::pOriginalTarget;
 
 			++pThis->CurrentBurstIndex;
@@ -1235,13 +1302,14 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 	}
 	
 	HandlePostBulletLogic(pThis, pTechnoType, pWeapon, pWeaponExt, pBullet,
-			pTarget, fireOrigin, coord1, finalDamage, which, velocity);
+			pTarget, fireOrigin, targetCoords, finalDamage, which, velocity);
 
 	RunEndHook(pThis, pWeapon);
 	return pBullet; // weee
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x6FDD50, FakeTechnoClass::__Fire_At)
+#pragma optimize("", on )
+//DEFINE_FUNCTION_JUMP(LJMP, 0x6FDD50, FakeTechnoClass::__Fire_At)
 DEFINE_FUNCTION_JUMP(CALL, 0x415F12, FakeTechnoClass::__Fire_At)
 DEFINE_FUNCTION_JUMP(CALL, 0x51DF77, FakeTechnoClass::__Fire_At)
 DEFINE_FUNCTION_JUMP(CALL, 0x7413CE, FakeTechnoClass::__Fire_At)

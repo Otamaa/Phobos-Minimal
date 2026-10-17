@@ -9,29 +9,26 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-ASMJIT_PATCH(0x7729F0, WeaponTypeClass_SetSpeed_ApplyGravity, 0x6)
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
+
+void FakeWeaponTypeClass::_Set_Speed()
 {
-	GET(WeaponTypeClass*, pWeapon, ECX);
-
-	const auto pBullet = pWeapon->Projectile;
-	if (pBullet && !pBullet->ROT) {
-		const auto gravity = BulletTypeExtData::GetAdjustedGravity(pBullet);
-		pWeapon->Speed = Game::AdjustRangeWithGravity(pWeapon->Range, gravity);
+	if (this->Projectile && !this->Projectile->ROT) {
+		const auto gravity = BulletTypeExtData::GetAdjustedGravity(this->Projectile);
+		this->Speed = Game::AdjustRangeWithGravity(this->Range, gravity);
 	}
-
-	return 0x772A4C;
 }
 
-ASMJIT_PATCH(0x773070, WeaponTypeClass_GetSpeed_ApplyGravity, 0x6)
+int FakeWeaponTypeClass::_Get_Speed(int a2)
 {
-	GET(WeaponTypeClass*, pWeapon, ECX);
-
-	if (!pWeapon->Projectile || pWeapon->Projectile->ROT) {
-		R->EAX(pWeapon->Speed);
-		return 0x7730C9;
+	if (!this->Projectile || this->Projectile->ROT) {
+		return this->Speed;
 	}
 
-	const auto  gravity = BulletTypeExtData::GetAdjustedGravity(pWeapon->Projectile);
-	R->EAX(Game::AdjustRangeWithGravity(pWeapon->Range, gravity));
-	return 0x7730C9;
+	const auto  gravity = BulletTypeExtData::GetAdjustedGravity(this->Projectile);
+	return Game::AdjustRangeWithGravity(a2, gravity);
 }
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x7729F0, FakeWeaponTypeClass::_Set_Speed)
+DEFINE_FUNCTION_JUMP(LJMP, 0x773070, FakeWeaponTypeClass::_Get_Speed)

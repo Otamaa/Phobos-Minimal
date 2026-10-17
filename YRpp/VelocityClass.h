@@ -10,6 +10,18 @@ class VelocityClass final : public Vector3D<double>
 public:
 	static const VelocityClass Empty;
 
+	static FORCEDINLINE COMPILETIMEEVAL VelocityClass Vec3DToVel(Vector3D& in) {
+		return { in.X , in.Y , in.Z };
+	}
+
+	static FORCEDINLINE VelocityClass CoordToVel(CoordStruct& in) {
+		return { (double)in.X ,  (double)in.Y ,  (double)in.Z };
+	}
+
+	FORCEDINLINE CoordStruct ToCoord() {
+		return { (int)this->X, (int)this->Y  , (int)this->Z };
+	}
+
 	//operator overloads
 	//addition
 	COMPILETIMEEVAL VelocityClass operator+(const VelocityClass& a) const {
@@ -48,16 +60,29 @@ public:
 	}
 
 	DirStruct GetDirectionFromXY();
+	double GetPitchRad();
 
-	COMPILETIMEEVAL FORCEDINLINE void SetIfZeroXY() {
+	COMPILETIMEEVAL FORCEDINLINE void SetXIfZeroXY(double value = 100.0) {
 		if ( X == 0.0 && Y == 0.0 )
-       		 X = 100.0;
+       		 X = value;
     }
 
-	COMPILETIMEEVAL FORCEDINLINE void SetIfZeroXYZ() {
+	COMPILETIMEEVAL FORCEDINLINE void SetXIfZeroXYZ(double value = 100.0) {
 		if ( X == 0.0 && Y == 0.0 && Z == 0.0)
-       		 X = 100.0;
+       		 X = value;
     }
+
+	COMPILETIMEEVAL FORCEDINLINE void SetYIfZeroXY(double value = 100.0)
+	{
+		if (X == 0.0 && Y == 0.0)
+			Y = value;
+	}
+
+	COMPILETIMEEVAL FORCEDINLINE void SetYIfZeroXYZ(double value = 100.0)
+	{
+		if (X == 0.0 && Y == 0.0 && Z == 0.0)
+			Y = value;
+	}
 
 	//Func_5B2A30
 	void SetPitch (DirStruct* pFixed) {  

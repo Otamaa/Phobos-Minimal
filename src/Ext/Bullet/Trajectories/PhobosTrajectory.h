@@ -108,6 +108,7 @@ public:
 	virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) = 0;
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) = 0;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) = 0;
+	virtual bool OnHandleObstacleCheck() { return false; }
     virtual BounceCheckResult OnBounceCheck(CoordStruct const& impactCoord,
                                               bool& force_detonate)
     {

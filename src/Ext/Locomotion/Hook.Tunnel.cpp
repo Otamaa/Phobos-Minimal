@@ -337,7 +337,7 @@ ASMJIT_PATCH(0x728EF0, TunnelLocomotionClass_ILocomotion_Process_Dig, 5)
 	return 0x728F74;
 }
 
-ASMJIT_PATCH(0x72929A, TunnelLocomotionClass_sub_7291F0_Dig, 6)
+ASMJIT_PATCH(0x72929A, TunnelLocomotionClass_sub_7291F0_Dig, 5)
 {
 	GET(TunnelLocomotionClass*, pThis, ESI);
 

@@ -14,7 +14,7 @@
 #include <Ext/Rules/Body.h>
 #include <SpotlightClass.h>
 
-ASMJIT_PATCH(0x6458D7, ParticleTypeClass_ReadINI_BehavesLike_B, 0x6)
+ASMJIT_PATCH(0x6458D7, ParticleTypeClass_ReadINI_BehavesLike_B, 0x5)
 {
 	GET(const char*, pResult, EBX);
 
@@ -55,7 +55,7 @@ ASMJIT_PATCH(0x6458D7, ParticleTypeClass_ReadINI_BehavesLike_B, 0x6)
 	return 0x6458FF;
 }
 
-ASMJIT_PATCH(0x644857, ParticleSystemTypeClass_ReadINI_BehavesLike_B, 0x6)
+ASMJIT_PATCH(0x644857, ParticleSystemTypeClass_ReadINI_BehavesLike_B, 0x5)
 {
 	GET(const char*, pResult, EBX);
 

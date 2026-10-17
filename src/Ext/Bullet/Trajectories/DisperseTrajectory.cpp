@@ -536,7 +536,7 @@ bool DisperseTrajectory::CurveVelocityChange()
 			auto horizonMult = Math::abs(pBullet->Velocity.Z / 64.0) / horizonDistance;
 			pBullet->Velocity.X += horizonMult * horizonVelocity.X;
 			pBullet->Velocity.Y += horizonMult * horizonVelocity.Y;
-			const auto horizonLength = Math::sqrt(pBullet->Velocity.X * pBullet->Velocity.X + pBullet->Velocity.Y * pBullet->Velocity.Y);
+			const auto horizonLength = pBullet->Velocity.LengthXY();
 
 			if (horizonLength > 64.0)
 			{

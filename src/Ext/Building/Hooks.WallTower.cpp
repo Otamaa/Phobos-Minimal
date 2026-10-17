@@ -20,7 +20,7 @@ ASMJIT_PATCH(0x440F66, BuildingClass_Unlimbo_WallTowers_B, 0x6)
 	return Nvec.Contains(pThis->Type) ? 0x440F78 : 0x44104D;
 }
 
-ASMJIT_PATCH(0x445ADB, BuildingClass_Limbo_WallTowers, 0x9)
+ASMJIT_PATCH(0x445ADB, BuildingClass_Limbo_WallTowers, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	R->ECX(pThis->Type);

@@ -468,13 +468,13 @@ ASMJIT_PATCH(0x69BA13, Game_ProcessRandomPlayers_ColorsB, 6)
 	return 0x69BA28;
 }
 
-ASMJIT_PATCH(0x69B69B, GameModeClass_PickRandomColor_Unlimited, 6)
+ASMJIT_PATCH(0x69B69B, GameModeClass_PickRandomColor_Unlimited, 5)
 {
 	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, Phobos::Config::colorCount - 1));
 	return 0x69B6AF;
 }
 
-ASMJIT_PATCH(0x69B7FF, Session_SetColor_Unlimited, 6)
+ASMJIT_PATCH(0x69B7FF, Session_SetColor_Unlimited, 5)
 {
 	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, Phobos::Config::colorCount - 1));
 	return 0x69B813;

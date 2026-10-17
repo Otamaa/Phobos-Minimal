@@ -292,7 +292,8 @@ void TechnoExtData::Serialize(T& Stm)
 			}
 		};
 
-	debugProcess(this->CurrentType, "CurrentType");
+	debugProcess(this->PreviousType, "PreviousType");
+	debugProcess(this->CreatedType, "CreatedType");
 	debugProcess(this->ShiftApplier, "ShiftApplier");
 	debugProcess(this->ShiftApplierHouse, "ShiftApplierHouse");
 	debugProcess(this->TypeExtData, "OriginalType");
@@ -3937,9 +3938,11 @@ void TechnoExtData::UpdateTiberiumHeal()
 	if (FakeRulesClass::Instance()->Tiberium_HealEnabled &&
 		pThis->GetHeight() <= RulesClass::Instance->HoverHeight)
 	{
-		if (this->CurrentType->TiberiumHeal || pThis->HasAbility(AbilityType::TiberiumHeal))
+		auto pType = pThis->GetTechnoType();
+
+		if (pType->TiberiumHeal || pThis->HasAbility(AbilityType::TiberiumHeal))
 		{
-			if (pThis->Health > 0 && pThis->Health < this->CurrentType->Strength)
+			if (pThis->Health > 0 && pThis->Health < pType->Strength)
 			{
 				bool wasDamaged = pThis->GetHealthRatio() <= RulesClass::Instance->ConditionYellow;
 				auto const pCell = (FakeCellClass*)pThis->GetCell();
@@ -3947,7 +3950,7 @@ void TechnoExtData::UpdateTiberiumHeal()
 				if (pCell->LandType == LandType::Tiberium)
 				{
 					auto delay = RulesClass::Instance->TiberiumHeal;
-					auto health = this->CurrentType->GetRepairStep();
+					auto health = pType->GetRepairStep();
 
 					int idxTib = pCell->_GetTiberiumType();
 					if (auto const pTib = TiberiumClass::Array->get_or_default(idxTib))
@@ -3964,9 +3967,9 @@ void TechnoExtData::UpdateTiberiumHeal()
 							pThis->Health += health;
 							pThis->EstimatedHealth += health;
 
-							if (pThis->Health > this->CurrentType->Strength) {
-								pThis->Health = this->CurrentType->Strength;
-								pThis->EstimatedHealth = this->CurrentType->Strength;
+							if (pThis->Health > pType->Strength) {
+								pThis->Health = pType->Strength;
+								pThis->EstimatedHealth = pType->Strength;
 							}
 
 							if (wasDamaged
@@ -3992,7 +3995,7 @@ void TechnoExtData::ImmolateVictim()
 	auto pThis = this->This();
 
 	if (HouseExtContainer::Instance.IsAnyFirestormActive) {
-		if (!pThis->InLimbo && !pThis->InOpenToppedTransport && !this->CurrentType->IgnoresFirestorm) {
+		if (!pThis->InLimbo && !pThis->InOpenToppedTransport && !pThis->GetTechnoType()->IgnoresFirestorm) {
 			if (auto const pBld = pThis->GetCell()->GetBuilding()) {
 				if (BuildingExtData::IsActiveFirestormWall(pBld, nullptr))
 				{
@@ -4333,24 +4336,26 @@ std::pair<TechnoTypeClass*, AbstractType> NOINLINE GetOriginalType(TechnoClass* 
 
 void NOINLINE SetType(TechnoClass* pThis, AbstractType rtti, TechnoTypeClass* pToType)
 {
+	//switch the type also record previous type 
+	//in case it still in production queue or in some vague state that need original Type recorded
 	switch (rtti)
 	{
 	case AbstractType::Infantry:
 	case AbstractType::InfantryType:
 		TechnoExtContainer::Instance.Find(pThis)->TypeExtData = TechnoTypeExtContainer::Instance.Find(pToType);
-		TechnoExtContainer::Instance.Find(pThis)->CurrentType = pToType;
+		TechnoExtContainer::Instance.Find(pThis)->PreviousType = ((InfantryClass*)pThis)->Type;
 		((InfantryClass*)pThis)->Type = (InfantryTypeClass*)pToType;
 		break;
 	case AbstractType::Unit:
 	case AbstractType::UnitType:
 		TechnoExtContainer::Instance.Find(pThis)->TypeExtData = TechnoTypeExtContainer::Instance.Find(pToType);
-		TechnoExtContainer::Instance.Find(pThis)->CurrentType = pToType;
+		TechnoExtContainer::Instance.Find(pThis)->PreviousType = ((UnitClass*)pThis)->Type;
 		((UnitClass*)pThis)->Type = (UnitTypeClass*)pToType;
 		break;
 	case AbstractType::Aircraft:
 	case AbstractType::AircraftType:
 		TechnoExtContainer::Instance.Find(pThis)->TypeExtData = TechnoTypeExtContainer::Instance.Find(pToType);
-		TechnoExtContainer::Instance.Find(pThis)->CurrentType = pToType;
+		TechnoExtContainer::Instance.Find(pThis)->PreviousType = ((AircraftClass*)pThis)->Type;
 		((AircraftClass*)pThis)->Type = (AircraftTypeClass*)pToType;
 		break;
 	default:
@@ -9698,7 +9703,7 @@ int __fastcall TechnoExtData::GetBuildingThreadPosed(BuildingClass* pThis)
 		return RulesClass::Instance->ThreatPerOccupant * occupantCount;
 
 	if (auto const pLinked = pThis->BunkerLinkedItem)
-		return pLinked->GetThreatValue();
+		return pLinked->GetTechnoType()->ThreatPosed;
 
 	auto const pType = pThis->Type;
 
@@ -10997,7 +11002,7 @@ static FORCEDINLINE std::tuple<SHPCaches*, ConvertClass* , int> GetInsigniaDatas
 		break;
 	}
 
-	frameIndex = frameIndex == -1 ? insigniaFrame : frameIndex;
+	frameIndex = frameIndex == -1 ? insigniaFrame == -1 ? defaultFrameIndex : insigniaFrame : frameIndex;
 
 	return { pShapeFile  , pPalette , frameIndex };
 }
@@ -13497,7 +13502,7 @@ bool TechnoExtData::SimpleDeployerAllowedToDeploy(UnitClass* pThis, bool default
 void TechnoExtData::DepletedAmmoActions()
 {
 	auto const pThis = this->This();
-	auto const pType = this->CurrentType;
+	auto const pType = pThis->GetTechnoType();
 	auto const pTypeExt = this->TypeExtData;
 
 	if (pType->Ammo <= 0)

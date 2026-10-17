@@ -283,8 +283,8 @@ void  ParticleSystemExtData::UpdateRailgun()
 		CoordStruct currentCoords = pThis->Location;
 
 		CoordStruct DifferenceCoords = targetCoords - currentCoords;
-		int differeceCoordsLXYZLength = (int)Math::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y) + (DifferenceCoords.Z * DifferenceCoords.Z)));
-		int differeceCoordsLXYLength = (int)Math::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y)));
+		int differeceCoordsLXYZLength = (int)DifferenceCoords.Length();
+		int differeceCoordsLXYLength = (int)DifferenceCoords.LengthXY();
 		int Difference_Z = DifferenceCoords.Z;
 		int Difference_X = DifferenceCoords.X;
 
@@ -367,7 +367,7 @@ void  ParticleSystemExtData::UpdateRailgun()
 
 			mtx_mult += MovementPerturbation;
 
-			const auto sparkVelLength = Math::sqrt(double((mtx_mult.X * mtx_mult.X) + (mtx_mult.Y * mtx_mult.Y) + (mtx_mult.Z * mtx_mult.Z)));
+			const auto sparkVelLength = mtx_mult.Length();
 
 			if (sparkVelLength != 0.0)
 			{

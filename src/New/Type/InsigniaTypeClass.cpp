@@ -75,28 +75,34 @@ void InsigniaDataEntry::Read(INI_EX exINI, const char* pSection, bool gunner,
 			auto& data = weaponsData[idx];
 
 			_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaType.Weapon%d", idx + 1);
-			data.Type.Read(exINI, pSection, tempBuffer);
+			Nullable<InsigniaTypeClass*> InsigniaType_Weapon = Nullable<InsigniaTypeClass*>()(exINI, pSection, tempBuffer, false);
 
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Insignia.Weapon%d.%s", idx + 1, "%s");
-			data.Shape.Read(exINI, pSection, tempBuffer);
+			if (InsigniaType_Weapon.isset() && InsigniaType_Weapon.Fetch()) {
+				data.Shape = InsigniaType_Weapon.Fetch()->Insignia;
+				data.Frame = InsigniaType_Weapon.Fetch()->InsigniaFrame;
+				data.Frames = Vector3D<int>(-1, -1, -1); // override it so only InsigniaFrame will be used
+			} else {
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "Insignia.Weapon%d.%s", idx + 1, "%s");
+				data.Shape.Read(exINI, pSection, tempBuffer);
 
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaPalette.Weapon%d", idx + 1);
-			data.Palette.Read(exINI, pSection, tempBuffer);
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaPalette.Weapon%d", idx + 1);
+				data.Palette.Read(exINI, pSection, tempBuffer);
 
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaPalette.Weapon%d.Rookie", idx + 1);
-			data.Palette_Rookie.Read(exINI, pSection, tempBuffer);
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaPalette.Weapon%d.Rookie", idx + 1);
+				data.Palette_Rookie.Read(exINI, pSection, tempBuffer);
 
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaPalette.Weapon%d.Veteran", idx + 1);
-			data.Palette_Veteran.Read(exINI, pSection, tempBuffer);
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaPalette.Weapon%d.Veteran", idx + 1);
+				data.Palette_Veteran.Read(exINI, pSection, tempBuffer);
 
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaPalette.Weapon%d.Elite", idx + 1);
-			data.Palette_Elite.Read(exINI, pSection, tempBuffer);
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaPalette.Weapon%d.Elite", idx + 1);
+				data.Palette_Elite.Read(exINI, pSection, tempBuffer);
 
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaFrame.Weapon%d.%s", idx + 1, "%s");
-			data.Frame.Read(exINI, pSection, tempBuffer);
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaFrame.Weapon%d.%s", idx + 1, "%s");
+				data.Frame.Read(exINI, pSection, tempBuffer);
 
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaFrames.Weapon%d", idx + 1);
-			data.Frames.Read(exINI, pSection, tempBuffer);
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaFrames.Weapon%d", idx + 1);
+				data.Frames.Read(exINI, pSection, tempBuffer);
+			}
 		}
 	}
 
@@ -109,28 +115,34 @@ void InsigniaDataEntry::Read(INI_EX exINI, const char* pSection, bool gunner,
 			auto& data = PassengersData[idx];
 
 			_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaType.Passengers%d", idx);
-			data.Type.Read(exINI, pSection, tempBuffer);
+			Nullable<InsigniaTypeClass*> InsigniaType_Passengers = Nullable<InsigniaTypeClass*>()(exINI, pSection, tempBuffer, false);
 
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Insignia.Passengers%d.%s", idx, "%s");
-			data.Shape.Read(exINI, pSection, tempBuffer);
+			if (InsigniaType_Passengers.isset() && InsigniaType_Passengers.Fetch()) {
+				data.Shape = InsigniaType_Passengers.Fetch()->Insignia;
+				data.Frame = InsigniaType_Passengers.Fetch()->InsigniaFrame;
+				data.Frames = Vector3D<int>(-1, -1, -1); // override it so only InsigniaFrame will be used
+			} else {
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "Insignia.Passengers%d.%s", idx, "%s");
+				data.Shape.Read(exINI, pSection, tempBuffer);
 
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaPalette.Passengers%d", idx);
-			data.Palette.Read(exINI, pSection, tempBuffer);
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaPalette.Passengers%d", idx);
+				data.Palette.Read(exINI, pSection, tempBuffer);
 
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaPalette.Passengers%d.Rookie", idx);
-			data.Palette_Rookie.Read(exINI, pSection, tempBuffer);
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaPalette.Passengers%d.Rookie", idx);
+				data.Palette_Rookie.Read(exINI, pSection, tempBuffer);
 
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaPalette.Passengers%d.Veteran", idx);
-			data.Palette_Veteran.Read(exINI, pSection, tempBuffer);
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaPalette.Passengers%d.Veteran", idx);
+				data.Palette_Veteran.Read(exINI, pSection, tempBuffer);
 
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaPalette.Passengers%d.Elite", idx);
-			data.Palette_Elite.Read(exINI, pSection, tempBuffer);
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaPalette.Passengers%d.Elite", idx);
+				data.Palette_Elite.Read(exINI, pSection, tempBuffer);
 
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaFrame.Passengers%d.%s", idx, "%s");
-			data.Frame.Read(exINI, pSection, tempBuffer);
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaFrame.Passengers%d.%s", idx, "%s");
+				data.Frame.Read(exINI, pSection, tempBuffer);
 
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaFrames.Passengers%d", idx);
-			data.Frames.Read(exINI, pSection, tempBuffer);
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaFrames.Passengers%d", idx);
+				data.Frames.Read(exINI, pSection, tempBuffer);
+			}
 		}
 	}
 }

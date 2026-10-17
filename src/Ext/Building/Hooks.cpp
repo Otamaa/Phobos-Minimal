@@ -887,6 +887,7 @@ ASMJIT_PATCH(0x4593C7, BuildingClass_DestroyTankBunker, 0x6)
 	// Discrete center cell: Send unit out to a nearby cell without forcing drive track.
 	if (pThis->Type->GetFoundationWidth() % 2) {
 		EjectBunkeredUnit(pThis, pUnit);
+		R->EBX(0);
 		return SkipGameCode;
 	}
 
@@ -1183,21 +1184,4 @@ ASMJIT_PATCH(0x455991, BuildingClass_DisguiseDetectorDeactivate, 0x6)
 	return ReturnExit;
 }
 
-// Update disguise detection when building power state changes
-ASMJIT_PATCH(0x4549F8, BuildingClass_UpdatePowered_DetectDisguise, 0x6)
-{
-	GET(FakeBuildingClass*, pBld, ESI);
-	pBld->_GetExtData()->UpdateDetectDisguise();
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x454B5F, BuildingClass_UpdatePowered_DetectDisguise, 0x6)
-
-//  disguise detection when building is disabled by EMP or toggled off
-ASMJIT_PATCH(0x4524A3, BuildingClass_DisableThings_DetectDisguise, 0x6)
-{
-	GET(FakeBuildingClass*, pBld, EDI);
-	pBld->_GetExtData()->UpdateDetectDisguise();
-
-	return 0;
-}
 #pragma endregion

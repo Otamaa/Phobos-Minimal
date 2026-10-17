@@ -213,7 +213,7 @@ void DistributionModeHoldDownCommandClass::AreaGuardAction(TechnoClass* pTechno)
 
 #include <Ext/Techno/Body.h>
 
-ASMJIT_PATCH(0x4AE7B3, DisplayClass_ActiveClickWith_Iterate, 0x0)
+ASMJIT_PATCH(0x4AE7B3, DisplayClass_ActiveClickWith_Iterate, 0x6)
 {
 	enum { SkipGameCode = 0x4AE99B };
 

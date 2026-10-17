@@ -25,7 +25,7 @@ AircraftExtData::AircraftExtData(AircraftClass* pObj) : FootExtData(pObj)
 {
 	this->Name = pObj->Type->ID;
 	this->AbsType = AircraftClass::AbsID;
-	this->CurrentType = pObj->Type;
+	this->PreviousType = this->CreatedType = pObj->Type;
 	this->TypeExtData = AircraftTypeExtContainer::Instance.Find(pObj->Type);
 }
 
@@ -1084,15 +1084,13 @@ int FakeAircraftClass::_Mission_Attack()
 			FakeTechnoClass::__Get_FLH(this, discard_t(), &myPos, 0, {});
 
 			DirStruct dir;
-			if (myPos.X == navCenter.X && myPos.Y == navCenter.Y)
-			{
+			if (myPos.X == navCenter.X && myPos.Y == navCenter.Y) {
 				dir.Raw = 0;
 			}
-			else
-			{
-				double angle = Math::atan2(float(myPos.Y - navCenter.Y), float(navCenter.X - myPos.X));
-				dir.Raw = static_cast<short>((angle - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC);
+			else {
+				dir.SetRadFrom(float(myPos.Y - navCenter.Y), float(navCenter.X - myPos.X));
 			}
+
 			this->SecondaryFacing.Set_Desired(dir);
 		}
 		else
@@ -1977,14 +1975,12 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 
 		VelocityClass* velocity = &pBullet->Velocity;
 
-		velocity->SetIfZeroXYZ();
+		velocity->SetXIfZeroXYZ();
 
 		const double dist = velocity->Length();
 		const double scale = aircraftSpeed / dist;
 
-		velocity->X *= scale;
-		velocity->Y *= scale;
-		velocity->Z *= scale;
+		velocity->operator*=(scale);
 
 		DirStruct dir = velocity->GetDirectionFromXY();
 		const int facingOffset = dir.Raw - Math::BINARY_ANGLE_MASK;
@@ -1998,23 +1994,22 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 		}
 
 		velocity->X *= Math::COS_DIRECTION_FIXED_MAGIC;
-		velocity->Y *= Math::SIN_DIRECTION_FIXED_MAGIC;
+		velocity->Y *= Math::COS_DIRECTION_FIXED_MAGIC;
 		velocity->Z = Math::SIN_DIRECTION_FIXED_MAGIC * mag;
 
 		const DirStruct newFacingDir = pThis->SecondaryFacing.Current();
 
-		velocity->SetIfZeroXY();
+		velocity->SetXIfZeroXY();
 
 		const double dist2D = velocity->LengthXY();
 		const int newFacing = newFacingDir.Raw - Math::BINARY_ANGLE_MASK;
 		const double newRad = newFacing * Math::DIRECTION_FIXED_MAGIC;
 
 		velocity->X = Math::cos(newRad) * dist2D;
-		velocity->Y = -Math::sin(newRad) * dist2D;
+		velocity->Y = -(Math::sin(newRad) * dist2D);
 
 	} else if (pBullet->Type->ROT == 1)
 		{
-
 			// Homing weapon: calculate angle and scale
 			CoordStruct src = pThis->GetCoords();
 			CoordStruct tgt = pTarget->GetCoords();
@@ -2037,25 +2032,20 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 			// Prepare bullet velocity (set if all-zero)
 			VelocityClass* velocity = &pBullet->Velocity;
 
-			velocity->SetIfZeroXY();
+			velocity->SetXIfZeroXY();
 
 			double originalSpeed2D = velocity->LengthXY();
 
 			// Set initial XY velocity facing target yaw
 			velocity->X = Math::cos(adjustedYawRad) * originalSpeed2D;
-			velocity->Y = -Math::sin(adjustedYawRad) * originalSpeed2D;
+			velocity->Y = -(Math::sin(adjustedYawRad) * originalSpeed2D);
 
 			// Calculate pitch angle from aim vector
-			double horizontalDistance = aimVector.LengthXY();
-			double pitchRadians = Math::atan2(aimVector.Z, horizontalDistance) - Math::DEG90_AS_RAD;
-			int pitchBinaryAngle = static_cast<int>(pitchRadians * Math::BINARY_ANGLE_MAGIC);
-			int adjustedPitch = pitchBinaryAngle - Math::BINARY_ANGLE_MASK;
-			double adjustedPitchRad = adjustedPitch * Math::DIRECTION_FIXED_MAGIC;
+			double adjustedPitchRad = VelocityClass::Vec3DToVel(aimVector).GetPitchRad();
 
 			// Re-calculate current yaw from bullet velocity
 			DirStruct currentFacing = velocity->GetDirectionFromXY();
-			int currentFacingOffset = currentFacing.Raw - Math::BINARY_ANGLE_MASK;
-			double currentYawRad = currentFacingOffset * Math::DIRECTION_FIXED_MAGIC;
+			double currentYawRad = currentFacing.GetRad();
 
 			double currentSpeed3D = velocity->Length();
 
@@ -2072,18 +2062,17 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 			velocity->Y *= Math::cos(adjustedPitchRad);
 			velocity->Z = Math::sin(adjustedPitchRad) * currentSpeed3D;
 
-			// Normalize speed to weapon's max speed
+			// Normalize speed to weapon's max speed of primary weapon
+			// TODO : should change it based on which weapon ?
 			WeaponTypeClass* weapon = pThis->GetPrimaryWeapon()->WeaponType;
 			double maxBulletSpeed = static_cast<double>(weapon->Speed);
 
-			velocity->SetIfZeroXYZ();
+			velocity->SetXIfZeroXYZ();
 
 			double finalSpeed = velocity->Length();
 			double speedScale = maxBulletSpeed / finalSpeed;
 
-			velocity->X *= speedScale;
-			velocity->Y *= speedScale;
-			velocity->Z *= speedScale;
+			velocity->operator*=(speedScale);
 	}
 }
 
@@ -2111,7 +2100,7 @@ BulletClass* FakeAircraftClass::_FireAt(AbstractClass* pTarget, int nWeaponIdx) 
 		}
 	}
 
-	BulletClass* pBullet = this->TechnoClass::Fire(pTarget, nWeaponIdx);
+	BulletClass* pBullet = FakeTechnoClass::__Fire_At(this, discard_t(), pTarget, nWeaponIdx);
 
 	if(pBullet) {
 

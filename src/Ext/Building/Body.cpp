@@ -287,7 +287,7 @@ int BuildingExtData::GetTurretFrame(BuildingClass* pThis)
 
 BuildingExtData::BuildingExtData(BuildingClass* pObj) : TechnoExtData(pObj), PowerPlantEnhancer(pObj)
 {
-	this->CurrentType = pObj->Type;
+	this->PreviousType = this->CreatedType = pObj->Type;
 	this->TypeExtData = BuildingTypeExtContainer::Instance.Find(pObj->Type);
 	this->Name = pObj->Type->ID;
 	this->AbsType = BuildingClass::AbsID;
@@ -1854,10 +1854,10 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		int binaryAngle = (int)(angleToTarget * Math::BINARY_ANGLE_MAGIC);
 
 		// --- Base velocity calculation ---
-		double radians = (double)(binaryAngle - 16383) * Math::DIRECTION_FIXED_MAGIC;
+		double radians = (double)(binaryAngle - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
 
 		VelocityClass vel { Math::cos(radians) * Math::SQRT_TENTOUSAND  , -(Math::sin(radians) * Math::SQRT_TENTOUSAND)  , 0.0 };
-		vel.SetIfZeroXYZ();
+		vel.SetXIfZeroXYZ();
 
 		// Normalize and scale to projectile speed
 		double length = vel.Length();
@@ -1885,9 +1885,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		}
 
 		// --- Pitch adjustment ---
-		double pitch = Math::atan2(vel.Z, vel.LengthXY()) - Math::DEG90_AS_RAD;
-		int pitchBinary = (int)(pitch * Math::BINARY_ANGLE_MAGIC) - Math::BINARY_ANGLE_MASK;
-		double pitchRad = (double)pitchBinary * Math::DIRECTION_FIXED_MAGIC;
+		double pitchRad = vel.GetPitchRad();
 
 		if (pitchRad != 0.0)
 		{

@@ -430,7 +430,7 @@ ASMJIT_PATCH(0x5201CC, InfantryClass_UpdatePanic_ProneWater, 0x6)
 		!pCell->ContainsBridge() ? 0x5201DC : 0x0;
 }
 
-ASMJIT_PATCH(0x51F716, InfantryClass_Mi_Unload_Undeploy, 0x5)
+ASMJIT_PATCH(0x51F716, InfantryClass_Mi_Unload_Undeploy, 0x7)
 {
 	GET(InfantryTypeClass* const, pThisType, ECX);
 	GET(InfantryClass* const, pThis, ESI);
@@ -457,7 +457,7 @@ ASMJIT_PATCH(0x51D799, InfantryClass_PlayAnim_WaterSound, 0x7)
 		? SkipPlay : Play ;
 }
 
-ASMJIT_PATCH(0x520731, InfantryClass_UpdateFiringState_Heal, 0x5)
+ASMJIT_PATCH(0x520731, InfantryClass_UpdateFiringState_Heal, 0x6)
 {
 	GET(InfantryClass* const, pThis, EBP);
 

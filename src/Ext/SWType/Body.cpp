@@ -2014,11 +2014,12 @@ bool SWTypeExtData::IsAvailable(HouseClass* pHouse, SuperClass* pSuper)
 
 	const auto& AuxT = pThis->Aux_Techno;
 	int count = 0;
-	if (!AuxT.empty() && AuxT.None_Of([pHouse, &count](TechnoTypeClass* pType)
-		{
-			if (pType)
-			{
-				count = pHouse->CountOwnedAndPresent(pType);
+	if (!AuxT.empty() && AuxT.None_Of([pHouse, &count, IsBuildingPresent](TechnoTypeClass* pType) {
+			if (pType) {
+				if (pType->WhatAmI() == BuildingTypeClass::AbsID)
+					count = IsBuildingPresent(static_cast<BuildingTypeClass*>(pType));
+				else
+					count = pHouse->CountOwnedAndPresent(pType);
 			}
 
 			return count > 0;
@@ -2028,11 +2029,12 @@ bool SWTypeExtData::IsAvailable(HouseClass* pHouse, SuperClass* pSuper)
 	}
 
 	const auto& NegAuxT = pThis->Neg_Techno;
-	if (!NegAuxT.empty() && NegAuxT.None_Of([pHouse, &count](TechnoTypeClass* pType)
-		{
-			if (pType)
-			{
-				count = pHouse->CountOwnedAndPresent(pType);
+	if (!NegAuxT.empty() && NegAuxT.None_Of([pHouse, &count, IsBuildingPresent](TechnoTypeClass* pType) {
+			if (pType) {
+				if (pType->WhatAmI() == BuildingTypeClass::AbsID)
+					count = IsBuildingPresent(static_cast<BuildingTypeClass*>(pType));
+				else 
+					count = pHouse->CountOwnedAndPresent(pType);
 			}
 
 			return count <= 0;

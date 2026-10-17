@@ -68,6 +68,9 @@
 #include "CycleSelection.h"
 #include "CycleTypeSelection.h"
 
+#include "AutoLoad.h"
+#include "VariantSelect.h"
+
 bool PhobosCommandClass::CheckDebugDeactivated() const
 {
 	auto const bAllow = Phobos::Config::DevelopmentCommands || Phobos::Otamaa::IsAdmin;
@@ -195,6 +198,8 @@ void __fastcall Game_Init_Commands_Wrapper() {
 	Make<SelectedInfoCommandClass>();
 	Make<SelectedExpandCommandClass>();
 
+	Make<AutoLoadCommandClass>();
+	Make<VariantSelectCommandClass>();
 	//if (ZoomManager::Enabled && ZoomManager::HotkeysEnabled)
 	//{
 	//	Make<ZoomInCommandClass>();

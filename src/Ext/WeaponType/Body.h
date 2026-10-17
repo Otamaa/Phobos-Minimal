@@ -78,7 +78,7 @@ public:
 	// brought back from TS
 	Valueable<Leptons> ProjectileRange { Leptons(100000) };
 	Nullable<bool> ProjectileRange_ApplyModifiers { };
-	Valueable<bool> ProjectileRange_UseAresBehaviour { false };
+	Valueable<bool> ProjectileRange_UseAresBehaviour { true };
 
 	Nullable<bool> Decloak_InstantFire {};
 	Valueable<AnimTypeClass*> Feedback_Anim { nullptr };
@@ -367,6 +367,8 @@ public:
 	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
+	void _Set_Speed();
+	int _Get_Speed(signed int a2);
 
 	FORCEDINLINE WeaponTypeExtData* _GetExtData() {
 		return *reinterpret_cast<WeaponTypeExtData**>(((DWORD)this) + AbstractExtOffset);

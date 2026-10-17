@@ -54,13 +54,21 @@ ASMJIT_PATCH(0x4CA05B, FactoryClass_AbandonProduction_AbandonCurrentBuilding, 0x
 	return 0;
 }
 
+ASMJIT_PATCH(0x4FA5B8, HouseClass_BeginProduction_RosumeSuspended, 0x8)
+{
+	GET(TechnoClass*, pObject, ECX);
+	// use cached type instead of `->GetTechnoType()` the pointer was changed !
+	R->EAX(TechnoExtContainer::Instance.Find(pObject)->CreatedType);
+	return 0x4FA5C0;
+}
+
 ASMJIT_PATCH(0x4CA00D, FactoryClass_AbandonProduction_GetObjectType, 0x9)
 {
 	//lGET(FactoryClass*, pThis, ESI);
 	GET(TechnoClass*, pObject, ECX);
 
 	// use cached type instead of `->GetTechnoType()` the pointer was changed !
-	const auto pType = TechnoExtContainer::Instance.Find(pObject)->CurrentType;
+	const auto pType = TechnoExtContainer::Instance.Find(pObject)->CreatedType;
 	//Debug::LogInfo("[{}]Factory with owner [{} - {}] abandoning production of [{}({}) - {}]",
 	//	(void*)pThis,
 	//	pThis->Owner->get_ID(), (void*)pThis->Owner,

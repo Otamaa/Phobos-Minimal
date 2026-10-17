@@ -132,3 +132,17 @@ bool SHPExtData::LoadAlphaImage()
 //
 //	return 0;
 //}
+
+//ASMJIT_PATCH(0x4AED70, CC_Draw_Shape_Probe_caller, 0x6)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log("CC_Draw_Shape_Probe caller: %x\n", caller);
+//	return 0x0;
+//}
+
+//ASMJIT_PATCH(0x4AED94, CC_Draw_Shape_Probe, 0x6) {
+//	GET(SHPCaches*, pThis, EDI);
+//
+//	Debug::Log("CC_Draw_Shape_Probe: %s\n", pThis->Filename);
+//	return 0x0;
+//}

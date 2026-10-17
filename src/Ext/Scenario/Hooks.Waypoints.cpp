@@ -33,7 +33,7 @@ ASMJIT_PATCH(0x68BD60, ScenarioClass_Clear_All_Waypoints, 0x6)
 	return 0x68BD79;
 }
 
-ASMJIT_PATCH(0x68BD80, ScenarioClass_Is_Waypoint_Valid, 0x5)
+ASMJIT_PATCH(0x68BD80, ScenarioClass_Is_Waypoint_Valid, 0x9)
 {
 	GET_STACK(int, nWaypoint, 0x4);
 	const auto waypoints = &ScenarioExtData::Instance()->Waypoints;

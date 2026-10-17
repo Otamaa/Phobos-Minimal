@@ -1138,7 +1138,7 @@ static COMPILETIMEEVAL constant_ptr<const char, 0x840D40> const ra2md_str {};
 //WinMain_
 DEFINE_JUMP(LJMP, 0x6BD7D5, 0x6BD83C);
 
-ASMJIT_PATCH(0x6BD7C5, WinMain_Expand_MIX_Reorg, 5)
+ASMJIT_PATCH(0x6BD7C5, WinMain_Expand_MIX_Reorg, 6)
 {
 
 	SpawnerMain::GameConfigs::Init();
