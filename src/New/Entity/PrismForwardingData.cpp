@@ -120,10 +120,11 @@ void PrismForwardingData::LoadFromINIFile(BuildingTypeClass* pThis, CCINIClass* 
 						Weapon->FLH = *supportFLH;
 					}
 				} else {
-					Debug::INIParseFailed(
+					Debug::Log(
 						"BuildingType [%s] is a Prism Tower however "
 						"cannot find say %s weapon [%s] from the WeaponTypeClass array list "
 						, pThis->ID, elite ? "elite " : "", exINI.value());
+					Debug::RegisterParserError();
 				}
 			};
 
