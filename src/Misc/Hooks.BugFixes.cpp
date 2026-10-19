@@ -3083,32 +3083,66 @@ ASMJIT_PATCH(0x575A6B, MapClass_DestroyBridge_Explosions, 0x5)
 	return 0x575AE1;
 }
 
-ASMJIT_PATCH(0x70F850, TechnoClass_ResetTarget_OnLocomotorMoving, 0x5)
-{
-	GET(TechnoClass* const, pThis, ESI);
-
+void __fastcall _TechnoClass_ResetTarget_FullReplace(TechnoClass* pThis) {
 	// Fixed an issue where vehicles affected by warheads with `IsLocomotor=yes` 
 	// would have their effects interrupted when deactivated or reactivated (by FlyStar)
 	bool setDest = true;
 
 	if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis)) {
-		if (pFoot->IsAttackedByLocomotor){
+		if (pFoot->IsAttackedByLocomotor) {
 			setDest = false;
-		}	
+		}
 	}
-	
+
 	if (setDest) {
 		pThis->SetDestination(nullptr, true);
 	}
 
 	pThis->SetTarget(nullptr);
+	pThis->ArchiveTarget = nullptr;
 
 	const Mission miss = TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ?
 		Mission::Harmless : Mission::Guard;
 
 	pThis->ForceMission(miss);
-	return 0x70F882;
 }
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2674, _TechnoClass_ResetTarget_FullReplace);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E428C, _TechnoClass_ResetTarget_FullReplace);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E9064, _TechnoClass_ResetTarget_FullReplace);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB428, _TechnoClass_ResetTarget_FullReplace);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4D30, _TechnoClass_ResetTarget_FullReplace);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6040, _TechnoClass_ResetTarget_FullReplace);
+DEFINE_FUNCTION_JUMP(LJMP, 0x70F850, _TechnoClass_ResetTarget_FullReplace);
+
+// Use this for diagnostic , check the call site with ESP to know wtf is going on
+// this function can be called with death techno somewhere causing breakage
+//ASMJIT_PATCH(0x70F850, TechnoClass_ResetTarget_OnLocomotorMoving, 0x5)
+//{
+//	GET(TechnoClass* const, pThis, ESI);
+//
+//	// Fixed an issue where vehicles affected by warheads with `IsLocomotor=yes` 
+//	// would have their effects interrupted when deactivated or reactivated (by FlyStar)
+//	bool setDest = true;
+//
+//	if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis)) {
+//		if (pFoot->IsAttackedByLocomotor){
+//			setDest = false;
+//		}	
+//	}
+//	
+//	if (setDest) {
+//		pThis->SetDestination(nullptr, true);
+//	}
+//
+//	pThis->SetTarget(nullptr);
+//	pThis->ArchiveTarget = nullptr;
+//
+//	const Mission miss = TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ?
+//		Mission::Harmless : Mission::Guard;
+//
+//	pThis->ForceMission(miss);
+//	return 0x70F882;
+//}
 
 // Fixed crashes when restarting missions 
 // that use TerrainTypes with cached SHP images (by Krisztiaan)
