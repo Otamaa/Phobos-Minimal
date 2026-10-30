@@ -176,3 +176,36 @@ bool __fastcall FakeFootClass::_IsRecruitable(FootClass* pThis, discard_t, House
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x4DA230 , FakeFootClass::_IsRecruitable)
+
+#include <Locomotor/WalkLocomotionClass.h>
+#include <Locomotor/Cast.h>
+
+// Check speed multipliers for zero, update things like allowing
+// locomotor to process destination again.
+void FootExtData::HandleTemporaryZeroSpeed()
+{
+	const auto pThis = this->This();
+	const bool isZeroSpeed = TechnoExtData::GetCurrentSpeedMultiplier(pThis) <= 0.0;
+	const bool wasZeroSpeed = this->IsZeroSpeed;
+	this->IsZeroSpeed = isZeroSpeed;
+
+	if (isZeroSpeed && !wasZeroSpeed)
+	{
+		// Walk locomotor requires manual reset of movement state when immobilized.
+		if (auto const pWalkLoco = locomotion_cast<WalkLocomotionClass*>(pThis->Locomotor.GetInterfacePtr()))
+		{
+			pWalkLoco->MovingDestination = CoordStruct::Empty;
+			pWalkLoco->CoordHeadTo = CoordStruct::Empty;
+			pWalkLoco->Stop_Moving();
+		}
+	}
+	else if (!isZeroSpeed && wasZeroSpeed)
+	{
+		// Set destination again if it exists.
+		if (auto const pDest = pThis->Destination)
+		{
+			pThis->Destination = nullptr;
+			pThis->SetDestination(pDest, false);
+		}
+	}
+}

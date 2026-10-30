@@ -1,4 +1,4 @@
-#include "PrismForwardingData.h"
+ #include "PrismForwardingData.h"
 
 signed int PrismForwardingData::GetUnusedWeaponSlot(BuildingTypeClass* pThis, bool elite)
 {
@@ -118,13 +118,13 @@ void PrismForwardingData::LoadFromINIFile(BuildingTypeClass* pThis, CCINIClass* 
 							supportFLH = &(elite ? pThis->GetEliteWeapon(0) : pThis->GetWeapon(0))->FLH; //[Elite]Primary
 						}
 						Weapon->FLH = *supportFLH;
+					} else {
+						Debug::Log(
+							"BuildingType [%s] is a Prism Tower however "
+							"cannot find say %s weapon [%s] from the WeaponTypeClass array list\n"
+							, pThis->ID, elite ? "elite " : "", exINI.value());
+						Debug::RegisterParserError();
 					}
-				} else {
-					Debug::Log(
-						"BuildingType [%s] is a Prism Tower however "
-						"cannot find say %s weapon [%s] from the WeaponTypeClass array list "
-						, pThis->ID, elite ? "elite " : "", exINI.value());
-					Debug::RegisterParserError();
 				}
 			};
 

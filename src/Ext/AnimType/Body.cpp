@@ -280,6 +280,7 @@ bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->AttachedSystem.Read(exINI, pID, "AttachedSystem", true);
 
 	this->AltPalette_ApplyLighting.Read(exINI, pID, "AltPalette.ApplyLighting");
+	this->AltPalette_UseInvokerFallback.Read(exINI, pID, "AltPalette.UseInvokerFallback");
 
 	//Launchs
 	LauchSWData::ReadVector(this->Launchs, exINI , pID, Phobos::Otamaa::CompatibilityMode);
@@ -490,6 +491,8 @@ static TechnoClass* CreateFoot(
 					else if (auto const pJJLoco = locomotion_cast<JumpjetLocomotionClass*>(pTechno->Locomotor))
 					{
 						pJJLoco->Facing.Set_Current(DirStruct(facing));
+						pTechno->LastMapCoords = CellClass::Coord2Cell(location);
+
 						if(pType->Speed != 0) {
 							if (pType->BalloonHover)
 							{
@@ -741,6 +744,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 		//.Process(SpawnerDatas)
 
 		.Process(this->AltPalette_ApplyLighting)
+		.Process(this->AltPalette_UseInvokerFallback)
 		.Process(this->ExtraShadow)
 		.Process(this->DetachedReport)
 

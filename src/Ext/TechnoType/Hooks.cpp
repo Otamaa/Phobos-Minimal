@@ -263,6 +263,19 @@ void TechnoExtData::SpawnWreckage(WarheadTypeClass* pWH, HouseClass* pAttackerHo
 	}
 }
 
+// Set to 1 to disable turret caching entirely (forces every turret redraw).
+// This is the single most decisive test for "stale turret cache" bugs.
+#ifndef JT_DISABLE_TURRET_CACHE
+#define JT_DISABLE_TURRET_CACHE 1
+#endif
+
+// Set to 1 to also apply TranslateAngleRotated to the body draw matrix for
+// parity with the shadow path. This will let us see whether the body matrix
+// diverges from the shadow matrix in the tilt-residual case.
+#ifndef JT_APPLY_TILT_TO_BODY
+#define JT_APPLY_TILT_TO_BODY 0
+#endif
+
 ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 {
 	enum { SkipGameCode = 0x73BEA4 };
@@ -286,6 +299,25 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pDrawTypeExt = TechnoTypeExtContainer::Instance.Find(pDrawType);
 	const bool notChargeTurret = pThis->Type->TurretCount <= 0 || pThis->Type->IsGattling;
+
+	// ---- DIAGNOSTIC SNAPSHOT (per call, per frame) ----
+	const short primRaw = pThis->PrimaryFacing.Current().GetFacing<32>();
+	const short secRaw = pThis->SecondaryFacing.Current().GetFacing<32>();
+	const float arfBody = pThis->AngleRotatedForwards;
+	const float arsBody = pThis->AngleRotatedSideways;
+	const int   cellSlope = pThis->GetCell()->SlopeIndex;
+	Debug::Log("[JT-BODY] enter this=%p type=%s prim=%d sec=%d arf=%.5f ars=%.5f slope=%d "
+		  "haveTurCache=%d haveBar=%d haveBarCache=%d flags=0x%X curTur=%d\n",
+		  pThis, pDrawType->ID, (int)primRaw, (int)secRaw, arfBody, arsBody, cellSlope,
+		  (int)haveTurretCache, (int)haveBar, (int)haveBarrelCache, flags, currentTurretNumber);
+
+#if JT_APPLY_TILT_TO_BODY
+	// PARITY TEST: apply the same tilt correction the shadow path applies.
+	{
+		const auto tiltCmp = Math::abs(arsBody) >= 0.005f || Math::abs(arfBody) >= 0.005f;
+		Debug::Log("[JT-BODY] tilt-parity branch active=%d\n", (int)tiltCmp);
+	}
+#endif
 
 	auto getTurretVoxel = [pDrawType, notChargeTurret, currentTurretNumber]() -> VoxelStruct*
 		{
@@ -330,23 +362,42 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 					if (flags == -1)
 						return -1;
 
-					//only when slope present , otherwise this will break the non slope facing too 
-					if(pThis->GetCell()->SlopeIndex != -1) {
+					//only when slope present , otherwise this will break the non slope facing too
+					if (pThis->GetCell()->SlopeIndex != -1)
+					{
 						const auto* offset = (size_t)turIdx >= pDrawTypeExt->ExtraTurretOffsets.size()
 							? reinterpret_cast<const CoordStruct*>(&pDrawTypeExt->TurretOffset.Fetch())
 							: &pDrawTypeExt->ExtraTurretOffsets[turIdx];
 
-						if (offset->X != 0 || offset->Y != 0 || offset->Z != 0) 
+						if (offset->X != 0 || offset->Y != 0 || offset->Z != 0)
 						{
 							key &= ~0x3E0;                                             // clear stale BodyFacing bits
 							key |= (static_cast<int>(pThis->PrimaryFacing.Current().GetFacing<32>()) << 5) & 0x3E0;
+							Debug::Log("[JT-BODY] turIdx=%d slope-injected body facing into key=0x%X\n", turIdx, key);
 						}
+						else
+						{
+							Debug::Log("[JT-BODY] turIdx=%d slope but offset==0 -> body facing NOT injected\n", turIdx);
+						}
+					}
+					else
+					{
+						// *** Ground / non-slope path: body facing is NEVER injected here. ***
+						Debug::Log("[JT-BODY] turIdx=%d non-slope -> body facing NOT injected, key=0x%X\n", turIdx, key);
 					}
 
 					return key;
 				};
-			const auto turKey = turretKeyBodyFacingFixed();
-			const auto turCache = turShouldRedraw ? nullptr : &pDrawType->VoxelCaches.TurretWeapon;
+			const auto turKeyRaw = turretKeyBodyFacingFixed();
+#if JT_DISABLE_TURRET_CACHE
+			const auto turKey = -1;
+#else
+			const auto turKey = turKeyRaw;
+#endif
+			const auto turCache = (turShouldRedraw || JT_DISABLE_TURRET_CACHE) ? nullptr : &pDrawType->VoxelCaches.TurretWeapon;
+
+			Debug::Log("[JT-BODY] turIdx=%d turShouldRedraw=%d turKeyRaw=0x%X turKey(used)=0x%X cache=%p\n",
+				  turIdx, (int)turShouldRedraw, turKeyRaw, turKey, (void*)turCache);
 
 			auto shouldCalculateMatrix = [=]()
 				{
@@ -367,6 +418,11 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 					if (turretInRecoil)
 						mtx_turret.TranslateX(-pTurData->TravelSoFar);
 
+					Debug::Log("[JT-BODY] turIdx=%d getTurretMatrix: mtx.W=(%.3f,%.3f,%.3f) mtxTur.W=(%.3f,%.3f,%.3f) factor=%.3f\n",
+						  turIdx,
+						  mtx.Row[0].W, mtx.Row[1].W, mtx.Row[2].W,
+						  mtx_turret.Row[0].W, mtx_turret.Row[1].W, mtx_turret.Row[2].W,
+						  Math::Pixel_Per_Lepton);
 					return mtx_turret;
 				};
 			auto mtx_turret = (shouldRedraw || turShouldRedraw || shouldCalculateMatrix()) ? getTurretMatrix() : mtx;
@@ -379,8 +435,13 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 
 					// When in recoiling or is not main barrel, need to bypass cache and draw without saving
 					const bool brlShouldRedraw = turretInRecoil || barrelInRecoil || idx >= 0;
-					const auto brlKey = brlShouldRedraw ? -1 : flags;
-					const auto brlCache = brlShouldRedraw ? nullptr : &pDrawType->VoxelCaches.TurretBarrel;
+					const auto brlKeyRaw = brlShouldRedraw ? -1 : flags;
+#if JT_DISABLE_TURRET_CACHE
+					const auto brlKey = -1;
+#else
+					const auto brlKey = brlKeyRaw;
+#endif
+					const auto brlCache = (brlShouldRedraw || JT_DISABLE_TURRET_CACHE) ? nullptr : &pDrawType->VoxelCaches.TurretBarrel;
 
 					auto getBarrelMatrix = [=, &mtx_turret, &mtx]() -> Matrix3D
 						{
@@ -394,9 +455,14 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 								mtx_barrel.TranslateX(-pBrlData->TravelSoFar);
 
 							mtx_barrel.Translate(mtx.Row[0].W, mtx.Row[1].W, mtx.Row[2].W);
+							Debug::Log("[JT-BODY] turIdx=%d brlIdx=%d barrelMatrix.W=(%.3f,%.3f,%.3f)\n",
+								  turIdx, brlIdx, mtx_barrel.Row[0].W, mtx_barrel.Row[1].W, mtx_barrel.Row[2].W);
 							return mtx_barrel;
 						};
 					auto mtx_barrel = (shouldRedraw || brlShouldRedraw) ? getBarrelMatrix() : mtx;
+
+					Debug::Log("[JT-BODY] draw barrel turIdx=%d brlIdx=%d keyRaw=0x%X keyUsed=0x%X cache=%p\n",
+						  turIdx, brlIdx, brlKeyRaw, brlKey, (void*)brlCache);
 
 					// draw barrel
 					pThis->Draw_A_VXL(pBarrelVoxel, hvaFrameIdx, brlKey, brlCache, rect, center, &mtx_barrel, brightness, blit, 0);
@@ -416,12 +482,11 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 
 						const auto barrelsSize = barrels.size();
 						const bool faceRight = turretDir == 0 || turretDir == 1;
-						std::sort(&barrels[0], &barrels[barrelsSize], [pDrawTypeExt, faceRight](const auto& idxA, const auto& idxB)
+						std::sort(barrels.data(), barrels.data() + barrelsSize, [pDrawTypeExt, faceRight](const auto& idxA, const auto& idxB)
 							{
-										const auto offsetA = idxA < 0 ? pDrawTypeExt->BarrelOffset.Get() : pDrawTypeExt->ExtraBarrelOffsets[idxA];
-										const auto offsetB = idxB < 0 ? pDrawTypeExt->BarrelOffset.Get() : pDrawTypeExt->ExtraBarrelOffsets[idxB];
-
-										return faceRight ? (offsetA > offsetB) : (offsetA <= offsetB);
+								const auto offsetA = idxA < 0 ? pDrawTypeExt->BarrelOffset.Get() : pDrawTypeExt->ExtraBarrelOffsets[idxA];
+								const auto offsetB = idxB < 0 ? pDrawTypeExt->BarrelOffset.Get() : pDrawTypeExt->ExtraBarrelOffsets[idxB];
+								return faceRight ? (offsetA > offsetB) : (offsetA <= offsetB);
 							});
 
 						for (const auto& i : barrels)
@@ -433,17 +498,22 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 					}
 				};
 
-			if (barrelOverTechno) {
+			if (barrelOverTechno)
+			{
 				// draw turret
+				Debug::Log("[JT-BODY] drawing turret turIdx=%d key=0x%X cache=%p barrelOver=1\n", turIdx, turKey, (void*)turCache);
 				pThis->Draw_A_VXL(pTurretVoxel, hvaFrameIdx, turKey, turCache, rect, center, &mtx_turret, brightness, blit, 0);
 
 				if (haveBar)
 					drawBarrels();
-			} else {
+			}
+			else
+			{
 				if (haveBar)
 					drawBarrels();
 
 				// draw turret
+				Debug::Log("[JT-BODY] drawing turret turIdx=%d key=0x%X cache=%p barrelOver=0\n", turIdx, turKey, (void*)turCache);
 				pThis->Draw_A_VXL(pTurretVoxel, hvaFrameIdx, turKey, turCache, rect, center, &mtx_turret, brightness, blit, 0);
 			}
 		};
@@ -461,27 +531,27 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 					turrets.emplace_back(i);
 
 				const auto turretsSize = turrets.size();
-				std::sort(&turrets[0], &turrets[turretsSize], [pThis, pDrawTypeExt](const auto& idxA, const auto& idxB)
+				std::sort(turrets.data(), turrets.data() + turretsSize, [pThis, pDrawTypeExt](const auto& idxA, const auto& idxB)
 					{
-							const auto pOffsetA = idxA < 0 ? reinterpret_cast<const CoordStruct*>(&pDrawTypeExt->TurretOffset.Fetch()) : &pDrawTypeExt->ExtraTurretOffsets[idxA];
-							const auto pOffsetB = idxB < 0 ? reinterpret_cast<const CoordStruct*>(&pDrawTypeExt->TurretOffset.Fetch()) : &pDrawTypeExt->ExtraTurretOffsets[idxB];
+						const auto pOffsetA = idxA < 0 ? reinterpret_cast<const CoordStruct*>(&pDrawTypeExt->TurretOffset.Fetch()) : &pDrawTypeExt->ExtraTurretOffsets[idxA];
+						const auto pOffsetB = idxB < 0 ? reinterpret_cast<const CoordStruct*>(&pDrawTypeExt->TurretOffset.Fetch()) : &pDrawTypeExt->ExtraTurretOffsets[idxB];
 
-							if (pOffsetA->Z < pOffsetB->Z)
-								return true;
+						if (pOffsetA->Z < pOffsetB->Z)
+							return true;
 
-							if (pOffsetA->Z > pOffsetB->Z)
-								return false;
+						if (pOffsetA->Z > pOffsetB->Z)
+							return false;
 
-							const auto pointA = TacticalClass::Instance->CoordsToClient(TechnoExtData::GetFLHAbsoluteCoords(pThis, *pOffsetA));
-							const auto pointB = TacticalClass::Instance->CoordsToClient(TechnoExtData::GetFLHAbsoluteCoords(pThis, *pOffsetB));
+						const auto pointA = TacticalClass::Instance->CoordsToClient(TechnoExtData::GetFLHAbsoluteCoords(pThis, *pOffsetA));
+						const auto pointB = TacticalClass::Instance->CoordsToClient(TechnoExtData::GetFLHAbsoluteCoords(pThis, *pOffsetB));
 
-							if (pointA.Y < pointB.Y)
-								return true;
+						if (pointA.Y < pointB.Y)
+							return true;
 
-							if (pointA.Y > pointB.Y)
-								return false;
+						if (pointA.Y > pointB.Y)
+							return false;
 
-							return pointA.X <= pointB.X;
+						return pointA.X <= pointB.X;
 					});
 
 				for (const auto& i : turrets)
@@ -492,7 +562,7 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 				drawTurret(-1);
 			}
 		};
-		
+
 	drawTurrets();
 
 	return SkipGameCode;

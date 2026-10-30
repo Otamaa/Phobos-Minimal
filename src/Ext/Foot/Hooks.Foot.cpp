@@ -658,6 +658,8 @@ ASMJIT_PATCH(0x4DA8B2, FootClass_Update_AnimRate, 6)
 
 		pExt->ResetLocomotor = false;
 	}
+	
+	((FootExtData*)pExt)->HandleTemporaryZeroSpeed();
 
 	// Update laser trails after locomotor process, to ensure that the updated position is not the previous frame's position
 	pExt->UpdateLaserTrails();

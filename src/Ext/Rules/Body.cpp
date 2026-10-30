@@ -900,6 +900,7 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->Aircraft_DefaultDigitalDisplayTypes)
 
 		.Process(this->AnimRemapDefaultColorScheme)
+		.Process(this->AnimRemapUseInvokerFallback)
 		.Process(this->EMPAIRecoverMission)
 		.Process(this->TimerBlinkColorScheme)
 		.Process(this->AllowBypassBuildLimit)
@@ -1279,6 +1280,8 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->AircraftRetreatToEdge)
 
 		.Process(this->Arcing_AllowElevationInaccuracy)
+		.Process(this->Arcing_ConsiderBuildingFoundation)
+
 		.Process(this->Airburst_UseCluster)
 		
 		.Process(this->Splits_TargetingDistance_Cylindrical)
@@ -3490,6 +3493,7 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 	this->ElectricDeath.Read(exINI, section, "InfantryElectrocuted");
 	this->DrawTurretShadow.Read(exINI, section, "DrawTurretShadow");
 	this->AnimRemapDefaultColorScheme.Read(exINI, section, "AnimRemapDefaultColorScheme");
+	this->AnimRemapUseInvokerFallback.Read(exINI, section, "AnimRemapUseInvokerFallback");
 	this->StealthSpeakDelay.Read(exINI, section, "StealthSpeakDelay");
 	this->SubterraneanSpeakDelay.Read(exINI, section, "SubterraneanSpeakDelay");
 	this->DeactivateDim_Powered.Read(exINI, section, "DeactivateDimPowered");
@@ -4357,7 +4361,8 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 	this->AutoDeath_OnOwnerChange_IgnoreRevertOnExit.Read(exINI, section, "AutoDeath.OnOwnerChange.IgnoreRevertOnExit");
 	
 	this->Arcing_AllowElevationInaccuracy.Read(exINI, GameStrings::CombatDamage(), "Arcing.AllowElevationInaccuracy");
-	
+	this->Arcing_ConsiderBuildingFoundation.Read(exINI, GameStrings::CombatDamage(), "Arcing.ConsiderBuildingFoundation");
+
 	this->Airburst_UseCluster.Read(exINI, GameStrings::CombatDamage(), "Airburst.UseCluster");
 	this->Airburst_TargetAsSource_SkipHeight.Read(exINI, GameStrings::CombatDamage(), "Airburst.TargetAsSource.SkipHeight");
 	this->AirburstWeapon_ApplyFirepowerMult.Read(exINI, GameStrings::CombatDamage(), "AirburstWeapon.ApplyFirepowerMult");

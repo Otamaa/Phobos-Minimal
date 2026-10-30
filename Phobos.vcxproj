@@ -80,7 +80,6 @@
     <ClCompile Include="src\Ext\SlaveManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\SmudgeType\Hooks.DynamicSmudge.cpp" />
     <ClCompile Include="src\Ext\Smudge\Body.cpp" />
-    <ClCompile Include="src\Ext\Surface\Hooks.cpp" />
     <ClCompile Include="src\Ext\TagType\Body.cpp" />
     <ClCompile Include="src\Ext\TaskForce\Body.cpp" />
     <ClCompile Include="src\Ext\Techno\Hook.HealthBar.cpp" />
@@ -112,7 +111,6 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Storage.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Techno.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.ThreatCoeff.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Tint.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Transport.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.VehicleToBuildingMCFix.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Veterancy.cpp" />
@@ -121,7 +119,7 @@
     <ClCompile Include="src\Ext\Unit\Hook.CanFire.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Crushing.cpp" />
-    <ClCompile Include="src\Ext\Unit\Hooks.DisallowMoving.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.DisallowMoving.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.SimpleDeployer.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Unit.cpp" />
@@ -129,6 +127,7 @@
     <ClCompile Include="src\Misc\Exception\ExceptionHandler.Dialog.cpp" />
     <ClCompile Include="src\Misc\Exception\ExceptionHandler.Report.cpp" />
     <ClCompile Include="src\Misc\FogOfWar.cpp" />
+    <ClCompile Include="src\Misc\Hooks.BriefingText.cpp" />
     <ClCompile Include="src\Misc\Hooks.MovieSubtitles.cpp" />
     <ClCompile Include="src\Misc\Spawner\DesyncHandler.cpp" />
     <ClCompile Include="src\Misc\Spawner\FastRetransmit.cpp" />
@@ -137,7 +136,9 @@
     <ClCompile Include="src\Misc\Spawner\MPDebug.cpp" />
     <ClCompile Include="src\Misc\Spawner\MPStatsFix.cpp" />
     <ClCompile Include="src\Misc\Spawner\PacketRedundancy.cpp" />
+    <ClCompile Include="src\Misc\Spawner\Radar.CameraDrag.cpp" />
     <ClCompile Include="src\Misc\Spawner\SilentCheer.cpp" />
+    <ClCompile Include="src\Misc\Spawner\UI\Hooks.DialogsEscape.cpp" />
     <ClCompile Include="src\Misc\SyncLogging.cpp" />
     <ClCompile Include="src\New\ChoiceBox\Entities\Base\MapChoiceBoxClass.cpp" />
     <ClCompile Include="src\New\ChoiceBox\Entities\Derived\ScreenChoiceBoxClass.cpp" />
@@ -758,6 +759,7 @@
     <ClInclude Include="src\Ext\TagType\Body.h" />
     <ClInclude Include="src\Ext\TaskForce\Body.h" />
     <ClInclude Include="src\Misc\Exception\ExceptionHandler.h" />
+    <ClInclude Include="src\Misc\Hooks.BriefingText.h" />
     <ClInclude Include="src\Misc\ReShade\fonts\forkawesome.h" />
     <ClInclude Include="src\Misc\ReShade\utils.h" />
     <ClInclude Include="src\Misc\Spawner\FastRetransmit.h" />

@@ -532,6 +532,30 @@ private:
 
 public:
 
+	static std::vector<TechnoClass*> CleanCheckedTechnos;
+	static std::vector<CellClass*> CleanCheckedCells;
+	static std::vector<CellClass*> CleanOptionalCells;
+	static std::vector<TechnoClass*> CleanReCheckedTechnos;
+
+	struct InfantryCountInCell
+	{
+		CellClass* Position;
+		int Count;
+	};
+
+	static std::vector<InfantryCountInCell> CleanInfantryCells;
+
+	struct TechnoWithDestination
+	{
+		TechnoClass* Techno;
+		CellClass* Destination;
+	};
+
+	static std::vector<TechnoWithDestination> CleanFinalOrder;
+	static std::vector<CellClass*> CleanDeleteCells;
+	static std::vector<TechnoClass*> CleanOptionalTechnos;
+	static bool ContainersInit;
+
 	static const DirStruct DefaultJuggerFacing;
 	static const Foundation CustomFoundation = static_cast<Foundation>(0x7F);
 	static const CellStruct FoundationEndMarker;

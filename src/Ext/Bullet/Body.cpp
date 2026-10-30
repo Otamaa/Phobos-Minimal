@@ -35,7 +35,7 @@ static bool IsAllowedSplitsTarget(TechnoClass* pSource, HouseClass* pOwner, Weap
 
 	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
-	if (pWeaponExt->SkipWeaponPicking)
+	if (pWeaponExt->SkipAdditionalWeaponChecks)
 		return true;
 
 	if (!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pOwner, pTarget->Owner)
@@ -105,7 +105,7 @@ void BulletExtData::ApplyArcingFix(const CoordStruct& sourceCoords, const CoordS
 		const auto mult = speed / horizontalDistance;
 		velocity.X = static_cast<double>(distanceCoords.X) * mult;
 		velocity.Y = static_cast<double>(distanceCoords.Y) * mult;
-		velocity.Z = (static_cast<double>(distanceCoords.Z) + velocity.Z) * mult + (gravity * horizontalDistance) / (2 * speed);
+		velocity.Z = static_cast<double>(distanceCoords.Z) * mult + (gravity * horizontalDistance) / (2 * speed);
 	}
 }
 
@@ -605,7 +605,7 @@ bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis,
 
 		if (const auto pTargetObj = flag_cast_to<ObjectClass*, false>(pTarget))
 		{
-			if (!pWeaponExt->SkipWeaponPicking && !TechnoExtData::ObjectHealthAllowFiring(pTargetObj, pThis->Type->ShrapnelWeapon))
+			if (!pWeaponExt->SkipAdditionalWeaponChecks && !TechnoExtData::ObjectHealthAllowFiring(pTargetObj, pThis->Type->ShrapnelWeapon))
 				return false;
 
 			auto pTargetType = pTargetObj->GetType();
@@ -631,7 +631,7 @@ bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis,
 						return false;
 				}
 
-				if (!pWeaponExt->SkipWeaponPicking)
+				if (!pWeaponExt->SkipAdditionalWeaponChecks)
 				{
 					if (!EnumFunctions::IsTechnoEligible(static_cast<TechnoClass*>(pTargetObj), pWeaponExt->CanTarget, false))
 						return false;
@@ -657,7 +657,7 @@ bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis,
 			break;
 			}
 
-			if (!pWeaponExt->SkipWeaponPicking)
+			if (!pWeaponExt->SkipAdditionalWeaponChecks)
 			{
 				if (!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner, pTargetObj->GetOwningHouse()))
 					return false;
@@ -670,7 +670,7 @@ bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis,
 		{
 			auto pTargetCell = (CellClass*)pTarget;
 
-			if (!pWeaponExt->SkipWeaponPicking && !EnumFunctions::IsCellEligible(pTargetCell, pWeaponExt->CanTarget, true, true))
+			if (!pWeaponExt->SkipAdditionalWeaponChecks && !EnumFunctions::IsCellEligible(pTargetCell, pWeaponExt->CanTarget, true, true))
 			{
 				return false;
 			}

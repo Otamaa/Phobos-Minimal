@@ -203,3 +203,31 @@ ASMJIT_PATCH(0x67E720, LoadGame_After, 0x5)
 
 	return 0;
 }
+
+
+// For initial observers, finish activation on the next animation tick.
+// The game already holds the final frame in EDI, so no frame count is hardcoded here.
+ASMJIT_PATCH(0x653282, RadarClass_DrawIt_SkipInitialObserverActivation, 0x6)
+{
+	if (!SpawnerMain::Configs::Enabled || !HouseClass::IsCurrentPlayerObserver())
+		return 0;
+
+	enum { CompleteActivation = 0x65328C };
+	if (HouseClass::CurrentPlayer->IsInitiallyObserver())
+		return CompleteActivation;
+
+	return 0;
+}
+
+// Skip the RadarOn sound for initial observers while keeping the normal activation logic.
+ASMJIT_PATCH(0x656C1B, RadarClass_ChangeState_SkipInitialObserverActivationSound, 0x5)
+{
+	if (!SpawnerMain::Configs::Enabled || !HouseClass::IsCurrentPlayerObserver())
+		return 0;
+
+	enum { SkipActivationSound = 0x656C37 };
+	if (HouseClass::CurrentPlayer->IsInitiallyObserver())
+		return SkipActivationSound;
+
+	return 0;
+}

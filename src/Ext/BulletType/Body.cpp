@@ -210,6 +210,7 @@ bool BulletTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Parachuted_Remap.Read(exINI, pSection, "Parachuted.RemapAnim");
 		this->AnimLength.Read(exINI, pThis->ID, "AnimLength");
 		this->Arcing_AllowElevationInaccuracy.Read(exINI, pSection, "Arcing.AllowElevationInaccuracy");
+		this->Arcing_ConsiderBuildingFoundation.Read(exINI, pSection, "Arcing.ConsiderBuildingFoundation");
 		this->AttachedSystem.Read(exINI, pSection, "AttachedSystem");
 		this->ReturnWeapon.Read(exINI, pSection, "ReturnWeapon" , true);
 		this->ReturnWeapon_ApplyFirepowerMult.Read(exINI, pSection, "ReturnWeapon.ApplyFirepowerMult");
@@ -327,6 +328,7 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->Parachuted_Remap)
 		.Process(this->AnimLength)
 		.Process(this->Arcing_AllowElevationInaccuracy)
+		.Process(this->Arcing_ConsiderBuildingFoundation)
 		.Process(this->AttachedSystem)
 		.Process(this->ReturnWeapon)
 		.Process(this->ReturnWeapon_ApplyFirepowerMult)

@@ -633,3 +633,32 @@ ASMJIT_PATCH(0x4808A9, Sub_480630_BecomUntargetable, 0xA)
 ASMJIT_PATCH_AGAIN(0x48092B, Sub_480630_BecomUntargetable, 0xA)
 ASMJIT_PATCH_AGAIN(0x4808FF, Sub_480630_BecomUntargetable, 0xA)
 ASMJIT_PATCH_AGAIN(0x4808D8, Sub_480630_BecomUntargetable, 0xA)
+
+// Allow Tab presses while input is locked, preserving the normal Escape press/release events.
+ASMJIT_PATCH(0x54F21F, WWKeyboardClass_PutKeyMessage_AllowLockedTab, 0xA)
+{
+	enum { QueueKey = 0x54F229, IgnoreKey = 0x54F2D7 };
+	GET(unsigned short, key, ESI);
+	GET_STACK(bool, release, STACK_OFFSET(0xC, 0x8));
+
+	if (key == VK_ESCAPE || (key == VK_TAB && !release))
+		return QueueKey;
+
+	return IgnoreKey;
+}
+
+// Ignore Escape releases in locked gameplay input; movies still need them to skip playback.
+ASMJIT_PATCH(0x55DEED, KeyboardProcess_IgnoreLockedEscapeRelease, 0x5)
+{
+	if (!Game::UserInputLocked())
+		return 0;
+
+	enum { IgnoreKey = 0x55E155 };
+	GET(const int*, pKey, EBP);
+
+	const bool isEscapeRelease = (*pKey & 0xFF) == VK_ESCAPE && (*pKey & static_cast<int>(WWKey::Release)) != 0;
+	if (isEscapeRelease)
+		return IgnoreKey;
+
+	return 0;
+}

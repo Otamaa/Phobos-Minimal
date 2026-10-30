@@ -84,6 +84,7 @@ bool ParticleTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->LaserTrail_Types.Read(exINI, pID, "LaserTrail.Types");
 	this->Palette.Read(exINI, pID, "Palette");
 	this->DamageRange.Read(exINI, pID, "DamageRange");
+	this->AlphaImage_IsLightFlash.Read(exINI, pID, "AlphaImage.IsLightFlash");
 
 	///if (IS_SAME_STR_(pID, "SuperNapalmCloudPart"))
 	//	Debug::LogInfo("AlphaImageNAme [%s] ", this->This()->AlphaImageFile);
@@ -117,6 +118,7 @@ void ParticleTypeExtData::Serialize(T& Stm)
 		.Process(this->TransmogrifyType)
 		.Process(this->TransmogrifyOwner)
 		.Process(this->Fire_DamagingAnim)
+		.Process(this->AlphaImage_IsLightFlash)
 		;
 
 

@@ -267,8 +267,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 						const auto whatAmI = pFoot->WhatAmI();
 
 						// If the vehicle cannot be moved, perhaps it is better this way.
-						if (whatAmI == AbstractType::Unit
-							&& TechnoExtData::CannotMove(static_cast<UnitClass*>(pFoot))
+						if (TechnoExtData::CannotMove(pFoot, true)
 							&& !pFoot->IsCloseEnough(selectedTarget, pFoot->SelectWeapon(selectedTarget)))
 						{
 							continue;

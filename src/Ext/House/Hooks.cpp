@@ -314,6 +314,18 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_SetOwningHouse_UpdateTracking, 0x7)
 		pNewOwnerExt->OwnedCountedHarvesters.emplace(pThis);
 	}
 
+
+	if (pType->DeploysInto)
+	{
+		auto& vec = pOldOwnerExt->OwnedDeployingUnits;
+		const auto it = std::find(vec.begin(), vec.end(), static_cast<UnitClass*>(pThis));
+
+		if (it != vec.end()) {
+			vec.erase(it);
+			pNewOwnerExt->OwnedDeployingUnits.push_back(static_cast<UnitClass*>(pThis));
+		}
+	}
+
 	//this kind a dangerous
 	//const KillMethod nMethod = pTypeExt->Death_Method.Get();
 	//if (pTypeExt->Death_IfChangeOwnership && nMethod != KillMethod::None) {

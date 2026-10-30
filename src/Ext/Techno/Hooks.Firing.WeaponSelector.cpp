@@ -64,16 +64,19 @@ int __fastcall FakeTechnoClass::__WhatWeaponShouldIUse(TechnoClass* pThis, disca
 	{
 		auto const pPrimaryExt = WeaponTypeExtContainer::Instance.Find(pPrimary);
 
-		if (!pPrimaryExt->SkipWeaponPicking
-			&& (!EnumFunctions::IsCellEligible(pCell, pPrimaryExt->CanTarget, true, true)
-				|| (pPrimaryExt->AttachEffect_CheckOnFirer
-					&& !pPrimaryExt->HasRequiredAttachedEffects(pThis, pThis)))
-			&& (!pTypeExt->NoSecondaryWeaponFallback
-				|| TechnoExtData::CanFireNoAmmoWeapon(pThis, 1)))
-		{
+		if (!pPrimaryExt->SkipAdditionalWeaponChecks) {
+			if (!EnumFunctions::IsCellEligible(pCell, pPrimaryExt->CanTarget, true, true))
+				return 1;
+
+			if (pPrimaryExt->AttachEffect_CheckOnFirer && !pPrimaryExt->HasRequiredAttachedEffects(pThis, pThis))
+				return 1;
+		}
+
+		if(!pTypeExt->NoSecondaryWeaponFallback || TechnoExtData::CanFireNoAmmoWeapon(pThis, 1)) {
 			return 1;
 		}
-		else if (pCell->OverlayTypeIndex != -1)
+
+		if (pCell->OverlayTypeIndex != -1)
 		{
 			auto const pOverlayType = OverlayTypeClass::Array()->Items[pCell->OverlayTypeIndex];
 

@@ -417,6 +417,7 @@ public:
 	Valueable<bool> EBoltZAdjust_ClampInitialDepthForBuilding { true };
 
 	ValueableIdx<ColorScheme*> AnimRemapDefaultColorScheme { 0 };
+	Valueable<bool> AnimRemapUseInvokerFallback { };
 	ValueableIdx<CursorTypeClass*> EngineerDamageCursor { 87 };
 	ValueableIdx<ColorScheme*> TimerBlinkColorScheme { 5 };
 	ValueableIdx<SuperWeaponTypeClass*> AIChronoSphereSW {};
@@ -741,7 +742,8 @@ public:
 	Valueable<EdgeType> AircraftRetreatToEdge { EdgeType::Owner };
 
 	Valueable<bool> Arcing_AllowElevationInaccuracy { true };
-	
+	Valueable<bool> Arcing_ConsiderBuildingFoundation { };
+
 	Valueable<bool> Airburst_UseCluster {};
 	Valueable<bool> Airburst_TargetAsSource_SkipHeight {};
 	Valueable<bool> AirburstWeapon_ApplyFirepowerMult {};

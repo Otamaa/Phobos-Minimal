@@ -46,9 +46,16 @@ ASMJIT_PATCH(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
 
 	const auto pTypeExt = pThis->_GetTypeExtData();
 	int schemeIndex = FakeRulesClass::Instance()->AnimRemapDefaultColorScheme;
+	bool useInvoker = pTypeExt->AltPalette_UseInvokerFallback.Get(FakeRulesClass::Instance->AnimRemapUseInvokerFallback);
+	auto pOwner = pThis->Owner;
 
-	if (((pTypeExt->CreateUnitType && pTypeExt->CreateUnitType->RemapAnim.Get(pTypeExt->RemapAnim)) || pTypeExt->RemapAnim) && pThis->Owner) {
-		schemeIndex = pThis->Owner->ColorSchemeIndex - 1;
+	if(useInvoker){
+		if (auto pInv = pThis->_GetExtData()->Invoker) { pOwner = pInv->Owner; }
+	}
+
+	if (((pTypeExt->CreateUnitType && pTypeExt->CreateUnitType->RemapAnim.Get(pTypeExt->RemapAnim)) 
+		|| pTypeExt->RemapAnim) && pOwner) {
+		schemeIndex = pOwner->ColorSchemeIndex - 1;
 	}
 
 	schemeIndex += pTypeExt->AltPalette_ApplyLighting ? 1 : 0;

@@ -1034,9 +1034,9 @@ ASMJIT_PATCH(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 	if (!pHouse->IsControlledByHuman())
 		return 0;
 
-	if (pHouse->RecheckTechTree || !(Unsorted::CurrentFrame() % 15))
+	if (pHouse->RecheckTechTree)
 	{
-		if (const auto pFactory = pHouse->Primary_ForBuildings)
+		if (const auto pFactory = pHouse->GetPrimaryFactory(AbstractType::BuildingType, false, BuildCat::DontCare))
 		{
 			if (pFactory->IsDone())
 			{
@@ -1045,7 +1045,7 @@ ASMJIT_PATCH(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 			}
 		}
 
-		if (const auto pFactory = pHouse->Primary_ForDefenses)
+		if (const auto pFactory = pHouse->GetPrimaryFactory(AbstractType::BuildingType, false, BuildCat::Combat))
 		{
 			if (pFactory->IsDone())
 			{
@@ -1109,22 +1109,46 @@ ASMJIT_PATCH(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 		buildCurrent(pHouseExt->Common.Type, pHouseExt->Common.TopLeft);
 	}
 
-	pHouseExt->OwnedDeployingUnits.remove_all_if([pHouse](UnitClass* pUnit){
-		if (!pUnit->InLimbo && pUnit->IsOnMap && !pUnit->IsSinking && pUnit->Owner == pHouse && !pUnit->Destination && pUnit->CurrentMission == Mission::Guard && !pUnit->ParasiteEatingMe && !pUnit->TemporalTargetingMe) {
-			if (const auto pType = pUnit->Type) {
-				if (pType->DeploysInto) {
-					if (const auto pExt = UnitExtContainer::Instance.Find(pUnit)) {
+	if (pHouseExt->OwnedDeployingUnits.size() > 0)
+	{
+		auto& vec = pHouseExt->OwnedDeployingUnits;
+
+		for (auto it = vec.begin(); it != vec.end(); )
+		{
+			const auto pUnit = *it;
+
+			if (!pUnit->InLimbo
+				&& pUnit->IsOnMap
+				&& !pUnit->IsSinking
+				&& pUnit->Owner == pHouse
+				&& !pUnit->Destination
+				&& !pUnit->ParasiteEatingMe
+				&& !pUnit->TemporalTargetingMe
+				&& pUnit->Type->DeploysInto)
+			{
+				const auto mission = pUnit->CurrentMission;
+
+				if (mission == Mission::Unload)
+				{
+					++it;
+					continue;
+				}
+				else if (mission == Mission::Guard)
+				{
+					if (const auto pExt = UnitExtContainer::Instance.Find(pUnit))
+					{
 						if (!(pExt->UnitAutoDeployTimer.GetTimeLeft() % 8))
 							pUnit->QueueMission(Mission::Unload, true);
 
-						return false;
+						++it;
+						continue;
 					}
 				}
 			}
-		}
 
-		return true;
-	});
+			it = vec.erase(it);
+		}
+	}
 
 	return 0;
 }
@@ -1243,8 +1267,8 @@ ASMJIT_PATCH(0x6A8E34, StripClass_Update_AutoBuildBuildings, 0x7)
 	enum { SkipSetStripShortCut = 0x6A8E4D };
 
 	GET(BuildingClass* const, pBuilding, ESI);
-	BuildingTypeExtData::BuildLimboBuilding(pBuilding);
-	BuildingTypeExtData::AutoPlaceBuilding(pBuilding);
+	if (BuildingTypeExtData::BuildLimboBuilding(pBuilding) || BuildingTypeExtData::AutoPlaceBuilding(pBuilding))
+		return 0x6A8E4D;
 
 	return 0;
 }

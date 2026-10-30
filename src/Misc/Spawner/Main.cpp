@@ -1600,24 +1600,39 @@ ASMJIT_PATCH(0x4C7A14, EventClass_RespondToEvent_SaveGame, 0x5)
 #include <Ext/Infantry/Body.h>
 #include <Ext/InfantryType/Body.h>
 
-// Allow allies to repair on service depot
-ASMJIT_PATCH(0x700594, TechnoClass_WhatAction_AllowAlliesRepair, 0x5)
+// Allow RA2 units to use allied service depots without relaxing TechnoClass's general owner check.
+// Restore Select only for repair buildings, then let UnitClass check docking and choose Enter/Repair.
+ASMJIT_PATCH(0x73FD67, UnitClass_WhatAction_AllowAlliedServiceDepot, 0x5)
 {
-	enum { Allow = 0x70059D, DisAllow = 0x7005E6 };
+	GET(Action, action, EAX);
+	GET(UnitClass*, pThis, ESI);
+	GET(ObjectClass*, pTargetObject, EDI);
 
-	GET(TechnoClass*, pThis, ESI);
-	GET(ObjectClass*, pObject, EDI);
+	if (action != Action::None)
+		return 0;
 
-	if(auto const pBuilding = cast_to<BuildingClass* const, false>(pObject)){
-		if (((FakeBuildingClass*)pBuilding)->_GetTypeExtData()->AllowAlliesRepair) {
-			return (pBuilding->Owner->IsAlliedWith(pThis))
-				? Allow
-				: DisAllow;
-		}
+	if (const auto pBuilding = cast_to <BuildingClass*>(pTargetObject))
+	{
+		if (!pBuilding->Type->UnitRepair || !((FakeBuildingClass*)pBuilding)->_GetTypeExtData()->AllowAlliesRepair)
+			return 0;
+
+		const auto pUnitOwner = pThis->Owner;
+		const auto pBuildingOwner = pBuilding->Owner;
+		const bool isPlayerControlled = pUnitOwner && pUnitOwner->ControlledByCurrentPlayer();
+		const bool isAlliedBuilding = pUnitOwner && pBuildingOwner && pUnitOwner != pBuildingOwner && pBuildingOwner->IsAlliedWith(pThis);
+		if (!isPlayerControlled || !isAlliedBuilding)
+			return 0;
+
+		// Preserve the base function's remaining selection restrictions after the owner check.
+		const bool isPlayerOwnedLoaner = pThis->IsALoaner && pThis->IsOwnedByCurrentPlayer;
+		const bool canSelectBuilding = pBuilding->CanBeSelected() && !pBuilding->IsSelected && !pBuilding->IsBeingWarpedOut();
+		if (!isPlayerOwnedLoaner && canSelectBuilding)
+			R->EAX(Action::Select);
 	}
 
-	return pThis->Owner != pObject->GetOwningHouse() ? DisAllow : Allow;
+	return 0;
 }
+
 
 // Allow Dogs & Flak Troopers to get a speed boost
 // Skip Crawls check on InfantryType

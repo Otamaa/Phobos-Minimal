@@ -184,6 +184,7 @@ public:
 	Valueable<bool> NoOwner {};
 	Valueable<bool> RemapAnim {};
 	Valueable<bool> AltPalette_ApplyLighting {};
+	Nullable<bool> AltPalette_UseInvokerFallback {};
 	Valueable<bool> ExtraShadow { true };
 	Valueable<bool> VisibleTo_ConsiderInvokerAsOwner {};
 	Valueable<bool> RestrictVisibilityIfCloaked {};

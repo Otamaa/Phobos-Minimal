@@ -261,7 +261,7 @@ bool bIgnoreDisableWeapon)
 	}
 
 	// ObjectHealth allow firing
-	if (!pWeaponExt->SkipWeaponPicking
+	if (!pWeaponExt->SkipAdditionalWeaponChecks
 		&& !TechnoExtData::ObjectHealthAllowFiring(pObjectT, pWeapon))
 	{
 		return FireError::ILLEGAL;

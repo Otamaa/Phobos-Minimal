@@ -768,7 +768,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 		}
 
 		bool ignoreRange = false;
-		if ((pThisUnit && TechnoExtData::CannotMove(pThisUnit)) || (pThisInfantry && pThisInfantry->Type->Speed <= 0))
+		if ((pThisUnit && TechnoExtData::CannotMove(pThisUnit, true)) || (pThisInfantry && pThisInfantry->Type->Speed <= 0))
 		{
 			ignoreRange = true;
 		}

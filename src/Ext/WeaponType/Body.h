@@ -186,7 +186,7 @@ public:
 	Valueable<bool> AttachEffect_Enable { false };
 	Valueable<int> NoRepeatFire { 0 };
 
-	bool SkipWeaponPicking { true };
+	bool SkipAdditionalWeaponChecks { true };
 
 	Valueable<Leptons> KeepRange {};
 	Nullable<bool> KeepRange_AllowAI { };

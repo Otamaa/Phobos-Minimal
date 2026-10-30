@@ -321,7 +321,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->EBoltZAdjust.Read(exINI, pSection, "EBoltZAdjust");
 	this->EBoltZAdjust_ClampInitialDepthForBuilding.Read(exINI, pSection, "EBoltZAdjust.ClampInitialDepthForBuilding");
 
-	this->SkipWeaponPicking = true;
+	this->SkipAdditionalWeaponChecks = true;
 	if (this->CanTarget != AffectedTarget::All ||
 		this->CanTargetHouses != AffectedHouse::All
 		|| this->Targeting_Health_Percent.isset()
@@ -334,7 +334,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		|| this->CanTarget_DriverKilled
 		)
 	{
-		this->SkipWeaponPicking = false;
+		this->SkipAdditionalWeaponChecks = false;
 	}
 
 	return true;
@@ -656,7 +656,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->AttachEffect_Enable)
 		.Process(this->NoRepeatFire)
 
-		.Process(this->SkipWeaponPicking)
+		.Process(this->SkipAdditionalWeaponChecks)
 
 		.Process(this->KeepRange)
 		.Process(this->KeepRange_AllowAI)
@@ -899,7 +899,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 	debugProcess(this->AttachEffects, "AttachEffects");
 	debugProcess(this->AttachEffect_Enable, "AttachEffect_Enable");
 	debugProcess(this->NoRepeatFire, "NoRepeatFire");
-	debugProcess(this->SkipWeaponPicking, "SkipWeaponPicking");
+	debugProcess(this->SkipAdditionalWeaponChecks, "SkipAdditionalWeaponChecks");
 
 	// Range keeping fields
 	debugProcess(this->KeepRange, "KeepRange");

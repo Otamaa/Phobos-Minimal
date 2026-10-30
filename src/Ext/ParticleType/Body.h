@@ -61,6 +61,7 @@ public:
 	Valueable<bool> DeleteWhenReachWater {};
 	Valueable<bool> Transmogrify {};
 	Valueable<bool> Fire_DamagingAnim {};
+	Valueable<bool> AlphaImage_IsLightFlash { };
 	// 4 bools = 4 bytes, naturally aligned
 
 #pragma endregion

@@ -142,8 +142,8 @@ ASMJIT_PATCH(0x708FC0, TechnoClass_ResponseMove_Pickup, 0x5)
 				return SkipResponse;
 			}
 		}
-	}else if (auto const pUnit = cast_to<UnitClass*, false>(pThis)){
-		if (pUnit->Type->Speed == 0)
+	}else if (auto const pUnit = flag_cast_to<FootClass*, false>(pThis)){
+		if (TechnoExtData::CannotMove(pUnit, true))
 			return SkipResponse;
 	}
 
@@ -1788,9 +1788,27 @@ ASMJIT_PATCH(0x51F179, InfantryClass_WhatAction_Immune_FakeEngineer, 0x5)
 // Prevent subterranean units from deploying while underground.
 ASMJIT_PATCH(0x73D63B, UnitClass_Mission_Unload_Subterranean, 0x6)
 {
-	enum { ReturnFromFunction = 0x73DFB0, SkipHarvester = 0x73D694, SkipPassengers = 0x73DCD3, Harvester = 0x73DEE7, Continue = 0x73D6EC };
+	enum { ReturnFromFunction = 0x73DFB0,
+		   SkipHarvester = 0x73D694, 
+		   SkipPassengers = 0x73DCD3,
+		   Harvester = 0x73DEE7, 
+		   Continue = 0x73D6EC,
+		   ReturmMissionRate = 0x73E289
+	};
 
 	GET(UnitClass* const, pThis, ESI);
+
+	if (pThis->BunkerLinkedItem)
+	{
+		auto const pCell = pThis->GetCell();
+
+		if (auto const pBuilding = pCell->GetBuilding())
+			pBuilding->EmptyBunker();
+
+		pThis->ForceMission(Mission::Guard);
+
+		return ReturmMissionRate;
+	}
 
 	if (auto const pLoco = locomotion_cast<TunnelLocomotionClass*>(pThis->Locomotor))
 	{

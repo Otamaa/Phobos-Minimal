@@ -555,6 +555,19 @@ static double DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeC
 //removing the cloak , noShadow , vxl::LoadFailded check
 DEFINE_JUMP(LJMP, 0x706BDD, 0x706C01); // I checked it a priori
 
+// Set to 1 to disable turret caching entirely (forces every turret redraw).
+// This is the single most decisive test for "stale turret cache" bugs.
+#ifndef JT_DISABLE_TURRET_CACHE
+#define JT_DISABLE_TURRET_CACHE 1
+#endif
+
+// Set to 1 to also apply TranslateAngleRotated to the body draw matrix for
+// parity with the shadow path. This will let us see whether the body matrix
+// diverges from the shadow matrix in the tilt-residual case.
+#ifndef JT_APPLY_TILT_TO_BODY
+#define JT_APPLY_TILT_TO_BODY 0
+#endif
+
 ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 {
 	enum { SkipDrawing = 0x73C5C9 };
@@ -574,8 +587,6 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	GET_STACK(Surface* const, surface, STACK_OFFSET(0x1C4, -0x1A8));
 
 	GET(TechnoTypeClass* const, pDrawType, EBX);
-	// This is not necessarily pThis->Type : UnloadingClass or WaterImage
-	// This is the very reason I need to do this here, there's no less hacky way to get this Type from those inner calls
 
 	auto jjloco = locomotion_cast<JumpjetLocomotionClass*>(loco);
 	TechnoClass* pParentTechno = nullptr;
@@ -583,7 +594,8 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	TechnoTypeExtData* pParentTechnoTypeExt = nullptr;
 	UnitTypeExtData* pParentUnitTypeExt = nullptr;
 
-	if (!jjloco && pThis->IsOnCarryall && pThis->Transporter) {
+	if (!jjloco && pThis->IsOnCarryall && pThis->Transporter)
+	{
 		pParentTechno = pThis->Transporter;
 		pParentType = pParentTechno->GetTechnoType();
 		pParentTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pParentType);
@@ -591,7 +603,8 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 		if (pParentTechnoTypeExt->AbsType == AbstractType::UnitType)
 			pParentUnitTypeExt = ((UnitTypeExtData*)pParentTechnoTypeExt);
 
-		if (auto const pParentFoot = flag_cast_to<FootClass*>(pParentTechno)) {
+		if (auto const pParentFoot = flag_cast_to<FootClass*>(pParentTechno))
+		{
 			if (pParentFoot->Locomotor)
 				jjloco = locomotion_cast<JumpjetLocomotionClass*>(pParentFoot->Locomotor);
 		}
@@ -606,13 +619,25 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 			(pThis->Location.Z - MapClass::Instance->GetCellFloorHeight(pThis->Location))))
 		: pThis->GetHeight();
 
-	double currentScale = DecideScaleAndIndex(&shadowMatrix, pThis, pParentTechnoTypeExt ? pParentTechnoTypeExt->This() : pDrawType, vxlIndexKey, loco, height);
+	// ---- DIAGNOSTIC SNAPSHOT ----
+	const short primRaw = pThis->PrimaryFacing.Current().GetFacing<32>();
+	const short secRaw = pThis->SecondaryFacing.Current().GetFacing<32>();
+	const float arfBody = pThis->AngleRotatedForwards;
+	const float arsBody = pThis->AngleRotatedSideways;
+	Debug::Log("[JT-SHADOW] enter this=%p type=%s prim=%d sec=%d arf=%.5f ars=%.5f height=%.3f slope=%d keyValidBefore=%d\n",
+		  pThis, pDrawType->ID, (int)primRaw, (int)secRaw, arfBody, arsBody, height,
+		  pThis->GetCell()->SlopeIndex, (int)vxlIndexKey.Is_Valid_Key());
+
+	const double currentScale = DecideScaleAndIndex(&shadowMatrix, pThis, pParentTechnoTypeExt ? pParentTechnoTypeExt->This() : pDrawType, vxlIndexKey, loco, height);
+
+	Debug::Log("[JT-SHADOW] currentScale=%.5f keyValidAfterDecide=%d\n", currentScale, (int)vxlIndexKey.Is_Valid_Key());
 
 	VoxelStruct* main_vxl = GetmainVxl(pThis, pDrawType, vxlIndexKey);
 	auto shadowPoint = loco->Shadow_Point();
 	Point2D shadowCenter;
 
-	if (pThis->IsOnCarryall) {
+	if (pThis->IsOnCarryall)
+	{
 		const auto pCell = MapClass::Instance->GetCellAt(pThis->Location);
 		auto groundFloorHeight = MapClass::Instance->GetCellFloorHeight(pThis->Location);
 
@@ -632,7 +657,14 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 		shadowCenter = *pt + shadowPoint;
 	}
 
-	TranslateAngleRotated(&shadowMatrix, pThis, (TechnoTypeExtData*)pParentUnitTypeExt , pDrawType, vxlIndexKey);
+	// ---- Snapshot the tilt inputs & whether the branch will fire ----
+	const bool tiltBranchWillFire = (Math::abs(arsBody) >= 0.005f || Math::abs(arfBody) >= 0.005f);
+	Debug::Log("[JT-SHADOW] tiltBranchWillFire=%d (arf=%.5f ars=%.5f) keyValidBeforeTranslate=%d\n",
+		  (int)tiltBranchWillFire, arfBody, arsBody, (int)vxlIndexKey.Is_Valid_Key());
+
+	TranslateAngleRotated(&shadowMatrix, pThis, (TechnoTypeExtData*)pParentUnitTypeExt, pDrawType, vxlIndexKey);
+
+	Debug::Log("[JT-SHADOW] after TranslateAngleRotated keyValid=%d\n", (int)vxlIndexKey.Is_Valid_Key());
 
 	auto mtx = Game::VoxelDefaultMatrix() * shadowMatrix;
 
@@ -673,7 +705,8 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	if (!(pTurretVoxel && pTurretVoxel->VXL && pTurretVoxel->HVA && !pTurretVoxel->VXL->LoadFailed))
 		return SkipDrawing;
 
-	if (vxlIndexKey.Is_Valid_Key()) {
+	if (vxlIndexKey.Is_Valid_Key())
+	{
 		// turret facing always varies the shadow -> always in the key
 		vxlIndexKey.MinorVoxel.TurretFacing = pThis->SecondaryFacing.Current().GetFacing<32>();
 		// Only the main turret (turIdx == -1) uses this cached key. If the MAIN turret
@@ -681,8 +714,18 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 		// (mtx . Translate(offset) . Rz), so BodyFacing must be in the key or different
 		// body facings collide on one shadow cache slot -> the same stale-bitmap jitter.
 		const auto* mainOffset = reinterpret_cast<const CoordStruct*>(&pDrawTypeExt->TurretOffset.Fetch());
-		if (mainOffset->X != 0 || mainOffset->Y != 0 || mainOffset->Z != 0)   // VERIFY: IsValid()==this
+		if (mainOffset->X != 0 || mainOffset->Y != 0 || mainOffset->Z != 0)
 			vxlIndexKey.MinorVoxel.BodyFacing = pThis->PrimaryFacing.Current().GetFacing<32>();
+
+		Debug::Log("[JT-SHADOW] key block: turFacing=%d mainOff=(%d,%d,%d) bodyInjected=%d keyValid=%d\n",
+			  (int)vxlIndexKey.MinorVoxel.TurretFacing,
+			  mainOffset->X, mainOffset->Y, mainOffset->Z,
+			  (int)(mainOffset->X != 0 || mainOffset->Y != 0 || mainOffset->Z != 0),
+			  (int)vxlIndexKey.Is_Valid_Key());
+	}
+	else
+	{
+		Debug::Log("[JT-SHADOW] key INVALID before turret-key block -> no BodyFacing injection possible\n");
 	}
 
 	const auto pBarrelVoxel = TechnoTypeExtData::GetBarrelsVoxelFixedUp(pDrawType, pThis->CurrentTurretNumber);
@@ -694,8 +737,10 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	// Not available under multiple turrets/barrels due to different base positions
 	if (notUseTurretShadow)
 		pCache = (haveBar || pTurretVoxel != &pDrawType->TurretVoxel) ? nullptr : reinterpret_cast<decltype(pCache)>(&pDrawType->VoxelCaches.TurretBarrel);
-	
-		const double adjustedFactor = Math::Pixel_Per_Lepton / currentScale;
+
+	const double adjustedFactor = Math::Pixel_Per_Lepton / currentScale;
+
+	Debug::Log("[JT-SHADOW] haveBar=%d adjustedFactor=%.5f pCache=%p\n", (int)haveBar, adjustedFactor, (void*)pCache);
 
 	auto drawTurretShadow = [&](int turIdx)
 		{
@@ -712,6 +757,10 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 
 			const bool canCacheTurret = !pThis->IsOnCarryall && !shouldRedraw && pCache != nullptr;
 			auto const pTurretCache = (pThis->IsOnCarryall || shouldRedraw) ? nullptr : pCache;
+
+			Debug::Log("[JT-SHADOW] drawTurretShadow turIdx=%d shouldRedraw=%d canCache=%d keyValid=%d mtxTur.W=(%.3f,%.3f,%.3f)\n",
+				  turIdx, (int)shouldRedraw, (int)canCacheTurret, (int)vxlIndexKey.Is_Valid_Key(),
+				  mtx_turret.Row[0].W, mtx_turret.Row[1].W, mtx_turret.Row[2].W);
 
 			pThis->DrawVoxelShadow(pTurretVoxel, 0, (pThis->IsOnCarryall || shouldRedraw ? VoxelIndexKey(-1) : vxlIndexKey), pTurretCache,
 				bnd, &shadowCenter, &mtx_turret, canCacheTurret, surface, shadowPoint);
@@ -765,7 +814,7 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 					drawTurretShadow(i);
 			}
 		};
-	
+
 	drawTurretsShadow();
 
 	return SkipDrawing;

@@ -4,13 +4,27 @@
 
 #include <Ext/WarheadType/Body.h>
 #include <Helpers/Macro.h>
+#include <Ext/ParticleType/Body.h>
 
 #include <Ext/Rules/Body.h>
+
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
 
 namespace LightEffectsTemp
 {
 	bool AlphaIsLightFlash = false;
 }
+
+static bool __fastcall ParticleClass_Unlimbo_Wrapper(ParticleClass* pThis, void* _, const CoordStruct& coords, DirType facing)
+{
+	LightEffectsTemp::AlphaIsLightFlash = ParticleTypeExtContainer::Instance.Find(pThis->Type)->AlphaImage_IsLightFlash;
+	bool retVal = pThis->Unlimbo(coords, facing);
+	LightEffectsTemp::AlphaIsLightFlash = false;
+	return retVal;
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x62BB0E, ParticleClass_Unlimbo_Wrapper);
 
 ASMJIT_PATCH(0x48A444, AreaDamage_Particle_LightFlashSet, 0x5)
 {

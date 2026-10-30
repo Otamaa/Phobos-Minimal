@@ -20,23 +20,12 @@
 #include "Main.h"
 #include <Utilities/Macro.h>
 
-ASMJIT_PATCH(0x692DD8, ScrollClass_DisableEdgeScrolling1, 0x7)
+// Skip edge scrolling without changing the state stored in the game or save files.
+ASMJIT_PATCH(0x693034, ScrollClass_AI_DisableEdgeScrolling, 0x6)
 {
-	return SpawnerMain::GetMainConfigs()->DisableEdgeScrolling
-		? 0x692E07
-		: 0;
-}
+	enum { SkipEdgeScrolling = 0x693053 };
 
-ASMJIT_PATCH(0x692DFA, ScrollClass_DisableEdgeScrolling2, 0x5)
-{
 	return SpawnerMain::GetMainConfigs()->DisableEdgeScrolling
-		? 0x692EA2
-		: 0;
-}
-
-ASMJIT_PATCH(0x692E34, ScrollClass_DisableEdgeScrolling3, 0x6)
-{
-	return SpawnerMain::GetMainConfigs()->DisableEdgeScrolling
-		? 0x692E40
+		? SkipEdgeScrolling
 		: 0;
 }

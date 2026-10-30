@@ -1,4 +1,5 @@
 #include "Body.h"
+#include <Misc/Hooks.BriefingText.h>
 
 #include <BitFont.h>
 #include <Drawing.h>
@@ -51,9 +52,18 @@ bool FakeBitText::_DrawText(BitFont* font, Surface* surface,
 							   int max_width, int max_height,
 							   char align_flags,
 							   int fade_end, int fade_length)
-{
+{	
+	// Must be taken first, before anything that could inline/alter the frame.
+	const DWORD caller = reinterpret_cast<DWORD>(_ReturnAddress());
+
 	if (!font || !text)
 		return false;
+
+	// Declared BEFORE Lock so its destructor runs AFTER UnLock on every return path.
+	BriefingText::ClipGuard clipGuard;
+	BriefingText::TryApply(caller, font, surface, text,
+						   x_origin, y_top, max_width, max_height,
+						   fade_end, clipGuard);
 
 	font->Lock(surface);
 	font->field_20 = x_origin;

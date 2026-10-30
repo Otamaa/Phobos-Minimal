@@ -254,7 +254,7 @@ int FakeUnitClass::_Mission_AreaGuard()
 
 	} else {
 
-		if (TechnoExtData::CannotMove(this)) {
+		if (TechnoExtData::CannotMove(this, true)) {
 
 			if (this->CanPassiveAcquireTargets() && this->TargetingTimer.Completed())
 				this->TargetAndEstimateDamage(&this->Location, ThreatType::Range);

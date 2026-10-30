@@ -83,7 +83,7 @@ namespace
 		outCachedError = FakeTechnoClass::__CanFireMod(pThis, target, which, check_fire_coord, false);
 
 		//0x74132B, UnitClass_CanFire_DisallowMoving, 0x7
-		if(outCachedError == FireError::RANGE && TechnoExtData::CannotMove(pThis))
+		if(outCachedError == FireError::RANGE && TechnoExtData::CannotMove(pThis, true))
 			return FireError::ILLEGAL;
 
 		return FireError::NONE;

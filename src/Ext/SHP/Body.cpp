@@ -139,10 +139,10 @@ bool SHPExtData::LoadAlphaImage()
 //	Debug::Log("CC_Draw_Shape_Probe caller: %x\n", caller);
 //	return 0x0;
 //}
-
+//
 //ASMJIT_PATCH(0x4AED94, CC_Draw_Shape_Probe, 0x6) {
 //	GET(SHPCaches*, pThis, EDI);
 //
-//	Debug::Log("CC_Draw_Shape_Probe: %s\n", pThis->Filename);
+//	Debug::Log("CC_Draw_Shape_Probe: %s\n", pThis->Filename ? pThis->Filename : "Unknown");
 //	return 0x0;
 //}

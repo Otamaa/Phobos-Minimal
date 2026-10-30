@@ -10,6 +10,9 @@ class FootExtData : public TechnoExtData
 public:
 
 	bool IsOwnerChangeFromRevertOnExit { false };
+	bool IsZeroSpeed { false }; // Temporary speed multipliers have made this techno stationary.
+	int SpeedMultiplierFrame { 0 };
+	double CurrentSpeedMultiplier { 1.0 };
 
 	FootExtData(FootClass* abs) : TechnoExtData(abs)
 	{ };
@@ -26,6 +29,9 @@ public:
 		this->TechnoExtData::LoadFromStream(Stm);
 		Stm
 			.Process(this->IsOwnerChangeFromRevertOnExit)
+			.Process(this->IsZeroSpeed)
+			.Process(this->SpeedMultiplierFrame)
+			.Process(this->CurrentSpeedMultiplier)
 			;
 	}
 
@@ -33,6 +39,9 @@ public:
 		this->TechnoExtData::SaveToStream(Stm);
 		Stm
 			.Process(this->IsOwnerChangeFromRevertOnExit)
+			.Process(this->IsZeroSpeed)
+			.Process(this->SpeedMultiplierFrame)
+			.Process(this->CurrentSpeedMultiplier)
 			;
 	}
 
@@ -44,6 +53,8 @@ public:
 	virtual void CalculateCRC(CRCEngine& crc) const override {
 		this->TechnoExtData::CalculateCRC(crc);
 	}
+
+	void HandleTemporaryZeroSpeed();
 
 };
 

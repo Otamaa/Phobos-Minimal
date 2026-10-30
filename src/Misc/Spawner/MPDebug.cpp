@@ -62,11 +62,17 @@ ASMJIT_PATCH(0x55F667, MPDebugPrint_DrawEventQueueDelay, 0x5)
 }
 DEFINE_JUMP(LJMP, 0x55F1F8, 0x55F280); // Draw the event queue delay inside the panel, after its background and LNFT.
 
+#include <IPXManagerClass.h>
+
 // Blend the panel background with the map at 80% opacity.
 ASMJIT_PATCH(0x55F2E5, MPDebugPrint_TranslucentBackground, 0x6)
 {
 	GET(DSurface*, pSurface, ESI);
 	LEA_STACK(RectangleStruct*, pRect, STACK_OFFSET(0x230, -0x218));
+
+	// Up to 8 columns (7 remote players + 1 general statistics column), 100 pixels each.
+	const int columnCount = 1 + IPXManagerClass::Instance->NumConnections;
+	pRect->Width = std::min(pSurface->Get_Width(), 100 * std::max(2, columnCount));
 
 	ColorStruct color { 0, 0, 0 };
 	pSurface->Fill_Rect_Trans(pRect, &color, 80);

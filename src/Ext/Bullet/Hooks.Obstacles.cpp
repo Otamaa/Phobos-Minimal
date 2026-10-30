@@ -228,6 +228,32 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 	return ContinueCheck;
 }
 
+// Non-Arcing weapons add extra range in rangefinding checks based on building foundation size.
+// Lack of this in the Arcing code path presumably causes the odd movement they might
+// experience when targeting larger buildings.
+ASMJIT_PATCH(0x6F7457, TechnoClass_InRange_ArcingBuildingTargetFix, 0x8)
+{
+	GET(BulletTypeClass*, pBulletType, EAX);
+	GET(int, range, EDI);
+	GET_BASE(AbstractClass*, pTarget, 0xC);
+
+	if (BulletTypeExtContainer::Instance.Find(pBulletType)->Arcing_ConsiderBuildingFoundation
+		.Get(FakeRulesClass::Instance->Arcing_ConsiderBuildingFoundation))
+	{
+		if (const auto pBuilding = cast_to<BuildingClass*>(pTarget))
+		{
+			constexpr int multiplier = Unsorted::LeptonsPerCell / 4;
+			const auto pType = pBuilding->Type;
+			const int width = pType->GetFoundationWidth();
+			const int height = pType->GetFoundationHeight(false);
+			range += (width + height) * multiplier;
+		}
+	}
+
+	R->EDI(range);
+	return 0;
+}
+
 ASMJIT_PATCH(0x4D59F0, FootClass_ApproachTarget_ClearCond, 0x7)
 {
 	enum { SkipClear = 0x4D5A07, Clear = 0x4D59FB };
