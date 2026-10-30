@@ -60,6 +60,7 @@
     <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.word.sse2.cpp" />
     <ClCompile Include="src\Ext\Convert\Body.cpp" />
     <ClCompile Include="src\Ext\Convert\NewBlitters\Blitters.cpp" />
+    <ClCompile Include="src\Ext\Event\Hooks.EventQueue.cpp" />
     <ClCompile Include="src\Ext\Factory\Hooks.cpp" />
     <ClCompile Include="src\Ext\File\Hooks.cpp" />
     <ClCompile Include="src\Ext\House\Hooks.AIBaseNode.cpp" />

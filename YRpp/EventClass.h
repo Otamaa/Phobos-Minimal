@@ -200,6 +200,11 @@ public:
 	static void __fastcall Print_CRCs_All_Players(int frame_slot, EventClass* ev)
 		{ JMP_STD(0x6516F0); }
 
+private: 
+	//change 30/10/2026 - Otamaa
+	//					  Develop implementing way to increase the command Queue count 
+	//					  so calling these function directly are stricly prohibited now
+
 	static bool AddEvent(EventClass* pEvent) {
 		return OutList->Add(pEvent);
 	}
@@ -214,6 +219,8 @@ public:
 		EventClass ev(std::forward<Args>(args)...);
 		return OutList->Add(&ev);
 	}
+
+public:
 
 	EventClass()
 	{

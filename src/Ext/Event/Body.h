@@ -3,6 +3,7 @@
 #include <TargetClass.h>
 #include <Utilities/Enum.h>
 #include <SessionClass.h>
+#include <vector>
 
 #define SET_DEFAULT_PROP(c) \
 static OPTIONALINLINE COMPILETIMEEVAL size_t size() { return sizeof(##c##); } \
@@ -32,6 +33,50 @@ public:
 		Last = ChoiceBoxClick
 	};
 
+	struct EventOutQueue
+	{
+		static std::vector<EventClass> Pending;
+
+		static constexpr DWORD OutListHeadAddress = 0x00A802CCu;
+		static constexpr DWORD OutListArrayAddress = 0x00A802D4u;
+
+		static int& Head()
+		{
+			return *reinterpret_cast<int*>(OutListHeadAddress);
+		}
+
+		static EventClass& Entry(int index)
+		{
+			return reinterpret_cast<EventClass*>(OutListArrayAddress)[index];
+		}
+
+		static void MakeRoom()
+		{
+			auto& outList = EventClass::OutList;
+
+			if (outList->Count < EventClass::EventLength_Max)
+				return;
+
+			Pending.push_back(Entry(Head()));
+			Head() = (Head() + 1) & (EventClass::EventLength_Max - 1);
+			--outList->Count;
+		}
+
+		static void Replay()
+		{
+			if (Pending.empty())
+				return;
+
+			size_t replayed = 0;
+
+			while (replayed < Pending.size() && EventClass::OutList->Add(Pending[replayed]))
+				++replayed;
+
+			if (replayed)
+				Pending.erase(Pending.begin(), Pending.begin() + replayed);
+		}
+	};
+
 	template<bool timestamp, bool setData, class T, typename... ArgTypes>
 	static bool AddToEvent(EventClass& event, ArgTypes... args)
 	{
@@ -40,10 +85,27 @@ public:
 			event.Data.nothing.Set<T>(&type);
 		}
 
-		if COMPILETIMEEVAL(timestamp)
-			return EventClass::AddEventWithTimeStamp(&event);
-		else
-			return EventClass::AddEvent(&event);
+		EventOutQueue::MakeRoom();
+
+		if COMPILETIMEEVAL(timestamp) {
+			event.Frame = static_cast<DWORD>(Unsorted::CurrentFrame());
+		}
+
+		return EventClass::OutList->Add(&event);
+	}
+
+	static bool AddEvent(EventClass& ev) {
+		EventOutQueue::MakeRoom();
+		return EventClass::OutList->Add(&ev);
+	}
+
+	template<typename... Args>
+	static bool CreateEvent(Args&&... args) {
+		EventClass ev(std::forward<Args>(args)...);
+		
+		EventOutQueue::MakeRoom();
+
+		return EventClass::OutList->Add(&ev);
 	}
 
 	struct TogglePassiveAcquireMode

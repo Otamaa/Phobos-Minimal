@@ -12,6 +12,7 @@
 #include <Ext/Mouse/Body.h>
 #include <Ext/Scenario/Body.h>
 #include <Ext/TeamType/Body.h>
+#include <Ext/Event/Body.h>
 
 #include <Misc/PhobosToolTip.h>
 
@@ -634,8 +635,7 @@ bool SWTypeExtData::LauchSuper(SuperClass* pSuper)
 
 			if (pSuper->Type->Action == Action::None || pSWExt->SW_UseAITargeting)
 			{
-				EventClass Event { pCurrent->ArrayIndex, EventType::SPECIAL_PLACE, swIndex, CellStruct::Empty };
-				EventClass::AddEvent(&Event);
+				EventExt::CreateEvent(pCurrent->ArrayIndex, EventType::SPECIAL_PLACE, swIndex, CellStruct::Empty);
 			}
 			else
 			{

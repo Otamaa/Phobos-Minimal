@@ -7,6 +7,7 @@
 #include <Ext/Super/Body.h>
 #include <Ext/Scenario/Body.h>
 #include <Ext/Tactical/Body.h>
+#include <Ext/Event/Body.h>
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/EnumFunctions.h>
@@ -547,7 +548,7 @@ bool BuildingTypeExtData::AutoPlaceBuilding(BuildingClass* pBuilding)
 
 	auto addPlaceEvent = [&pType, &pHouse](CellStruct cell)
 	{
-		EventClass event
+		EventExt::CreateEvent
 		(
 			HouseClass::CurrentPlayer->ArrayIndex,
 			EventType::PLACE,
@@ -556,8 +557,6 @@ bool BuildingTypeExtData::AutoPlaceBuilding(BuildingClass* pBuilding)
 			pType->Naval,
 			cell
 		);
-
-		EventClass::AddEvent(&event);
 	};
 
 	if (pType->LaserFencePost || pType->Wall)
@@ -702,7 +701,7 @@ bool BuildingTypeExtData::BuildLimboBuilding(BuildingClass* pBuilding)
 
 	if (BuildingTypeExtContainer::Instance.Find(pBuildingType)->LimboBuild)
 	{
-		EventClass event
+		EventExt::CreateEvent
 		(
 			pBuilding->Owner->ArrayIndex,
 			EventType::PLACE,
@@ -711,8 +710,6 @@ bool BuildingTypeExtData::BuildLimboBuilding(BuildingClass* pBuilding)
 			pBuildingType->Naval,
 			CellStruct { 1, 1 }
 		);
-
-		EventClass::AddEvent(&event);
 
 		return true;
 	}
@@ -2095,7 +2092,7 @@ CanBuildResult BuildingTypeExtData::CheckAlwaysExistCameo(HouseClass* pHouse, Te
 
 				if (pHouse->GetPrimaryFactory(pType->WhatAmI(), pType->Naval, buildCat))
 				{
-					EventClass::CreateEvent(pHouse->ArrayIndex,
+					EventExt::CreateEvent(pHouse->ArrayIndex,
 						EventType::ABANDON_ALL,
 						pType->WhatAmI(),
 						pType->GetArrayIndex(),

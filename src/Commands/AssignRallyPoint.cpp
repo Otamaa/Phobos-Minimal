@@ -3,6 +3,7 @@
 #include "Ext/BuildingType/Body.h"
 #include "Ext/Building/Body.h"
 #include "Ext/Event/Body.h"
+#include "Ext/Event/Body.h"
 
 #include <Utilities/Debug.h>
 
@@ -71,7 +72,7 @@ void AssignRallyPointCommandClass::Execute(WWKey eInput) const
 		VoxClass::Play(GameStrings::EVA_NewRallyPointEstablished());
 
 		for (const auto& pBuilding : buildings){
-			EventClass::CreateEvent(pBuilding->GetOwningHouseIndex(), EventType::ARCHIVE, TargetClass(pBuilding), TargetClass(pPointed));
+			EventExt::CreateEvent(pBuilding->GetOwningHouseIndex(), EventType::ARCHIVE, TargetClass(pBuilding), TargetClass(pPointed));
 		}
 	}
 }

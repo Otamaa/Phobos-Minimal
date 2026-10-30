@@ -55,8 +55,9 @@ OPTIONALINLINE bool QueueClass<T, size>::Add(const T& q)
 {
 	if (Count < size)
 	{
-		Array[Tail] = q;
-		Timings[Tail] = static_cast<int>(Imports::TimeGetTime().invoke());
+		memcpy((Array + Tail), ((void*)&q), sizeof(T));
+		auto time = Imports::TimeGetTime.invoke()();
+		Timings[Tail] = static_cast<int>(time);
 		Tail = (Tail + 1) & (size - 1);
 		Count = Count + 1;
 		return true;
@@ -70,7 +71,8 @@ OPTIONALINLINE bool QueueClass<T, size>::Add(const T* q)
 	if (Count < size)
 	{
 		memcpy((Array + Tail), q, sizeof(T));
-		Timings[Tail] = static_cast<int>(Imports::TimeGetTime.invoke()());
+		auto time = Imports::TimeGetTime.invoke()();
+		Timings[Tail] = time;
 		Tail = (Tail + 1) & (size - 1);
 		Count = Count + 1;
 		return true;

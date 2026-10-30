@@ -24,7 +24,8 @@
 #include <HouseClass.h>
 
 #include <Utilities/Debug.h>
-#include <EventClass.h>
+
+#include <Ext/Event/Body.h>
 
 bool RageQuit = false;
 
@@ -61,10 +62,8 @@ void RageQuitGame() {
 	if (SpawnerMain::GetMainConfigs()->QuickExit) {
 		if (Game::IsActive() && HouseClass::CurrentPlayer() && !Game::ScoreStuffLoad()) {
 			RageQuit = true;
-			EventClass e_DESTRUCT { HouseClass::CurrentPlayer->ArrayIndex, EventType::DESTRUCT };
-			EventClass::AddEvent(&e_DESTRUCT);
-			EventClass e_EXIT { HouseClass::CurrentPlayer->ArrayIndex, EventType::EXIT };
-			EventClass::AddEvent(&e_EXIT);
+			EventExt::CreateEvent(HouseClass::CurrentPlayer->ArrayIndex, EventType::DESTRUCT);
+			EventExt::CreateEvent(HouseClass::CurrentPlayer->ArrayIndex, EventType::EXIT);
 		} else {
 			ExitProcess(0u);
 		}

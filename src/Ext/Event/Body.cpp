@@ -16,6 +16,8 @@
 #include <New/TextBox/Types/TextBoxTypeClass.h>
 #include <New/ChoiceBox/Types/ChoiceBoxTypeClass.h>
 
+std::vector<EventClass> EventExt::EventOutQueue::Pending;
+
 EventExt::ApproachObject::ApproachObject(FootClass* pThis, ObjectClass* pObject) :
 	Whom { pThis }, Target { pObject } { }
 

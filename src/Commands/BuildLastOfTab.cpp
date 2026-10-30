@@ -2,6 +2,8 @@
 
 #include <Utilities/GeneralUtils.h>
 #include <Ext/House/Body.h>
+#include <Ext/Event/Body.h>
+
 #include <HouseClass.h>
 #include <EventClass.h>
 #include <SidebarClass.h>
@@ -82,14 +84,11 @@ void BuildLastOfTabCommandClass<TabIndex>::Execute(WWKey eInput) const
 	auto const rtti = pExt->LastBuilt[TabIndex].RTTIPerTab;
 	auto const isNaval = pExt->LastBuilt[TabIndex].IsNavalPerTab;
 
-	EventClass ev(pPlayer->ArrayIndex,
+	EventExt::CreateEvent(pPlayer->ArrayIndex,
 		EventType::PRODUCE,
 		rtti,
 		typeIndex,
-		isNaval ? TRUE : FALSE
-	);
-
-	EventClass::AddEvent(&ev);
+		isNaval ? TRUE : FALSE);
 }
 
 // Explicit instantiations

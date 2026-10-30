@@ -10,6 +10,7 @@
 #include <Ext/Side/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Mouse/Body.h>
+#include <Ext/Event/Body.h>
 
 #include <Misc/PhobosToolTip.h>
 #include <Misc/CSF.h>
@@ -347,28 +348,24 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 								VoxClass::Play("EVA_Canceled");
 								EventType ev = shiftPressed != KeyModifier::None ? EventType::ABANDON_ALL : EventType::ABANDON;
 
-								EventClass Event {
+								EventExt::CreateEvent(
 									PlayerPtr->ArrayIndex ,
 									ev ,
 									pBuild->ItemType ,
 									pBuild->ItemIndex,
 									bool(Techno_Type->Naval)
-								};
-
-								EventClass::AddEvent(&Event);
+								);
 							} else {
 								VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0, 0);
 								VoxClass::Play("EVA_OnHold");
 
-								EventClass Event {
+								EventExt::CreateEvent(
 									PlayerPtr->ArrayIndex ,
 									EventType::SUSPEND ,
 									pBuild->ItemType ,
 									pBuild->ItemIndex,
 									bool(Techno_Type->Naval)
-								};
-
-								EventClass::AddEvent(&Event);
+								);
 							}
 
 							SidebarClass::Column[strip->TabIndex].NeedsRedraw = 1;
@@ -380,30 +377,26 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 								VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0, 0);
 								VoxClass::Play("EVA_OnHold");
 
-								EventClass Event {
+								EventExt::CreateEvent(
 									PlayerPtr->ArrayIndex ,
 									EventType::SUSPEND ,
 									pBuild->ItemType ,
 									pBuild->ItemIndex,
 									bool(Techno_Type->Naval)
-								};
-
-								EventClass::AddEvent(&Event);
+								);
 							}
 
 							auto pHouseFactory = PlayerPtr->GetPrimaryFactory(pBuild->ItemType, Techno_Type->Naval, pBuild->Cat);
 
 							if (pHouseFactory && pHouseFactory->IsQueued(Techno_Type)) {
 								VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0, 0);
-								EventClass Event {
+								EventExt::CreateEvent(
 									PlayerPtr->ArrayIndex ,
 									shiftPressed != KeyModifier::None ? EventType::ABANDON_ALL : EventType::ABANDON ,
 									pBuild->ItemType ,
 									pBuild->ItemIndex,
 									bool(Techno_Type->Naval)
-								};
-
-								EventClass::AddEvent(&Event);
+								);
 							}
 						}
 					}
@@ -448,9 +441,9 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 
 								if(shiftPressed != KeyModifier::None){
 									for(int i = FakeRulesClass::Instance->ShiftQueueCount; i > 0; --i){
-										EventClass::AddEvent(&Event);
+										EventExt::AddEvent(Event);
 									}
-								} else { EventClass::AddEvent(&Event); }
+								} else { EventExt::AddEvent(Event); }
 
 								if (v70) {
 									if (!unable_to_comply && !ShouldDisableCameo) {
@@ -573,15 +566,14 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 							Techno_Type = TechnoTypeClass::FetchTechnoType(pBuild->ItemType, pBuild->ItemIndex);
 							PlayerPtr->SetBusy(pBuild->ItemType, Techno_Type->Naval, pBuild->Cat);
 							VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0, 0);
-							EventClass Event {
+							
+							EventExt::CreateEvent(
 								PlayerPtr->ArrayIndex ,
 								EventType::PRODUCE ,
 								pBuild->ItemType ,
 								pBuild->ItemIndex,
 								bool(Techno_Type->Naval)
-							};
-
-							EventClass::AddEvent(&Event);
+							);
 
 							pBuild->Status = BuildState::Building;
 
@@ -622,27 +614,23 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 										PlayerPtr->Manual_Place(v23, pBld);
 									} else {
 										VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0, 0);
-										EventClass Event {
+										EventExt::CreateEvent(
 											Object->GetOwningHouseIndex() ,
 											EventType::PLACE ,
 											pBuild->ItemType ,
 											-1,
 											bool(Techno_Type->Naval),
 											CellStruct::Empty
-										};
-
-										EventClass::AddEvent(&Event);
+										);
 									}
 								} else {
-									EventClass Event {
+									EventExt::CreateEvent(
 										Object->GetOwningHouseIndex() ,
 										EventType::ABANDON ,
 										pBuild->ItemType ,
 										pBuild->ItemIndex,
 										bool(Techno_Type->Naval)
-									};
-
-									EventClass::AddEvent(&Event);
+									);
 
 									VoxClass::Play("EVA_UnableToComply");
 								}
@@ -985,15 +973,14 @@ bool NOINLINE RemoveCameo(BuildType* item)
 
 	if (item->CurrentFactory)
 	{
-		EventClass Event {
+		EventExt::CreateEvent(
 			HouseClass::CurrentPlayer->ArrayIndex  ,
 			EventType::ABANDON ,
 			item->ItemType ,
 			item->ItemIndex,
 			bool(TechnoType ? TechnoType->Naval : 0)
-		};
+		);
 
-		EventClass::AddEvent(&Event);
 	}
 
 	if (item->ItemType == BuildingTypeClass::AbsID || item->ItemType == BuildingClass::AbsID)
@@ -1017,15 +1004,13 @@ bool NOINLINE RemoveCameo(BuildType* item)
 		auto Me = TechnoType->WhatAmI();
 		if (HouseClass::CurrentPlayer->GetPrimaryFactory(Me, TechnoType->Naval, BuildCat::DontCare))
 		{
-			EventClass Event {
+			EventExt::CreateEvent(
 				HouseClass::CurrentPlayer->ArrayIndex  ,
 				EventType::ABANDON_ALL ,
 				item->ItemType ,
 				item->ItemIndex,
 				TechnoType->Naval
-			};
-
-			EventClass::AddEvent(&Event);
+			);
 		}
 	}
 

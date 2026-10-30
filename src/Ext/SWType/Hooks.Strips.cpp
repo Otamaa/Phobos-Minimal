@@ -8,6 +8,7 @@
 #include <Ext/HouseType/Body.h>
 #include <Ext/Mouse/Body.h>
 #include <Ext/Tactical/Body.h>
+#include <Ext/Event/Body.h>
 
 #include <Utilities/Macro.h>
 
@@ -19,13 +20,12 @@
 
 void NOINLINE CreateEvent(SuperWeaponTypeClass* pSuper, CellStruct* pWhere)
 {
-	EventClass Event {
+	EventExt::CreateEvent(
 		HouseClass::CurrentPlayer->ArrayIndex ,
 		EventType::SPECIAL_PLACE ,
 		pSuper->ArrayIndex ,
 		*pWhere
-	};
-	EventClass::AddEvent(&Event);
+	);
 }
 
 // 4AC20C, 7

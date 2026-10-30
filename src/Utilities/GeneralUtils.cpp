@@ -12,6 +12,7 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/TaskForce/Body.h>
 #include <Ext/TagType/Body.h>
+#include <Ext/Event/Body.h>
 
 #include <TranslateFixedPoints.h>
 
@@ -209,8 +210,7 @@ const bool GeneralUtils::ProduceBuilding(HouseClass* pOwner, int idxBuilding)
 				if (pOwner->GetPrimaryFactory(AbstractType::Building, false, pBuilding->BuildCat))
 					return false;
 
-				EventClass vEvent { pOwner->ArrayIndex , EventType::PRODUCE , pItem->WhatAmI(), pItem->GetArrayIndex(), pItem->Naval };
-				EventClass::AddEvent(&vEvent);
+				EventExt::CreateEvent(pOwner->ArrayIndex , EventType::PRODUCE , pItem->WhatAmI(), pItem->GetArrayIndex(), pItem->Naval);
 
 				return true;
 			}

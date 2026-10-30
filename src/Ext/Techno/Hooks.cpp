@@ -22,6 +22,7 @@
 #include <Ext/Cell/Body.h>
 #include <Ext/CaptureManager/Body.h>
 #include <Ext/Team/Body.h>
+#include <Ext/Event/Body.h>
 
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/GeneralUtils.h>
@@ -2777,7 +2778,7 @@ ASMJIT_PATCH(0x4437B3, BuildingClass_CellClickedAction_NoManualMove, 0x6)
 	const bool _bl = R->BL();
 	if (pType->UndeploysInto && !_bl) {
 		TargetClass _Target(pThis);
-		EventClass::CreateEvent(pThis->GetOwningHouseIndex(), EventType::SELL, _Target.m_ID, (AbstractType)_Target.m_RTTI);
+		EventExt::CreateEvent(pThis->GetOwningHouseIndex(), EventType::SELL, _Target.m_ID, (AbstractType)_Target.m_RTTI);
 	}
 
 	return 0x44384E;

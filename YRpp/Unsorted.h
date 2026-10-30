@@ -522,7 +522,7 @@ struct Imports
 	typedef HRESULT(WINAPI* FP_OleRun)(LPUNKNOWN pUnknown);
 	static COMPILETIMEEVAL referencefunc<FP_OleRun, 0x7E1600 > const OleRun {};
 
-	typedef DWORD(*FP_TimeGetTime)();
+	typedef DWORD(WINAPI*FP_TimeGetTime)();
 	static COMPILETIMEEVAL referencefunc<FP_TimeGetTime, 0x7E1530> const TimeGetTime {};
 
 	/* user32.dll */

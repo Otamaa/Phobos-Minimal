@@ -2,6 +2,8 @@
 
 #include <Utilities/GeneralUtils.h>
 #include <Ext/House/Body.h>
+#include <Ext/Event/Body.h>
+
 #include <HouseClass.h>
 #include <EventClass.h>
 #include <SidebarClass.h>
@@ -22,13 +24,12 @@ static void ExecuteRebuildSubtype(int typeIndex, AbstractType rtti, bool isNaval
 		SidebarClass::Instance->SidebarNeedsRepaint();
 	}
 
-	EventClass ev(pPlayer->ArrayIndex,
+	EventExt::CreateEvent(pPlayer->ArrayIndex,
 		EventType::PRODUCE,
 		rtti,
 		typeIndex,
 		isNaval ? TRUE : FALSE
 	);
-	EventClass::AddEvent(&ev);
 }
 
 // --- RebuildVehicle (non-naval UnitType) ---

@@ -18,6 +18,7 @@
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Mouse/Body.h>
+#include <Ext/Event/Body.h>
 
 #include <Helpers/Macro.h>
 #include <Utilities/Macro.h>
@@ -1094,8 +1095,7 @@ ASMJIT_PATCH(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 		}
 		else if (pHouse == HouseClass::CurrentPlayer.get()) // Prevent unexpected wrong event
 		{
-			EventClass event (pHouse->ArrayIndex, EventType::PLACE, AbstractType::Building, pType->GetArrayIndex(), pType->Naval, cell);
-			EventClass::AddEvent(&event);
+			EventExt::CreateEvent(pHouse->ArrayIndex, EventType::PLACE, AbstractType::Building, pType->GetArrayIndex(), pType->Naval, cell);
 		}
 	};
 
