@@ -67,6 +67,8 @@ public:
 			if (Pending.empty())
 				return;
 
+			Debug::Log("EventOutQueue :: Replaying %d Pending Event \n", Pending.size());
+
 			size_t replayed = 0;
 
 			while (replayed < Pending.size() && EventClass::OutList->Add(Pending[replayed]))
