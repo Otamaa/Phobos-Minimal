@@ -50,33 +50,8 @@ public:
 			return reinterpret_cast<EventClass*>(OutListArrayAddress)[index];
 		}
 
-		static void MakeRoom()
-		{
-			auto& outList = EventClass::OutList;
-
-			if (outList->Count < EventClass::EventLength_Max)
-				return;
-
-			Pending.push_back(Entry(Head()));
-			Head() = (Head() + 1) & (EventClass::EventLength_Max - 1);
-			--outList->Count;
-		}
-
-		static void Replay()
-		{
-			if (Pending.empty())
-				return;
-
-			Debug::Log("EventOutQueue :: Replaying %d Pending Event \n", Pending.size());
-
-			size_t replayed = 0;
-
-			while (replayed < Pending.size() && EventClass::OutList->Add(Pending[replayed]))
-				++replayed;
-
-			if (replayed)
-				Pending.erase(Pending.begin(), Pending.begin() + replayed);
-		}
+		static void MakeRoom();
+		static void Replay();
 	};
 
 	template<bool timestamp, bool setData, class T, typename... ArgTypes>

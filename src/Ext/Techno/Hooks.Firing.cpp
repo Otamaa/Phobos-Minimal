@@ -2573,6 +2573,14 @@ ASMJIT_PATCH(0x6FCDD2, TechnoClass_AssignTarget_Changed, 0x6)
 		pExt->ResetDelayedFireTimer();
 	}
 
+	if ((pThis->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None)
+	{
+		auto const pExt = FootExtContainer::Instance.Find(static_cast<FootClass*>(pThis));
+
+		if (pExt->IsTempImmobilized)
+			pExt->ImmobilizedSuspendedTarget = nullptr;
+	}
+
 	return 0;
 }
 

@@ -4944,7 +4944,7 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 		// The Hover movement pattern allows for self-landing.
 		if (pLocomotorType != FlyLocomotionClass::ClassGUID.get() && pLocomotorType != HoverLocomotionClass::ClassGUID.get())
 		{
-			const bool isinAir = pThis->IsInAir() && !pThis->LocomotorSource;
+			const bool isinAir = pThis->IsInAir() && !pThis->IsAttackedByLocomotor;
 
 			if (auto const pJJLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
 			{
@@ -7742,10 +7742,10 @@ bool TechnoExtData::CannotMove(FootClass* pThis, bool checkSpeedMultiplier)
 {
 	const auto pType = pThis->GetTechnoType();
 
-	if (pThis->LocomotorSource)
+	if (pThis->IsAttackedByLocomotor)
 		return false;
 
-	if (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
+	if ((checkSpeedMultiplier && FootExtContainer::Instance.Find(pThis)->IsTempImmobilized) || TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
 		return true;
 
 	if (pType->Speed == 0
@@ -7760,7 +7760,7 @@ bool TechnoExtData::CannotMove(FootClass* pThis, bool checkSpeedMultiplier)
 		if (movementRestrictedTo == LandType::None)
 			return false;
 
-		if (!pThis->OnBridge && (landType == LandType::Water || landType == LandType::Beach))
+		if (pThis->OnBridge && (landType == LandType::Water || landType == LandType::Beach))
 			landType = LandType::Road;
 
 		if (movementRestrictedTo != landType)

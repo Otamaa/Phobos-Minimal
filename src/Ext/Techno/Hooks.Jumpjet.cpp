@@ -661,10 +661,15 @@ namespace JumpjetClimbIgnoreBuilding
 ASMJIT_PATCH(0x54D820, JumpjetLocomotionClass_GetFloorZ_SetContext, 0x6)
 {
 	GET(JumpjetLocomotionClass*, pThis, ESI);
-	JumpjetClimbIgnoreBuilding::Ignore = GET_TECHNOTYPEEXT(pThis->LinkedTo)->JumpjetClimbIgnoreBuilding.Get(FakeRulesClass::Instance()->JumpjetClimbIgnoreBuilding);
+	auto pFoot = pThis->LinkedTo;
+
+	if (pFoot->IsAttackedByLocomotor)
+		JumpjetClimbIgnoreBuilding::Ignore = false;
+	else
+		JumpjetClimbIgnoreBuilding::Ignore = GET_TECHNOTYPEEXT(pThis->LinkedTo)->JumpjetClimbIgnoreBuilding.Get(FakeRulesClass::Instance()->JumpjetClimbIgnoreBuilding);
 
 	if (JumpjetClimbIgnoreBuilding::Ignore)
-		JumpjetClimbIgnoreBuilding::Z = MapClass::Instance->GetCellFloorHeight(pThis->LinkedTo->Location);
+		JumpjetClimbIgnoreBuilding::Z = MapClass::Instance->GetCellFloorHeight(pFoot->Location);
 
 	return 0;
 }

@@ -307,9 +307,9 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		}
 	}
 
-	const bool IC = pWHExt->CanAffectInvulnerable(this->Techno);
+	const bool canAffectIC = pWHExt->CanAffectInvulnerable(this->Techno);
 
-	if(!IC || CanBePenetrated(args->WH) || TechnoExtData::IsTypeImmune(this->Techno, args->Attacker))
+	if(!canAffectIC || CanBePenetrated(args->WH) || TechnoExtData::IsTypeImmune(this->Techno, args->Attacker))
 		return *args->Damage;
 
 	const auto pSource = args->Attacker ? args->Attacker->Owner : args->SourceHouse;

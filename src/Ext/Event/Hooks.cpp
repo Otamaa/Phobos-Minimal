@@ -217,9 +217,20 @@ ASMJIT_PATCH(0x4C77E4, EventClass_Execute_UnitDeployFire, 0x6)
 
 // issue #112 Make FireOnce=yes work on other TechnoTypes
 // Author: Starkku
-ASMJIT_PATCH(0x4C7518, EventClass_Execute_StopUnitDeployFire, 0x9)
+ASMJIT_PATCH(0x4C7518, EventClass_Execute_StopCommand, 0x9)
 {
 	GET(TechnoClass* const, pThis, ESI);
+
+	if ((pThis->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None)
+	{
+		auto const pExt = FootExtContainer::Instance.Find(static_cast<FootClass*>(pThis));
+
+		if (pExt->IsTempImmobilized)
+		{
+			pExt->ImmobilizedSuspendedTarget = nullptr;
+			pExt->ImmobilizedSuspendedDestination = nullptr;
+		}
+	}
 
 	if (auto const pUnit = cast_to<UnitClass*>(pThis)) {
 

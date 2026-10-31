@@ -100,6 +100,17 @@ static bool __fastcall InfantryClass_CantMove_Wrapper(InfantryClass* pThis)
 }
 
 DEFINE_FUNCTION_JUMP(CALL6, 0x75ACBD, InfantryClass_CantMove_Wrapper);
+DEFINE_FUNCTION_JUMP(CALL6, 0x75BF87, InfantryClass_CantMove_Wrapper);
+
+ASMJIT_PATCH(0x5216F2, InfantryClass_IsReadyToRandomAnimate_DisallowMoving, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+
+	if (FootExtContainer::Instance.Find(pThis)->IsTempImmobilized)
+		return 0x521706;
+
+	return 0;
+}
 
 ASMJIT_PATCH(0x51AA84, InfantryClass_AssignDestination_DisallowMoving, 0x6)
 {
@@ -107,7 +118,6 @@ ASMJIT_PATCH(0x51AA84, InfantryClass_AssignDestination_DisallowMoving, 0x6)
 
 	if (TechnoExtData::CannotMove(pThis, false))
 	{
-		pThis->AbortMotion();
 		return 0x51B1D7;
 	}
 
@@ -225,7 +235,7 @@ ASMJIT_PATCH(0x4D4203, FootClass_Mission_Move_DisallowMoving, 0x6)
 
 	if (TechnoExtData::CannotMove(pThis, true))
 	{
-		pThis->ForceMission(Mission::Guard);
+		pThis->EnterIdleMode(false, true);
 		return 0x4D4248;
 	}
 
@@ -237,8 +247,10 @@ ASMJIT_PATCH(0x4D9563, FootClass_AssignDestination_DisallowMoving, 0x6)
 	GET(FootClass*, pThis, EBP);
 
 	// Prevent locomotor processing when assigned target if temporarily immobilized.
-	if (FootExtContainer::Instance.Find(pThis)->IsZeroSpeed)
+	if (FootExtContainer::Instance.Find(pThis)->IsTempImmobilized) {
+		FootExtContainer::Instance.Find(pThis)->ImmobilizedSuspendedDestination = nullptr;
 		return 0x4D96C2;
+	}
 
 	return 0;
 }
@@ -280,6 +292,9 @@ ASMJIT_PATCH(0x4D6AAB, FootClass_Mission_AreaGuard_DisallowMoving, 0x6)
 ASMJIT_PATCH(0x4D5716, FootClass_ApproachTarget_DisallowMoving, 0x7)
 {
 	GET(FootClass*, pThis, EBX);
+
+	if (FootExtContainer::Instance.Find(pThis)->IsTempImmobilized)
+		return 0x4D5744;
 
 	if (TechnoExtData::CannotMove(pThis, true))
 		return 0x4D571D;

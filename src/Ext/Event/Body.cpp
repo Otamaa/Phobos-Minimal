@@ -18,6 +18,34 @@
 
 std::vector<EventClass> EventExt::EventOutQueue::Pending;
 
+void EventExt::EventOutQueue::MakeRoom()
+{
+	auto& outList = EventClass::OutList;
+
+	if (outList->Count < EventClass::EventLength_Max)
+		return;
+
+	Pending.push_back(Entry(Head()));
+	Head() = (Head() + 1) & (EventClass::EventLength_Max - 1);
+	--outList->Count;
+}
+
+void EventExt::EventOutQueue::Replay()
+{
+	if (Pending.empty())
+		return;
+
+	Debug::Log("EventOutQueue :: Replaying %d Pending Event \n", Pending.size());
+
+	size_t replayed = 0;
+
+	while (replayed < Pending.size() && EventClass::OutList->Add(Pending[replayed]))
+		++replayed;
+
+	if (replayed)
+		Pending.erase(Pending.begin(), Pending.begin() + replayed);
+}
+
 EventExt::ApproachObject::ApproachObject(FootClass* pThis, ObjectClass* pObject) :
 	Whom { pThis }, Target { pObject } { }
 

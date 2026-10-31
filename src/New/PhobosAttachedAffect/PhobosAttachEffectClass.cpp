@@ -835,10 +835,12 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 	// movement / harvesting / stationary
 	// ------------------------------------------------------------------
 	if (const auto pFoot = flag_cast_to<FootClass*, false>(pTechno)) {
-		const bool isMoving = pType->DiscardOn_MoveBasedOnDestination.Get(
-				FakeRulesClass::Instance()->DiscardOn_ConsiderHoverAsMoving)
-			? pFoot->Locomotor->Is_Moving()
-			: pFoot->Locomotor->Is_Really_Moving_Now();
+		bool isMoving = false;
+		if (!FootExtContainer::Instance.Find(pFoot)->IsTempImmobilized) {
+			isMoving = this->Type->DiscardOn_MoveBasedOnDestination.Get(FakeRulesClass::Instance->DiscardOn_ConsiderHoverAsMoving)
+				? pFoot->Locomotor->Is_Moving()
+				: pFoot->Locomotor->Is_Really_Moving_Now();
+		}
 
 		// BUG: when the unit *is* moving but DiscardOn lacks `Move`, the original
 		// fell into the else-branch and still evaluated the stationary/harvesting

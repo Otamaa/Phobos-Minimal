@@ -747,8 +747,9 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 		}
 	}
 
-	if (pThis->IsIronCurtained() && !ignoreDefenses && !_isNegativeDamage) {
-		if (!(pThis->ProtectType == ProtectTypes::ForceShield ? pWHExt->PenetratesForceShield.Get(pWHExt->PenetratesIronCurtain) : pWHExt->PenetratesIronCurtain)) {
+	
+	if (!ignoreDefenses) {
+		if (!pWHExt->CanAffectInvulnerable(pThis)) {
 			if (pThis->ProtectType == ProtectTypes::ForceShield)
 				MapClass::FlashbangWarheadAt(2 * (*damage), warhead, pThis->Location, true, SpotlightFlags::NoRed | SpotlightFlags::NoGreen);
 			else if (pWHExt->IC_Flash.Get(FakeRulesClass::Instance()->IC_Flash.Get()))

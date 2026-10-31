@@ -10,9 +10,12 @@ class FootExtData : public TechnoExtData
 public:
 
 	bool IsOwnerChangeFromRevertOnExit { false };
-	bool IsZeroSpeed { false }; // Temporary speed multipliers have made this techno stationary.
+	bool IsTempImmobilized { false }; // Temporary speed multipliers have made this techno stationary.
 	int SpeedMultiplierFrame { 0 };
 	double CurrentSpeedMultiplier { 1.0 };
+
+	AbstractClass* ImmobilizedSuspendedTarget { nullptr };
+	AbstractClass* ImmobilizedSuspendedDestination { nullptr };
 
 	FootExtData(FootClass* abs) : TechnoExtData(abs)
 	{ };
@@ -22,6 +25,8 @@ public:
 	virtual ~FootExtData() = default;
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType type) override {
+		AnnounceInvalidPointer(this->ImmobilizedSuspendedTarget, ptr, bRemoved);
+		AnnounceInvalidPointer(this->ImmobilizedSuspendedDestination, ptr, bRemoved);
 		this->TechnoExtData::InvalidatePointer(ptr, bRemoved, type);
 	}
 
@@ -29,9 +34,11 @@ public:
 		this->TechnoExtData::LoadFromStream(Stm);
 		Stm
 			.Process(this->IsOwnerChangeFromRevertOnExit)
-			.Process(this->IsZeroSpeed)
+			.Process(this->IsTempImmobilized)
 			.Process(this->SpeedMultiplierFrame)
 			.Process(this->CurrentSpeedMultiplier)
+			.Process(this->ImmobilizedSuspendedTarget)
+			.Process(this->ImmobilizedSuspendedDestination)
 			;
 	}
 
@@ -39,9 +46,11 @@ public:
 		this->TechnoExtData::SaveToStream(Stm);
 		Stm
 			.Process(this->IsOwnerChangeFromRevertOnExit)
-			.Process(this->IsZeroSpeed)
+			.Process(this->IsTempImmobilized)
 			.Process(this->SpeedMultiplierFrame)
 			.Process(this->CurrentSpeedMultiplier)
+			.Process(this->ImmobilizedSuspendedTarget)
+			.Process(this->ImmobilizedSuspendedDestination)
 			;
 	}
 
@@ -54,7 +63,7 @@ public:
 		this->TechnoExtData::CalculateCRC(crc);
 	}
 
-	void HandleTemporaryZeroSpeed();
+	void HandleTemporaryImmobilization();
 
 };
 
