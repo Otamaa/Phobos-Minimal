@@ -86,7 +86,7 @@ ASMJIT_PATCH(0x649C43, MPDebug_RestoreStallIndicatorBackground, 0x7)
 {
 	GET(DSurface*, pSurface, ECX);
 	RectangleStruct rect { 100, 420 /* 400 */, 540, 4 };
-	pSurface->Copy_From(rect, DSurface::Composite(), rect, false, true);
+	pSurface->Copy_From_WithRect(rect, DSurface::Composite(), rect, false, true);
 
 	return 0x649C7D;
 }

@@ -9,7 +9,14 @@ bool AbstractTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	INI_EX exINI(pINI);
 
 	auto pSection = this->Name.data();
-	this->CameoPriority_Houses = pINI->ReadHouseTypesList(pSection, "CameoPriority.Houses", this->CameoPriority_Houses);
-	this->CameoPriority.Read(exINI, pSection, "CameoPriority");
+	if(this->AbsType == AbstractType::SuperWeaponType || 
+		this->AbsType == AbstractType::AircraftType || 
+		this->AbsType == AbstractType::InfantryType ||
+		this->AbsType == AbstractType::BuildingType || 
+		this->AbsType == AbstractType::UnitType) { 
+		this->CameoPriority_Houses = pINI->ReadHouseTypesList(pSection, "CameoPriority.Houses", this->CameoPriority_Houses);
+		this->CameoPriority.Read(exINI, pSection, "CameoPriority");
+	}
+
 	return true;
 }

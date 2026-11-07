@@ -95,37 +95,6 @@ ASMJIT_PATCH(0x6873AB, INIClass_ReadScenario_EarlyLoadRules, 5)
 	return 0x6873B0;
 }
 
-ASMJIT_PATCH(0x552F79, LoadProgressManager_Draw_MissingLoadingScreenDefaults, 0x6)
-{
-	GET(LoadProgressManager*, pThis, EBP);
-	GET(ConvertClass*, pDrawer, EBX);
-	GET_STACK(bool, isLowRes, STACK_OFFSET(0x1268, -0x1235));
-
-	auto const pScenarioExt = ScenarioExtData::Instance();
-
-	if (!pThis->LoadScreenSHP)
-		pThis->LoadScreenSHP = FileSystem::LoadSHPFile(isLowRes ? pScenarioExt->DefaultLS640BkgdName : pScenarioExt->DefaultLS800BkgdName);
-
-	if (!pDrawer) {
-		// Uncertain how necessary this is but is what game does...
-		if (LoadProgressManager::LoadScreenPal()) {
-			GameDelete<true,false>(LoadProgressManager::LoadScreenPal());
-			LoadProgressManager::LoadScreenPal = nullptr;
-		}
-
-		if (LoadProgressManager::LoadScreenBytePal()) {
-			GameDelete<true,false>(LoadProgressManager::LoadScreenBytePal());
-			LoadProgressManager::LoadScreenBytePal = nullptr;
-		}
-
-		ConvertClass::CreateFromFile(pScenarioExt->DefaultLS800BkgdPal, LoadProgressManager::LoadScreenBytePal(), LoadProgressManager::LoadScreenPal());
-
-		R->EBX(LoadProgressManager::LoadScreenPal());
-	}
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x686C2A, ScenarioClass_ReadTutorialFromMap, 0x6)
 {
 	GET(CCINIClass*, pINI, EBP);

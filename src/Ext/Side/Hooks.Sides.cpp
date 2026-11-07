@@ -331,46 +331,6 @@ ASMJIT_PATCH(0x5CA110, Game_GetMultiplayerScoreScreenBar, 5)
 	return 0x5CA41D;
 }
 
-// issue 906
-// do not draw a box below the label text if there is none.
-ASMJIT_PATCH(0x553E54, LoadProgressMgr_Draw_SkipShadowOnNullString, 6)
-{
-	GET(wchar_t*, pBrief, ESI);
-
-	if (!pBrief || !CRT::wcslen(pBrief))
-	{
-		return 0x554027;
-	}
-
-	return 0;
-}
-
-// do not draw a box for the country name.
-ASMJIT_PATCH(0x553820, LoadProgressMgr_Draw_SkipShadowOnNullString2, 5)
-{
-	GET(wchar_t*, pCountry, EDI);
-
-	if (!pCountry || !CRT::wcslen(pCountry))
-	{
-		return 0x5539E4;
-	}
-
-	return 0;
-}
-
-// do not draw a box for an empty LoadingEx string
-ASMJIT_PATCH(0x55403D, LoadProgressMgr_Draw_SkipShadowOnNullString3, 6)
-{
-	GET(wchar_t*, pLoading, EAX);
-
-	if (!pLoading || !CRT::wcslen(pLoading))
-	{
-		return 0x554097;
-	}
-
-	return 0;
-}
-
 // score music for single player missions
 static const char* pSinglePlayerScoreTheme = nullptr;
 

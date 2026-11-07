@@ -79,7 +79,7 @@ public:
 	DWORD field_54;
 	DWORD field_58;
 	DWORD field_5C;
-	DSurface* ProgressSurface;
+	BSurface* ProgressSurface;
 };
 
 static_assert(sizeof(LoadProgressManager) == 0x64 , "Invalid Size");

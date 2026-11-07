@@ -86,9 +86,13 @@ ASMJIT_PATCH(0x4E1822, GadgetClass_Input_ResetRadarCameraDrag, 0x6)
 }
 
 // A camera drag must not carry over into another scenario or a loaded save.
+#include <Phobos.h>
 
 ASMJIT_PATCH(0x685659, ResetRadarCameraDrag, 0xA) // ScenarioClass_ClearClasses
 {
+	if(R->Origin() == 0x685659)
+		Phobos::ClearAll();
+
 	IsDraggingCamera = false;
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x67E6DA, ResetRadarCameraDrag, 0x6) // LoadGame_AfterInit

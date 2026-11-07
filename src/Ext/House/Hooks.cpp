@@ -44,14 +44,14 @@ ASMJIT_PATCH(0x4FD203, HouseClass_RecalcCenter_Optimize, 0x6)
 	return 0x4FD228;
 }
 
-ASMJIT_PATCH(0x4FA5B8, HouseClass_BeginProduction_CompareType, 0x8)
-{
-	GET(TechnoClass*, pObject, ECX);
-	GET(TechnoTypeClass*, pTypeCompare, EBP);
-
-	return pObject->GetTechnoType() == pTypeCompare || GET_TECHNOTYPE(pObject) == pTypeCompare ?
-		0x4FA5C4 : 0x4FA5C8;
-}
+//ASMJIT_PATCH(0x4FA5B8, HouseClass_BeginProduction_CompareType, 0x8)
+//{
+//	GET(TechnoClass*, pObject, ECX);
+//	GET(TechnoTypeClass*, pTypeCompare, EBP);
+//
+//	return pObject->GetTechnoType() == pTypeCompare || GET_TECHNOTYPE(pObject) == pTypeCompare ?
+//		0x4FA5C4 : 0x4FA5C8;
+//}
 
 ASMJIT_PATCH(0x4FAB4D, HouseClass_AbandonProduction_GetObjectType, 0x8)
 {

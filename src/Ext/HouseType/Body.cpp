@@ -14,7 +14,7 @@
 
 void HouseTypeExtData::InitiliazeConstants()
 {
-	const char* pID = This()->ID;
+	const char* pID = this->Name.c_str();
 
 	COMPILETIMEEVAL static char const* const countries[] = {
 		"Americans",

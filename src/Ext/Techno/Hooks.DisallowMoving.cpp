@@ -182,13 +182,6 @@ ASMJIT_PATCH(0x51CB8C, InfantryClass_GetFireError_DisallowMoving, 0x6)
 
 #pragma region Unit
 
-ASMJIT_PATCH(0x741AA7, UnitClass_AssignDestination_DisallowMoving, 0x6)
-{
-	GET(UnitClass*, pThis, EBP);
-
-	return TechnoExtData::CannotMove(pThis, false) ? 0x743173 : 0;
-}
-
 ASMJIT_PATCH(0x736B60, UnitClass_RotationAI_DisallowMoving, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
@@ -233,11 +226,14 @@ ASMJIT_PATCH(0x4D4203, FootClass_Mission_Move_DisallowMoving, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 
-	if (TechnoExtData::CannotMove(pThis, true))
-	{
+	if (TechnoExtData::CannotMove(pThis, true)) {
 		pThis->EnterIdleMode(false, true);
 		return 0x4D4248;
 	}
+
+	//FootClass_Mission_Move_EndCheckFix1
+	if (pThis->Destination && pThis->DistanceFrom(pThis->Destination) > Unsorted::LeptonsPerCell)
+		return 0x4D424F;
 
 	return 0;
 }

@@ -1949,6 +1949,7 @@ public:
 };
 static_assert(sizeof(XSurface) == sizeof(FakeXSurface), "Invalid Size !");
 
+DEFINE_FUNCTION_JUMP(LJMP, 0x7BAE60, FakeXSurface::_GetPixel)
 DEFINE_FUNCTION_JUMP(CALL, 0x4A3E8A, FakeXSurface::_GetPixel)
 DEFINE_FUNCTION_JUMP(CALL, 0x4A3EB7, FakeXSurface::_GetPixel);
 DEFINE_FUNCTION_JUMP(CALL, 0x4A3F7C, FakeXSurface::_GetPixel);
@@ -1957,6 +1958,15 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6423D6, FakeXSurface::_GetPixel);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2098, FakeXSurface::_GetPixel);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E212C, FakeXSurface::_GetPixel);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E85FC, FakeXSurface::_GetPixel);
+
+#ifndef _PCX_OVERRIDE
+ASMJIT_PATCH(0x6B9D9C, RGB_PCX_Loader_BPP, 0x7)
+{
+	GET(BSurface*, pSurf, EDI);
+
+	return pSurf->BytesPerPixel == 2 ? 0x6B9EE7 : 0;
+}
+#endif
 
 // IsSonic wave drawing uses fixed-size arrays accessed with index that is determined based on factors like wave lifetime,
 // distance of pixel from start coords etc. The result is that at certain distance invalid memory is being accessed leading to crashes.
@@ -2718,13 +2728,6 @@ ASMJIT_PATCH(0x692AD6, ScrollClass_ChooseAction_SellWall, 0x6)
 		return NoSell;
 
 	return 0;
-}
-
-ASMJIT_PATCH(0x4D4203, FootClass_Mission_Move_EndCheckFix1, 0x6)
-{
-	GET(FootClass*, pThis, ESI);
-	R->EAX(pThis->Destination && pThis->DistanceFrom(pThis->Destination) > Unsorted::LeptonsPerCell);
-	return 0x4D4209;
 }
 
 ASMJIT_PATCH(0x4D4221, FootClass_Mission_Move_EndCheckFix2, 0x6)

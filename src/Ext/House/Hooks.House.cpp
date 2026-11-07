@@ -79,14 +79,130 @@ ASMJIT_PATCH(0x4E38A0, LoadPlayerCountryString, 5)
 	return n == -2 ? Neg2Result : NextCompare; /// overriden
 }
 
-ASMJIT_PATCH(0x553412, LoadProgressMgr_Draw_LSFile, 9)
+// issue 906
+// do not draw a box below the label text if there is none.
+ASMJIT_PATCH(0x553E54, LoadProgressManager_Draw_SkipShadowOnNullString, 6)
+{
+	GET(wchar_t*, pBrief, ESI);
+
+	if (!pBrief || !CRT::wcslen(pBrief))
+	{
+		return 0x554027;
+	}
+
+	return 0;
+}
+
+// do not draw a box for the country name.
+ASMJIT_PATCH(0x553820, LoadProgressManager_Draw_SkipShadowOnNullString2, 5)
+{
+	GET(wchar_t*, pCountry, EDI);
+
+	if (!pCountry || !CRT::wcslen(pCountry))
+	{
+		return 0x5539E4;
+	}
+
+	return 0;
+}
+
+// do not draw a box for an empty LoadingEx string
+ASMJIT_PATCH(0x55403D, LoadProgressManager_Draw_SkipShadowOnNullString3, 6)
+{
+	GET(wchar_t*, pLoading, EAX);
+
+	if (!pLoading || !CRT::wcslen(pLoading))
+	{
+		return 0x554097;
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x5539E4, LoadProgressManager_Draw_LoadScreenSpecialName, 0x5)
+{
+	enum { SwitchStatement = 0x553A28, DefaultResult = 0x553A0D, RetResult = 0x553B3B , SkipSet = 0x554027 };
+
+	if (Game::ObserverMode())
+		return SkipSet; //also skip the Briefing
+	
+	GET_STACK(int, n, 0x38);
+
+	// any valid index will be override
+	if (auto pHouse = HouseTypeClass::Array->get_or_default(n)) {
+		R->EAX(HouseTypeExtContainer::Instance.Find(pHouse)->LoadScreenSpecialName->Text);
+		return RetResult;
+	}
+
+	if (n == 0) // Index 0 is USA
+		return DefaultResult;
+
+	R->EAX(n);
+	return SwitchStatement; //the default for switch statement is `null`
+}
+
+ASMJIT_PATCH(0x5536A0, LoadProgressManager_Draw_LSName, 0x5)
+{
+	enum { SwitchStatement = 0x5536FB, DefaultResult = 0x5536DE, RetResult = 0x553820, SetObserver = 0x5536AF };
+
+	if (Game::ObserverMode())
+		return SetObserver;
+
+	GET(int, n, EBX);
+
+	if (auto pHouse = HouseTypeClass::Array->get_or_default(n))
+	{
+		R->EDI(HouseTypeExtContainer::Instance.Find(pHouse)->LoadScreenName->Text);
+		return RetResult;//replaced
+	}
+
+	if (n == 0)
+	{
+		return DefaultResult; //USA
+	}
+
+	return SwitchStatement;//switch
+}
+
+#include <PCX.h>
+
+BSurface* LSFile_pcx = nullptr;
+bool isObserverLoading = false;
+
+ASMJIT_PATCH(0x5533E0, LoadProgressManager_Draw_LSFile, 5)
 {
 	GET(int, n, EBX);
-	enum { SwitchStatement = 0x553421, DefaultResult = 0x553416, RetResult = 0x55342C };
+	GET(char*, _screen, ECX);
+	LEA_STACK(char*, _buffer, (0x1268 + (-0x11E4)));
+
+	enum { 
+		SwitchStatement = 0x553421,
+		DefaultResult = 0x553416,
+		RetResult = 0x55342C,
+		Skipsprintf = 0x5534E7,
+	};
+	
+	LSFile_pcx = nullptr;
+	isObserverLoading = false;
+
+	if ((Game::ObserverMode() || (SessionClass::Instance->GameMode == GameMode::LAN || SessionClass::Instance->GameMode == GameMode::Internet))
+		&& NodeNameType::Array->Items[0]->SpectatorFlag == -1)
+	{
+		isObserverLoading = true;
+		CRT::sprintf(_buffer, "ls%sobs.shp", _screen);
+		return Skipsprintf;//replaced
+	}
 
 	if(auto pHouse = HouseTypeClass::Array->get_or_default(n)) {
-		R->EDX(HouseTypeExtContainer::Instance.Find(pHouse)->LoadScreenBackground.data());
-		return RetResult;//replaced
+		auto backGround = &HouseTypeExtContainer::Instance.Find(pHouse)->LoadScreenBackground;
+		if (backGround->operator bool()) {
+			CRT::sprintf(_buffer, backGround->data(), _screen);
+			if (strstr(_buffer, ".pcx")) {
+				PCXImages::Instance->LoadFile(_buffer);
+				LSFile_pcx = PCXImages::Instance->GetSurface(_buffer);
+			}
+			return Skipsprintf;//replaced
+		}
 	}
 
 	if (n == 0) {
@@ -96,42 +212,115 @@ ASMJIT_PATCH(0x553412, LoadProgressMgr_Draw_LSFile, 9)
 	return SwitchStatement; //switch
 }
 
-ASMJIT_PATCH(0x5536da, LoadProgressMgr_Draw_LSName, 9)
+#include <LoadProgressManager.h>
+
+ASMJIT_PATCH(0x552F79, LoadProgressManager_Draw_MissingLoadingScreenDefaults, 0x6)
 {
-	GET(int, n, EBX);
-	enum { SwitchStatement = 0x5536FB, DefaultResult = 0x5536DE, RetResult = 0x553820 };
+	GET(LoadProgressManager*, pThis, EBP);
+	GET(ConvertClass*, pDrawer, EBX);
 
-	if(auto pHouse = HouseTypeClass::Array->get_or_default(n)){
-		R->EDI(HouseTypeExtContainer::Instance.Find(pHouse)->LoadScreenName->Text);
-		return RetResult;//replaced
+	auto const pScenarioExt = ScenarioExtData::Instance();
+
+	if (!pThis->LoadScreenSHP)
+		pThis->LoadScreenSHP = FileSystem::LoadSHPFile(Game::ScreenWidth() == 640 ? pScenarioExt->DefaultLS640BkgdName : pScenarioExt->DefaultLS800BkgdName);
+
+	if (!pDrawer)
+	{
+		// Uncertain how necessary this is but is what game does...
+		if (LoadProgressManager::LoadScreenPal())
+		{
+			GameDelete<true, false>(LoadProgressManager::LoadScreenPal());
+			LoadProgressManager::LoadScreenPal = nullptr;
+		}
+
+		if (LoadProgressManager::LoadScreenBytePal())
+		{
+			GameDelete<true, false>(LoadProgressManager::LoadScreenBytePal());
+			LoadProgressManager::LoadScreenBytePal = nullptr;
+		}
+
+		ConvertClass::CreateFromFile(pScenarioExt->DefaultLS800BkgdPal, LoadProgressManager::LoadScreenBytePal(), LoadProgressManager::LoadScreenPal());
+
+		R->EBX(LoadProgressManager::LoadScreenPal());
 	}
 
-	if (n == 0) {
-		return DefaultResult; //USA
-	}
-
-	return SwitchStatement;//switch
+	return 0;
 }
 
-ASMJIT_PATCH(0x553a05, LoadProgressMgr_Draw_LSSpecialName, 6)
+ASMJIT_PATCH(0x5535C9, LoadProgressManager_Draw_PCXLoadingScreen, 0x5)
 {
-	GET_STACK(int, n, 0x38);
-	enum { SwitchStatement = 0x553A28, DefaultResult = 0x553A0D, RetResult = 0x553B3B };
+	GET(LoadProgressManager*, pThis, EBP);
 
-	// any valid index will be override
-	if (auto pHouse = HouseTypeClass::Array->get_or_default(n)) {
-		R->EAX(HouseTypeExtContainer::Instance.Find(pHouse)->LoadScreenSpecialName->Text);
-		return RetResult;
+	// phobos addition : try to load the pcx version if avaible then use that instead of the shp one
+	// only if the custom pcx loading screen not set yet 
+	// if the pcx variant is not found then let the original shp file to be drawn
+	if (!LSFile_pcx && isObserverLoading) {
+		char pFilename[0x20];
+		sprintf_s(pFilename, "ls%sobs.pcx", Game::ScreenWidth() != 640 ? GameStrings::_800() : GameStrings::_640());
+		PCXImages::Instance->LoadFile(pFilename);
+		LSFile_pcx = PCXImages::Instance->GetSurface(pFilename);
 	}
 
-	if(n == 0) // Index 0 is USA
-		return DefaultResult;
+	if (LSFile_pcx) {
+		RectangleStruct pSurfBounds = { 0, 0, pThis->ProgressSurface->Width, pThis->ProgressSurface->Height };
+		RectangleStruct pcxBounds = { 0, 0, LSFile_pcx->Width, LSFile_pcx->Height };
+		RectangleStruct destClip = {
+			(pThis->ProgressSurface->Width - LSFile_pcx->Width) / 2,
+			(pThis->ProgressSurface->Height - LSFile_pcx->Height) / 2, 
+			LSFile_pcx->Width, 
+			LSFile_pcx->Height 
+		};
 
-	R->EAX(n);
-	return SwitchStatement; //the default for switch statement is `null`
+		pThis->ProgressSurface->Copy_From_WithRect_Area(pSurfBounds, destClip, LSFile_pcx, pcxBounds, pcxBounds, true, true);
+		return 0x553603;
+	}
+
+	return 0;
 }
 
-ASMJIT_PATCH(0x553d06, LoadProgressMgr_Draw_LSBrief, 6)
+ASMJIT_PATCH(0x552FCB, LoadProgressManager_Draw_PCXLoadingScreen_Campaign, 0x6)
+{
+	GET(LoadProgressManager*, pThis, EBP);
+	char filename[0x40];
+	strcpy_s(filename, ScenarioClass::Instance->LS800BkgdName);
+	_strlwr_s(filename);
+
+	if (strstr(filename, ".pcx")) {
+		PCXImages::Instance->LoadFile(filename);
+
+		if (auto const pPCX = PCXImages::Instance->GetSurface(filename)) {
+			RectangleStruct pSurfBounds = { 0, 0, pThis->ProgressSurface->Width, pThis->ProgressSurface->Height };
+			RectangleStruct pcxBounds = { 0, 0, pPCX->Width, pPCX->Height };
+			RectangleStruct destClip = {
+				(pThis->ProgressSurface->Width - pPCX->Width) / 2, 
+				(pThis->ProgressSurface->Height - pPCX->Height) / 2, 
+				pPCX->Width, 
+				pPCX->Height 
+			};
+
+			pThis->ProgressSurface->Copy_From_WithRect_Area(pSurfBounds, destClip, pPCX, pcxBounds, pcxBounds, true, true);
+		}
+
+		return 0x552FFF;
+	}
+
+	return 0;
+}
+
+//ASMJIT_PATCH(0x553304, LoadProgressManager_Probe, 0x6)
+//{
+//	Debug::Log("HereIam\n");
+//	return 0x0;
+//}
+//
+//ASMJIT_PATCH(0x55336C, LoadProgressManager_Probe2, 0x7)
+//{
+//	Debug::Log("HereIam 2\n");
+//	return 0x0;
+//}
+
+//Brief are skipped together with SpecialName when observer
+ASMJIT_PATCH(0x553d06, LoadProgressManager_Draw_LSBrief, 6)
 {
 	GET_STACK(int, n, 0x38);
 	enum { SwitchStatement = 0x553D2B, DefaultResult = 0x553D0E, RetResult = 0x553E54 };

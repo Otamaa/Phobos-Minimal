@@ -1,5 +1,8 @@
 #include "Body.h"
 
+#include <Ext/Unit/Body.h>
+#include <Ext/UnitType/Body.h>
+
 #include <Locomotor/JumpjetLocomotionClass.h>
 #include <Locomotor/Cast.h>
 
@@ -10,7 +13,11 @@ ASMJIT_PATCH(0x7369A5, UnitClass_UpdateRotation_CheckTurnToTarget, 0x6)
 {
 	enum { SkipGameCode = 0x736A8E, ContinueGameCode = 0x7369B3 };
 
-	GET(UnitClass* const, pThis, ESI);
+	GET(FakeUnitClass*, pThis, ESI);
+
+	//UnitClass_Rotation_AI_WaitForTurret
+	if (!pThis->_GetTypeExtData()->AttackTarget_WaitForTurreReset.Get(FakeRulesClass::Instance->AttackTarget_WaitForTurreReset))
+		return ContinueGameCode;
 
 	if (!pThis->IsRotating)
 		return ContinueGameCode;

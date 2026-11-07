@@ -295,7 +295,7 @@ bool UniqueTechnoButtonClass::Draw(bool forced)
 	if (this->Hovering)
 	{
 		RectangleStruct rect { 0, 0, position.X + 60, position.Y + 48 };
-		DSurface::Composite->Draw_Rect(rect, drawRect, Drawing::TooltipColor->ToInit());
+		DSurface::Composite->Draw_Rect_Area(rect, drawRect, Drawing::TooltipColor->ToInit());
 	}
 
 	return true;

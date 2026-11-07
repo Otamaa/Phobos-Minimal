@@ -1786,7 +1786,7 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 
 			if (eMode == TacticalRenderMode::All0 || eMode == TacticalRenderMode::All3)
 			{
-				DSurface::Composite->Copy_From(dstR,
+				DSurface::Composite->Copy_From_WithRect(dstR,
 					DSurface::Tile(), srcR, 0, 1);
 				ZBuffer::Instance->BlitAt(-deltaX, -deltaY, 0xFFFF);
 				ABuffer::Instance->BlitAt(-deltaX, -deltaY, 127);
@@ -1904,7 +1904,7 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 	// =========================================================
 	if (eMode == TacticalRenderMode::Terrain || eMode == TacticalRenderMode::All3)
 	{
-		DSurface::Temp->Copy_From(DSurface::ViewBounds(),
+		DSurface::Temp->Copy_From_WithRect(DSurface::ViewBounds(),
 		DSurface::Tile(), DSurface::ViewBounds(), 0, 1);
 	}
 

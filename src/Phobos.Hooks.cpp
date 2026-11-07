@@ -32,12 +32,6 @@ ASMJIT_PATCH(0x52FE55, Scenario_Start, 0x6)
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x52FEB7, Scenario_Start, 0x6)
 
-ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
-{
-	Phobos::ClearAll();
-	return 0;
-}
-
 ASMJIT_PATCH(0x6BBE6A, WinMain_AllowMultipleInstances, 0x6)
 {
 	return Phobos::Otamaa::AllowMultipleInstance ? 0x6BBED6 : 0x0;

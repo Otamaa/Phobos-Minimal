@@ -82,11 +82,13 @@ public:
 	Surface(int width, int height) JMP_THIS(0x4AEC60);
 	virtual ~Surface() { JMP_THIS(0x4115D0); }
 
-	virtual bool Copy_From(RectangleStruct& toarea, RectangleStruct& toRectangleStruct, Surface* fromsurface, RectangleStruct& fromarea, RectangleStruct& fromRectangleStruct, bool trans_blit = false, bool a7 = true) PURE;
-	virtual bool Copy_From(RectangleStruct& toRectangleStruct, Surface* fromsurface, RectangleStruct& fromRectangleStruct, bool trans_blit = false, bool a5 = true) PURE;
 	virtual bool Copy_From(Surface* fromsurface, bool trans_blit = false, bool a3 = true)PURE;
+	virtual bool Copy_From_WithRect(RectangleStruct& toRectangleStruct, Surface* fromsurface, RectangleStruct& fromRectangleStruct, bool trans_blit = false, bool a5 = true) PURE;
+	virtual bool Copy_From_WithRect_Area(RectangleStruct& toarea, RectangleStruct& toRectangleStruct, Surface* fromsurface, RectangleStruct& fromarea, RectangleStruct& fromRectangleStruct, bool trans_blit = false, bool a7 = true) PURE;
+	
+	virtual bool Fill_Rect_Area(RectangleStruct& area, RectangleStruct& RectangleStruct, unsigned color) PURE;
 	virtual bool Fill_Rect(RectangleStruct& RectangleStruct, unsigned color)PURE;
-	virtual bool Fill_Rect(RectangleStruct& area, RectangleStruct& RectangleStruct, unsigned color) PURE;
+
 	virtual bool Fill(unsigned color) PURE;
 	//virtual bool Fill_Rect_Trans(RectangleStruct& RectangleStruct, const ColorStruct& color, unsigned opacity) PURE;
 	virtual bool Fill_Rect_Trans(RectangleStruct* pClipRect, ColorStruct* pColor, int nOpacity) PURE;
@@ -112,7 +114,7 @@ public:
 	virtual bool DrawLine_(Point2D& start, Point2D& end, unsigned color, bool a4 = false) PURE;
 
 	virtual bool Draw_Rect(RectangleStruct& rect, DWORD color) PURE;
-	virtual bool Draw_Rect(RectangleStruct& area, RectangleStruct& rect, DWORD color) PURE;
+	virtual bool Draw_Rect_Area(RectangleStruct& area, RectangleStruct& rect, DWORD color) PURE;
 
 	virtual void* Lock(int x = 0, int y = 0) PURE;
 	virtual bool Unlock() PURE;
@@ -148,7 +150,7 @@ public:
 		bool bUnk1,
 		bool bUnk2)
 	{
-		return Copy_From(pClipRect, pClipRect2, pSrc, pDestRect, pSrcRect, bUnk1, bUnk2);
+		return Copy_From_WithRect_Area(pClipRect, pClipRect2, pSrc, pDestRect, pSrcRect, bUnk1, bUnk2);
 	}
 
 	bool Blit_Alter(
@@ -160,7 +162,7 @@ public:
 		bool bUnk1,
 		bool bUnk2)
 	{
-		return Copy_From(*pClipRect, *pClipRect2, pSrc, *pDestRect, *pSrcRect, bUnk1, bUnk2);
+		return Copy_From_WithRect_Area(*pClipRect, *pClipRect2, pSrc, *pDestRect, *pSrcRect, bUnk1, bUnk2);
 	}
 	void DrawText_Old(const wchar_t* pText, RectangleStruct* pBounds, Point2D* pLocation, DWORD dwColor, DWORD unknown5, DWORD flags)
 	{
@@ -203,7 +205,7 @@ public:
 		bool bUnk1,
 		bool bUnk2)
 	{
-		return Copy_From(pClipRect, pClipRect2, pSrc, pDestRect, pSrcRect, bUnk1, bUnk2);
+		return Copy_From_WithRect_Area(pClipRect, pClipRect2, pSrc, pDestRect, pSrcRect, bUnk1, bUnk2);
 	}
 
 	bool DrawDashedLine(Point2D& pStart, Point2D& pEnd, int nColor, int nOffset) {
@@ -228,11 +230,13 @@ public:
 	XSurface(int width, int height, int bpp) : Surface(width, height), LockLevel(0), BytesPerPixel(bpp) { VTable::Set(this, vtable); }
 	virtual ~XSurface() { JMP_THIS(0x4115A0); }
 
-	virtual bool Copy_From(RectangleStruct& toarea, RectangleStruct& torect, Surface* fromsurface, RectangleStruct& fromarea, RectangleStruct& fromrect, bool trans_blit = false, bool a7 = true) override JMP_THIS(0x7BBCF0);
-	virtual bool Copy_From(RectangleStruct& torect, Surface* fromsurface, RectangleStruct& fromrect, bool trans_blit = false, bool a5 = true) override JMP_THIS(0x7BBB90);
 	virtual bool Copy_From(Surface* fromsurface, bool trans_blit = false, bool a3 = true) override JMP_THIS(0x7BBAF0);
+	virtual bool Copy_From_WithRect(RectangleStruct& torect, Surface* fromsurface, RectangleStruct& fromrect, bool trans_blit = false, bool a5 = true) override JMP_THIS(0x7BBB90);
+	virtual bool Copy_From_WithRect_Area(RectangleStruct& toarea, RectangleStruct& torect, Surface* fromsurface, RectangleStruct& fromarea, RectangleStruct& fromrect, bool trans_blit = false, bool a7 = true) override JMP_THIS(0x7BBCF0);
+
+	virtual bool Fill_Rect_Area(RectangleStruct& area, RectangleStruct& rect, unsigned color) override JMP_THIS(0x7BB050);
 	virtual bool Fill_Rect(RectangleStruct& rect, unsigned color) override JMP_THIS(0x7BB020);
-	virtual bool Fill_Rect(RectangleStruct& area, RectangleStruct& rect, unsigned color) override JMP_THIS(0x7BB050);
+
 	virtual bool Fill(unsigned color) override JMP_THIS(0x7BBAB0);
 	//virtual bool Fill_Rect_Trans(RectangleStruct& rect, const ColorStruct& color, unsigned opacity) override
 	virtual bool Fill_Rect_Trans(RectangleStruct* pClipRect, ColorStruct* pColor, int nOpacity) JMP_THIS(0x7BB340);
@@ -260,7 +264,7 @@ public:
 	virtual bool DrawLine_(Point2D& start, Point2D& end, unsigned color, bool a4 = false) override  R0;
 
 	virtual bool Draw_Rect(RectangleStruct& rect, DWORD color) override JMP_THIS(0x7BAD90);
-	virtual bool Draw_Rect(RectangleStruct& area, RectangleStruct& rect, DWORD color) override JMP_THIS(0x7BADC0);
+	virtual bool Draw_Rect_Area(RectangleStruct& area, RectangleStruct& rect, DWORD color) override JMP_THIS(0x7BADC0);
 
 	virtual void* Lock(int x = 0, int y = 0) override JMP_THIS(0x411560);
 	virtual bool Unlock() override JMP_THIS(0x411570);
@@ -544,11 +548,13 @@ public:
 	DSurface(LPDIRECTDRAWSURFACE surface) JMP_THIS(0x4BAC60);
 	virtual ~DSurface() JMP_THIS(0x4BA6B0);
 
-	virtual bool Copy_From(RectangleStruct& toarea, RectangleStruct& torect, Surface* fromsurface, RectangleStruct& fromarea, RectangleStruct& fromrect, bool trans_blit = false, bool a7 = true) override JMP_THIS(0x4BB0D0);
-	virtual bool Copy_From(RectangleStruct& torect, Surface* fromsurface, RectangleStruct& fromrect, bool trans_blit = false, bool a5 = true) override JMP_THIS(0x4BB080);
-	virtual bool Copy_From(Surface* fromsurface, bool trans_blit = false, bool a3 = true) override JMP_THIS(0x4C1A900);
+	virtual bool Copy_From(Surface* fromsurface, bool trans_blit = false, bool a3 = true) override JMP_THIS(0x4C1A90);
+	virtual bool Copy_From_WithRect(RectangleStruct& torect, Surface* fromsurface, RectangleStruct& fromrect, bool trans_blit = false, bool a5 = true) override JMP_THIS(0x4BB080);
+	virtual bool Copy_From_WithRect_Area(RectangleStruct& toarea, RectangleStruct& torect, Surface* fromsurface, RectangleStruct& fromarea, RectangleStruct& fromrect, bool trans_blit = false, bool a7 = true) override JMP_THIS(0x4BB0D0);
+
+	virtual bool Fill_Rect_Area(RectangleStruct& area, RectangleStruct& rect, unsigned color) override JMP_THIS(0x4BB620);
 	virtual bool Fill_Rect(RectangleStruct& rect, unsigned color) override JMP_THIS(0x4BB5F0);
-	virtual bool Fill_Rect(RectangleStruct& area, RectangleStruct& rect, unsigned color) override JMP_THIS(0x4BB620);
+
 	//virtual bool Fill_Rect_Trans(RectangleStruct& rect, const ColorStruct& color, unsigned opacity) override
 	virtual bool Fill_Rect_Trans(RectangleStruct* pClipRect, ColorStruct* pColor, int nOpacity) JMP_THIS(0x4BB830);
 

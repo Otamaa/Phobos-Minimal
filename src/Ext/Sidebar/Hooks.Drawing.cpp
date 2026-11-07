@@ -1603,7 +1603,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 				if (isMouseOver)
 				{
 					RectangleStruct highlightRect = { screenX, screenY, 60, 48 };
-					SidebarSurface->Draw_Rect(boundingRect, highlightRect, textColor);
+					SidebarSurface->Fill_Rect_Area(boundingRect, highlightRect, textColor);
 				}
 
 				// 006A9AFB-006A9B4B: Draw darken overlay

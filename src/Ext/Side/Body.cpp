@@ -16,7 +16,7 @@ CustomPalette SideExtData::s_DialogBackgroundConvert;
 int SideExtData::CurrentLoadTextColor = -1;
 
 void SideExtData::Initialize() {
-	const char* pID = This()->ID;
+	const char* pID = this->Name.c_str();
 
 	if (IS_SAME_STR_(pID, "Nod"))
 	{ //Soviets
