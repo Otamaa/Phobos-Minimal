@@ -161,7 +161,14 @@ void TeamExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractT
 	case AbstractType::Unit:
 	case AbstractType::Aircraft:
 	case AbstractType::Infantry:
+
 		AnnounceInvalidPointer(TeamLeader, ptr, bRemoved);
+		if(bRemoved) {
+			for (auto& _foots : ScatterAttackGroups) {
+				AnnounceInvalidPointer(_foots, ptr);
+			}
+		}
+
 		break;
 	case AbstractType::Super:
 		AnnounceInvalidPointer(LastFoundSW, ptr);
@@ -5641,6 +5648,12 @@ void TeamExtData::Serialize(T& Stm)
 
 		.Process(this->PreviousScript)
 		.Process(this->BridgeRepairHuts)
+
+		.Process(this->ScatterAttackGroups)
+		.Process(this->LastProcessedMission)
+		.Process(this->TimedMissionNode)
+		.Process(this->TimedMissionLeft)
+		.Process(this->TimedMissionLastFrame)
 
 		.Process(this->LuaSlots)
 		;

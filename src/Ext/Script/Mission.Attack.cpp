@@ -472,7 +472,9 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 	}
 }
 
-TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, DistanceMode calcThreatMode, HouseClass* onlyTargetThisHouseEnemy = nullptr, int attackAITargetType = -1, int idxAITargetTypeItem = -1, bool agentMode = false)
+TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, DistanceMode calcThreatMode,
+	HouseClass* onlyTargetThisHouseEnemy, int attackAITargetType, int idxAITargetTypeItem, bool agentMode, 
+	const std::vector<TechnoClass*>* pExcludeTargets, const std::vector<FootClass*>* pGroup, const CoordStruct* pScoringOrigin)
 {
 
 	TechnoClass* bestObject = nullptr;
@@ -482,6 +484,23 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 
 	if (!pTechno)
 		return nullptr;
+
+	//The collection of units participating in the "can hit" determination: scattered attacks are passed to the entire group (determined by group),
+	//Otherwise degenerate to a single pTechno (consistent with upstream behavior).
+	std::vector<TechnoClass*> attackers;
+
+	if (pGroup && !pGroup->empty())
+		attackers.assign(pGroup->begin(), pGroup->end());
+	else
+		attackers.push_back(pTechno);
+
+	// 评分用的距离基准：默认 pTechno 自身（上游行为）；
+	// 分散攻击传入组中心，使同一组内无论谁是组长都得到一致的选敌结果
+	auto getDistance = [&](TechnoClass* pTarget) {
+			return pScoringOrigin
+				? pScoringOrigin->DistanceFrom(pTarget->GetCoords())
+				: static_cast<double>(pTechno->DistanceFrom(pTarget));
+	};
 
 	const bool leaderArmed = pTechno->IsArmed();
 	auto pTechnoType = GET_TECHNOTYPE(pTechno);
@@ -496,6 +515,13 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 		auto object = TechnoClass::Array->Items[i];
 		if (!ScriptExtData::IsUnitAvailable(object, true) || object == pTechno || object->EstimatedHealth <= 0 && pTechnoType->VHPScan == VHPScanType::Strong)
 			continue;
+
+		// This frame has been locked by other groups /the target has been determined to be unreachable, skipped (only for scattered attacks)
+		if (pExcludeTargets
+			&& std::find(pExcludeTargets->begin(), pExcludeTargets->end(), object) != pExcludeTargets->end())
+		{
+			continue;
+		}
 
 		if (object->Spawned)
 			continue;
@@ -514,7 +540,9 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 				skipImmune = true;
 		}
 
-		if (!objectType->LegalTarget || (pObjectTypeExt->AI_LegalTarget.isset() && !pTechno->Owner->IsControlledByHuman() && !pObjectTypeExt->AI_LegalTarget.Fetch() )|| (!skipImmune && objectType->Immune))
+		if (!objectType->LegalTarget 
+			|| (pObjectTypeExt->AI_LegalTarget.isset() && !pTechno->Owner->IsControlledByHuman() && !pObjectTypeExt->AI_LegalTarget.Fetch() )
+			|| (!skipImmune && objectType->Immune))
 			continue;
 
 		if (object->GetCurrentMissionControl()->NoThreat)
@@ -552,6 +580,68 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 			if (!TechnoExtData::AllowedTargetByZone(pTechno, object, pTypeExt->TargetZoneScanType, weaponType))
 				continue;
 		}
+
+		//Target side: The current task is marked as "no threat" (aligned to upstream; not checked under agentMode)
+		//Note: Mission enumeration contains None = -1, direct indexing will be out of bounds, and the valid range needs to be limited.
+		const auto targetMission = object->CurrentMission;
+
+		if (!agentMode
+			&& targetMission >= Mission::Sleep
+			&& targetMission <= Mission::SpyplaneOverfly
+			&& MissionControlClass::GetMissionControl(targetMission)->NoThreat)
+		{
+			continue;
+		}
+
+		//Attacker side threshold: Judgment by group -if any member of the group can effectively attack the target, it will be retained.
+		//(If only the team leader is used for single-point judgment, the mixed formation will lose half of the targets: for example, when the team leader is a tank without anti-aircraft,
+		//All anti-aircraft targets in the group will be removed here, and the anti-aircraft vehicles in the group will never fly)
+		bool anyAttackerCapable = false;
+		auto CanEngageTargetByCapability = [](TechnoClass* pAttacker, TechnoClass* pTarget, TechnoTypeClass* pTargetType, bool agentMode) {
+				const auto pAttackerType = pAttacker->GetTechnoType();
+				WeaponTypeClass* pWeaponType = nullptr;
+
+				const int weaponIndex = pAttacker->SelectWeapon(pTarget);
+
+				if (weaponIndex >= 0) {
+					if (const auto pWeaponStruct = pAttacker->GetWeapon(weaponIndex))
+						pWeaponType = pWeaponStruct->WeaponType;
+				}
+
+				if (!agentMode)
+				{
+					if (!pWeaponType)
+						return false;
+
+					if (GeneralUtils::GetWarheadVersusArmor(pWeaponType->Warhead, TechnoExtData::GetTechnoArmor(pTarget, pWeaponType->Warhead)) == 0.0)
+						return false;
+
+					const auto pBulletType = pWeaponType->Projectile;
+
+					if (!(pTarget->IsInAir() ? pBulletType->AA : pBulletType->AG))
+						return false;
+
+					// Targets with unknown expected health: only excluded if the unit is set to "Do not attack such targets" (VHPScan=2)
+					if (pTarget->EstimatedHealth <= 0 && pAttackerType->VHPScan == VHPScanType::Strong)
+						return false;
+				}
+
+				// Zone reachability (determined by the attacker's own TargetZoneScanType)
+				const auto pAttackerTypeExt = TechnoTypeExtContainer::Instance.Find(pAttackerType);
+				const auto zoneScanType = pAttackerTypeExt ? pAttackerTypeExt->TargetZoneScanType : TargetZoneScanType::Same;
+
+				return TechnoExtData::AllowedTargetByZone(pAttacker, pTarget, zoneScanType, pWeaponType);
+			};
+
+		for (auto pAttacker : attackers) {
+			if (CanEngageTargetByCapability(pAttacker, object, objectType, agentMode)) {
+				anyAttackerCapable = true;
+				break;
+			}
+		}
+
+		if (!anyAttackerCapable)
+			continue;
 
 		// Stealth ground unit check
 		if (objectType->Naval)
@@ -625,7 +715,7 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 
 					// Extra threat based on current health. More damaged == More threat (almost destroyed objects gets more priority)
 					objectThreatValue += object->Health * (1 - object->GetHealthRatio());
-					value = (objectThreatValue * threatMultiplier) / ((pTechno->DistanceFrom(object) / 256.0) + 1.0);
+					value = (objectThreatValue * threatMultiplier) / ((getDistance(object) / (double)Unsorted::LeptonsPerCell) + 1.0);
 
 					if (pTechnoType->VHPScan == VHPScanType::Normal) {
 						if (object->EstimatedHealth <= 0)

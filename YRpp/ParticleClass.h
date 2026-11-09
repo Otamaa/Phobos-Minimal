@@ -106,27 +106,30 @@ protected:
 public:
 
 	ParticleTypeClass* Type;
-	DECLARE_PROPERTY(ColorStruct, byteB0);
-	int RefCount;
-	double ColorSpeedResult;
-	DECLARE_PROPERTY(CoordStruct, GasVelocity);
-	DECLARE_PROPERTY(Vector3D<float>, SmokeVelocity);
-	DECLARE_PROPERTY(CoordStruct, CoordStructD8);
-	float Velocity;
-	DECLARE_PROPERTY(CoordStruct, gapE8);
-	DECLARE_PROPERTY(CoordStruct, dwordF4);
-	DECLARE_PROPERTY(CoordStruct, Fire100);
-	DECLARE_PROPERTY(Vector3D<float>, Spark10C);
-	DECLARE_PROPERTY(Vector3D<float>, vector3_118);
+	DECLARE_PROPERTY(ColorStruct, Color);
+	int ColorIndex;
+	double ColorAccum;
+	DECLARE_PROPERTY(CoordStruct, GasDrift);
+	DECLARE_PROPERTY(Vector3D<float>, GasVelocity);
+	DECLARE_PROPERTY(CoordStruct, unused_D8);
+	float Speed;
+	DECLARE_PROPERTY(CoordStruct, FireTarget);
+	DECLARE_PROPERTY(CoordStruct, FireOrigin);
+	DECLARE_PROPERTY(CoordStruct, FireMoveDelta);
+	DECLARE_PROPERTY(Vector3D<float>, MovementDirection);
+	DECLARE_PROPERTY(Vector3D<float>, PrecisePosition);
 	ParticleSystemClass* ParticleSystem;
 	short RemainingEC;
 	short RemainingDC;
 	BYTE StateAIAdvance;
-	BYTE CoordChange;
+	BYTE IsBelowGround;
 	BYTE StartStateAI;
 	BYTE Translucency;
-	BYTE byte130;
-	BYTE TimeToDelete; //hasremaining
+	BYTE WasSaved;
+	union {
+		BYTE IsToDie;
+		BYTE TimeToDelete; //hasremaining
+	};
 	BYTE field_132;
 	BYTE field_133;
 	PROTECTED_PROPERTY(DWORD, align_134);

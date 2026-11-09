@@ -34,6 +34,12 @@
 #include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
+enum class ScenarioVariableScope : BYTE
+{
+	Local = 0,
+	Global = 1
+};
+
 enum class TimerDisplayMode : int
 {
 	Standard = 0,      // Default MM:SS or HH:MM:SS format

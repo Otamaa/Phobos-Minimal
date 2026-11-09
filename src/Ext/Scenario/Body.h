@@ -219,6 +219,13 @@ public:
 		return &ScenarioExtData::Instance()->Local_Variables;
 	}
 
+	static COMPILETIMEEVAL PhobosMap<int, ExtendedVariable>* GetVariables(ScenarioVariableScope scope)
+	{
+		if (scope == ScenarioVariableScope::Global)
+			return &ScenarioExtData::Instance()->Global_Variables;
+
+		return &ScenarioExtData::Instance()->Local_Variables;
+	}
 };
 
 class NOVTABLE FakeScenarioClass : public ScenarioClass

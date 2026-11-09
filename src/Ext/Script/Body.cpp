@@ -5,6 +5,7 @@
 #include <AITriggerTypeClass.h>
 #include <Utilities/Patch.h>
 #include <Utilities/Macro.h>
+#include <Utilities/EnumFunctions.h>
 
 #include <Ext/Techno/Body.h>
 #include <Ext/Building/Body.h>
@@ -16,6 +17,7 @@
 #include <Ext/ScriptType/Body.h>
 #include <Ext/Team/Body.h>
 #include <Ext/Super/Body.h>
+#include <Ext/SWType/Body.h>
 
 #include <New/Type/GenericPrerequisite.h>
 
@@ -158,6 +160,46 @@ static NOINLINE const char* ToStrings(PhobosScripts from)
 		return "RallyUnitWithSameGroup";
 	case PhobosScripts::ScatterAttack:
 		return "ScatterAttack";
+	case PhobosScripts::ChronoTeleportToWaypoint:
+		return "ChronoTeleportToWaypoint";
+	case PhobosScripts::ScatterAttackByAITargetTypes:
+		return "ScatterAttackByAITargetTypes";
+	case PhobosScripts::PatrolToEnemyBuildingNearby:
+		return "PatrolToEnemyBuildingNearby";
+	case PhobosScripts::PatrolToEnemyRally:
+		return "PatrolToEnemyRally";
+	case PhobosScripts::PatrolToFriendlyBuildingNearby:
+		return "PatrolToFriendlyBuildingNearby";
+	case PhobosScripts::PatrolToFriendlyRally:
+		return "PatrolToFriendlyRally";
+	case PhobosScripts::ApplyAttachEffect:
+		return "ApplyAttachEffect";
+	case PhobosScripts::RemoveAttachEffect:
+		return "RemoveAttachEffect";
+	case PhobosScripts::RemoveAllAttachEffects:
+		return "RemoveAllAttachEffects";
+	case PhobosScripts::EnterMissionForDuration:
+		return "EnterMissionForDuration";
+	case PhobosScripts::JumpToLineByLocalVariable:
+		return "JumpToLineByLocalVariable";
+	case PhobosScripts::JumpToLineByGlobalVariable:
+		return "JumpToLineByGlobalVariable";
+	case PhobosScripts::WaitForLocalVariable:
+		return "WaitForLocalVariable";
+	case PhobosScripts::WaitForGlobalVariable:
+		return "WaitForGlobalVariable";
+	case PhobosScripts::JumpToLineIfLocalVariableSet:
+		return "JumpToLineIfLocalVariableSet";
+	case PhobosScripts::JumpToLineIfGlobalVariableSet:
+		return "JumpToLineIfGlobalVariableSet";
+	case PhobosScripts::JumpToLocalLineIfLocalSet:
+		return "JumpToLocalLineIfLocalSet";
+	case PhobosScripts::JumpToGlobalLineIfGlobalSet:
+		return "JumpToGlobalLineIfGlobalSet";
+	case PhobosScripts::JumpToLocalLineIfGlobalSet:
+		return "JumpToLocalLineIfGlobalSet";
+	case PhobosScripts::JumpToGlobalLineIfLocalSet:
+		return "JumpToGlobalLineIfLocalSet";
 	case PhobosScripts::StopForceJumpCountdown:
 		return "StopForceJumpCountdown";
 	case PhobosScripts::NextLineForceJumpCountdown:
@@ -557,6 +599,8 @@ bool ScriptExtData::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bThirdArd)
 {
 	auto const& [action, argument] = *pTeamMission;
+	auto pTeamExt = TeamExtContainer::Instance.Find(pTeam);
+	const auto pNodeIndex = pTeam->CurrentScript->CurrentMission;
 
 	//Debug::LogInfo("[{} - {}] Executing[{} - {}] [{} - {}]",
 	//pTeam->Owner->get_ID(),
@@ -565,6 +609,8 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam, ScriptActionNode* pTe
 	//pTeam, action ,
 	//argument
 	//);
+	const bool fresh = (pNodeIndex != pTeamExt->LastProcessedMission);
+	pTeamExt->LastProcessedMission = pNodeIndex;
 
 	//only find stuffs on the range , reducing the load
 	//if ((AresScripts)action >= AresScripts::count)
@@ -682,10 +728,106 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam, ScriptActionNode* pTe
 			pTeam->StepCompleted = true;
 			break;
 		}
+
 		case PhobosScripts::ScatterAttack:{
-			ScriptExtData::Mission_ScatterAttack(pTeam);
+			ScriptExtData::Mission_ScatterAttack(pTeam, -1);
 			break;
 		}
+		case PhobosScripts::ScatterAttackByAITargetTypes:
+			ScriptExtData::Mission_ScatterAttack(pTeam, static_cast<unsigned>(argument) >> 16);
+			break;
+
+		case PhobosScripts::PatrolToEnemyBuildingNearby:
+			ScriptExtData::PatrolToBuildingNearby(
+				pTeam, argument & 0xFFFF, static_cast<unsigned>(argument) >> 16, fresh, true);
+			break;
+
+		case PhobosScripts::PatrolToEnemyRally:
+			ScriptExtData::PatrolToRally(pTeam, fresh, true);
+			break;
+
+		case PhobosScripts::PatrolToFriendlyBuildingNearby:
+			ScriptExtData::PatrolToBuildingNearby(
+				pTeam, argument & 0xFFFF, static_cast<unsigned>(argument) >> 16, fresh, false);
+			break;
+
+		case PhobosScripts::PatrolToFriendlyRally:
+			ScriptExtData::PatrolToRally(pTeam, fresh, false);
+			break;
+
+		case PhobosScripts::ApplyAttachEffect:
+			//Parameter packaging/decoding errors are a common source of "the action ran but had no effect", so the original Argument and decoding results are both printed.
+			Debug::Log("[AE] Script %d ApplyAttachEffect: team=[%s] Argument=0x%08X -> effectKey=%d duration=%d\n",
+				static_cast<int>(action), pTeam->Type ? pTeam->Type->get_ID() : "<none>",
+				static_cast<unsigned>(argument), argument & 0xFFFF, static_cast<unsigned>(argument) >> 16);
+			ScriptExtData::ApplyAttachEffect(pTeam, argument & 0xFFFF, static_cast<unsigned>(argument) >> 16);
+			break;
+
+		case PhobosScripts::RemoveAttachEffect:
+			Debug::Log("[AE] Script %d RemoveAttachEffect: team=[%s] Argument=0x%08X -> effectKey=%d\n",
+				static_cast<int>(action), pTeam->Type ? pTeam->Type->get_ID() : "<none>",
+				static_cast<unsigned>(argument), argument & 0xFFFF);
+			ScriptExtData::RemoveAttachEffect(pTeam, argument & 0xFFFF);
+			break;
+
+		case PhobosScripts::RemoveAllAttachEffects:
+			Debug::Log("[AE] Script %d RemoveAllAttachEffects: team=[%s]\n",
+				static_cast<int>(action), pTeam->Type ? pTeam->Type->get_ID() : "<none>");
+			ScriptExtData::RemoveAllAttachEffects(pTeam);
+			break;
+
+		case PhobosScripts::ChronoTeleportToWaypoint:
+			ScriptExtData::ChronoshiftToWaypoint(pTeam, argument & 0xFFFF);
+			break;
+
+		case PhobosScripts::EnterMissionForDuration:
+			ScriptExtData::EnterMissionForDuration(pTeam, argument, fresh, pNodeIndex);
+			break;
+
+		case PhobosScripts::JumpToLineByLocalVariable:
+			ScriptExtData::JumpToLineByVariable(pTeam, argument, ScenarioVariableScope::Local);
+			break;
+
+		case PhobosScripts::JumpToLineByGlobalVariable:
+			ScriptExtData::JumpToLineByVariable(pTeam, argument, ScenarioVariableScope::Global);
+			break;
+
+		case PhobosScripts::WaitForLocalVariable:
+			ScriptExtData::WaitForVariable(pTeam, argument, ScenarioVariableScope::Local, fresh);
+			break;
+
+		case PhobosScripts::WaitForGlobalVariable:
+			ScriptExtData::WaitForVariable(pTeam, argument, ScenarioVariableScope::Global, fresh);
+			break;
+
+		case PhobosScripts::JumpToLineIfLocalVariableSet:
+			ScriptExtData::JumpToLineIfVariableSet(pTeam, argument, ScenarioVariableScope::Local);
+			break;
+
+		case PhobosScripts::JumpToLineIfGlobalVariableSet:
+			ScriptExtData::JumpToLineIfVariableSet(pTeam, argument, ScenarioVariableScope::Global);
+			break;
+
+		case PhobosScripts::JumpToLocalLineIfLocalSet:
+			ScriptExtData::JumpToVariableLineIfSet(pTeam, argument,
+				ScenarioVariableScope::Local, ScenarioVariableScope::Local);
+			break;
+
+		case PhobosScripts::JumpToGlobalLineIfGlobalSet:
+			ScriptExtData::JumpToVariableLineIfSet(pTeam, argument,
+				ScenarioVariableScope::Global, ScenarioVariableScope::Global);
+			break;
+
+		case PhobosScripts::JumpToLocalLineIfGlobalSet:
+			ScriptExtData::JumpToVariableLineIfSet(pTeam, argument,
+				ScenarioVariableScope::Global, ScenarioVariableScope::Local);
+			break;
+
+		case PhobosScripts::JumpToGlobalLineIfLocalSet:
+			ScriptExtData::JumpToVariableLineIfSet(pTeam, argument,
+				ScenarioVariableScope::Local, ScenarioVariableScope::Global);
+			break;
+
 		case PhobosScripts::AbortActionAfterSuccessKill:
 		{
 			ScriptExtData::SetAbortActionAfterSuccessKill(pTeam, -1);  //which branch is this again ?
@@ -2088,11 +2230,314 @@ void ScriptExtData::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
 	ScriptExtData::ChronoshiftTeamToTarget(pTeam, pLeader, pTargetCell);
 }
 
-void ScriptExtData::Mission_ScatterAttack(TeamClass* pTeam)
+void ScriptExtData::ChronoshiftToWaypoint(TeamClass* pTeam, int waypoint)
 {
-	auto const pExt = ScriptExtContainer::Instance.Find(pTeam->CurrentScript);
+	//auto pScript = pTeam->CurrentScript;
+	auto const pLeader = pTeam->FetchLeader();
+	//const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
+	//const auto& [nextAct, nextArgs] = pTeam->CurrentScript->GetNextAction();
+	pLeader->IsTeamLeader = true;
 
-	HelperedVector<FootClass*> members;
+	if (!pLeader)
+	{
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	int houseIndex = pLeader->Owner->EnemyHouseIndex;
+	HouseClass* pEnemy = houseIndex != -1 ? HouseClass::Array->Items[houseIndex] : nullptr;
+
+	if (!pEnemy)
+	{
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	CellStruct cell = ScenarioClass::Instance->GetWaypointCoords(waypoint);
+
+	auto const pTargetCell = MapClass::Instance->GetCellAt(cell);
+
+	if (!pTargetCell)
+	{
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	ScriptExtData::ChronoshiftTeamToTarget(pTeam, pLeader, pTargetCell);
+}
+
+//5514/5515: The line number is taken from the script variable, the semantics are the same as the original action 6 (the line number is 1 base)
+//Original 0x6E98B5 SetMission(Arg -2) first, then StepCompleted, NextMission +1 in the next frame, exactly falling on the Arg line
+void ScriptExtData::JumpToLineByVariable(TeamClass* pTeam, int variableIndex, ScenarioVariableScope scope)
+{
+	auto pVariable = ScenarioExtData::GetVariables(scope);
+	auto scope_str = EnumFunctions::ScenarioVariableScope_ToStrings[static_cast<int>(scope)].second.data();
+
+	//When the variable index is out of bounds or the variable storage is unavailable, it is directly released to avoid the entire script being stuck on this line.
+	if (!pVariable->contains(variableIndex)) {
+		Debug::Log("[Script] JumpToLine: variable read failed, scope=%s index=%d (valid [0, %d))\n",
+			scope_str, variableIndex, pVariable->size());
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	auto pIter = pVariable->get_key_iterator(variableIndex);
+
+	//0 is consistent with the original version (the script stops advancing); if it is negative or exceeds the length of the script, skip this line, otherwise the engine will take action based on the out-of-bounds line number
+	int const maxLine = std::min(pTeam->CurrentScript->Type->ActionsCount, 50);
+	int line = pIter->second.Value;
+
+	if (line < 0 || line > maxLine)
+	{
+		Debug::Log("[Script] JumpToLine: line %d out of range [1, %d], skip\n", line, maxLine);
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	Debug::Log("[Script] JumpToLine: team=[%s] %s var[%d]=%d\n",
+		pTeam->Type ? pTeam->Type->get_ID() : "<none>",
+		scope_str,
+		variableIndex, line);
+
+	pTeam->CurrentScript->SetMission(line - 2);
+	pTeam->StepCompleted = true;
+}
+
+// 5516/5517: When the variable is 0, the team stops at this line and waits. When it becomes non-0, the next line is executed.
+void ScriptExtData::WaitForVariable(TeamClass* pTeam, int variableIndex, ScenarioVariableScope scope, bool fresh)
+{
+	auto pVariable = ScenarioExtData::GetVariables(scope);
+	auto scope_str = EnumFunctions::ScenarioVariableScope_ToStrings[static_cast<int>(scope)].second.data();
+
+	// Do not wait when the index is illegal or the variable storage is unavailable, otherwise the team will be permanently stuck.
+	if (!pVariable->contains(variableIndex)) {
+		Debug::Log("[Script] WaitForVariable: variable read failed, scope=%s index=%d (valid [0, %d))\n",
+			scope_str, variableIndex, pVariable->size());
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	auto pIter = pVariable->get_key_iterator(variableIndex);
+	int value = pIter->second.Value;
+
+	if (value == 0) {
+		pTeam->StepCompleted = false;
+
+		if (fresh) {
+			Debug::Log("[Script] WaitForVariable: team=[%s] %s var[%d]=0 -> waiting\n",
+				pTeam->Type ? pTeam->Type->get_ID() : "<none>",
+				scope_str,
+				variableIndex);
+		}
+
+		return;
+	}
+
+	Debug::Log("[Script] WaitForVariable: team=[%s] %s var[%d]=%d -> continue\n",
+		pTeam->Type ? pTeam->Type->get_ID() : "<none>",
+		scope_str,
+		variableIndex, value);
+
+	pTeam->StepCompleted = true;
+}
+
+void ScriptExtData::JumpToLineIfVariableSet(TeamClass* pTeam, int argument, ScenarioVariableScope scope)
+{
+	int const variableIndex = argument & 0xFFFF;
+	int const line = static_cast<unsigned>(argument) >> 16;
+
+	auto pVariable = ScenarioExtData::GetVariables(scope);
+	auto scope_str = EnumFunctions::ScenarioVariableScope_ToStrings[static_cast<int>(scope)].second.data();
+
+	if (!pVariable->contains(variableIndex))
+	{
+		Debug::Log("[Script] JumpIfVariableSet: variable read failed, scope=%s index=%d (valid [0, %d))\n",
+			scope_str, variableIndex, pVariable->size());
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	auto pIter = pVariable->get_key_iterator(variableIndex);
+	int value = pIter->second.Value;
+
+	if (value == 0)
+	{
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	int const maxLine = std::min(pTeam->CurrentScript->Type->ActionsCount, 50);
+
+	if (line > maxLine)
+	{
+		Debug::Log("[Script] JumpIfVariableSet: line %d out of range [1, %d], skip\n", line, maxLine);
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	Debug::Log("[Script] JumpIfVariableSet: team=[%s] %s var[%d]=%d -> line %d\n",
+		pTeam->Type ? pTeam->Type->get_ID() : "<none>",
+		scope_str,
+		variableIndex, value, line);
+
+	pTeam->CurrentScript->SetMission(line - 2);
+	pTeam->StepCompleted = true;
+}
+
+void ScriptExtData::JumpToVariableLineIfSet(TeamClass* pTeam, int argument,
+	ScenarioVariableScope conditionScope, ScenarioVariableScope lineScope)
+{
+	auto pVariableconditionScope = ScenarioExtData::GetVariables(conditionScope);
+	auto conditionScope_str = EnumFunctions::ScenarioVariableScope_ToStrings[static_cast<int>(conditionScope)].second.data();
+
+	int const conditionIndex = argument & 0xFFFF;
+	int const lineIndex = static_cast<unsigned>(argument) >> 16;
+
+	if (!pVariableconditionScope->contains(conditionIndex))
+	{
+		Debug::Log("[Script] JumpToVariableLine: A read failed, scope=%s index=%d (valid [0, %d))\n",
+			conditionScope_str, conditionIndex, pVariableconditionScope->size());
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	auto pConditionIndexIter = pVariableconditionScope->get_key_iterator(conditionIndex);
+	int value = pConditionIndexIter->second.Value;
+
+	if (value == 0)
+	{
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	auto pVariablelineScope = ScenarioExtData::GetVariables(lineScope);
+	auto lineScope_str = EnumFunctions::ScenarioVariableScope_ToStrings[static_cast<int>(lineScope)].second.data();
+
+	if (!pVariablelineScope->contains(lineIndex))
+	{
+		Debug::Log("[Script] JumpToVariableLine: B read failed, scope=%s index=%d (valid [0, %d))\n",
+			lineScope_str, lineIndex, pVariablelineScope->size());
+		pTeam->StepCompleted = true;
+		return;
+	}
+	auto plineIndexIter = pVariableconditionScope->get_key_iterator(lineIndex);
+	int line = plineIndexIter->second.Value;
+	int const maxLine = std::min(pTeam->CurrentScript->Type->ActionsCount, 50);
+
+	if (line < 0 || line > maxLine)
+	{
+		Debug::Log("[Script] JumpToVariableLine: line %d out of range [1, %d], skip\n", line, maxLine);
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	Debug::Log("[Script] JumpToVariableLine: team=[%s] %s[%d]=%d -> %s[%d]=%d -> line %d\n",
+		pTeam->Type ? pTeam->Type->get_ID() : "<none>",
+		conditionScope_str, conditionIndex, value,
+		lineScope_str, lineIndex, line);
+
+	pTeam->CurrentScript->SetMission(line - 2);
+	pTeam->StepCompleted = true;
+}
+
+// 5513: The whole team enters the designated Mission and maintains it for N seconds. The lower 16 digits are Mission and the higher 16 digits are seconds.
+void ScriptExtData::EnterMissionForDuration(TeamClass* pTeam, int argument, bool fresh, int nodeIndex)
+{
+	auto const pExt = TeamExtContainer::Instance.Find(pTeam);
+	const int missionIndex = argument & 0xFFFF;
+	const int duration = static_cast<int>(static_cast<unsigned>(argument) >> 16) * 15; // 原版 15 帧/秒
+
+	// When the status code is illegal, it is directly released, otherwise the entire script is stuck in this line.
+	if (missionIndex > static_cast<int>(Mission::SpyplaneOverfly))
+	{
+		Debug::Log("[Script] EnterMissionForDuration: invalid mission %d (Argument=0x%08X)\n",
+			missionIndex, argument);
+		pExt->TimedMissionNode = -1;
+		pExt->TimedMissionLeft = 0;
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	const auto mission = static_cast<Mission>(missionIndex);
+
+	if (fresh || pExt->TimedMissionNode != nodeIndex)
+	{
+		pExt->TimedMissionNode = nodeIndex;
+		pExt->TimedMissionLeft = duration;
+		pExt->TimedMissionLastFrame = Unsorted::CurrentFrame();
+	}
+	else if (pExt->TimedMissionLeft > 0)
+	{
+		int const now = Unsorted::CurrentFrame();
+		if (pExt->TimedMissionLastFrame < 0 || now < pExt->TimedMissionLastFrame)
+		{
+			pExt->TimedMissionLastFrame = now;
+		}
+		else
+		{
+			pExt->TimedMissionLeft -= now - pExt->TimedMissionLastFrame;
+			pExt->TimedMissionLastFrame = now;
+		}
+	}
+
+	// DoMissionFromScript is not called: it requires that Team Target /Destination are empty,
+	// The Destination of the team that has just completed the movement action is still there, and the entire team will be skipped.
+	int total = 0;
+	int assigned = 0;
+
+	for (auto pFoot = pTeam->FirstUnit; pFoot; pFoot = pFoot->NextTeamMember)
+	{
+		if (!pFoot->IsAlive || pFoot->Health <= 0 || pFoot->InLimbo || !pFoot->IsOnMap || pFoot->Transporter)
+			continue;
+
+		++total;
+
+		if (pFoot->GetCurrentMission() == mission || pFoot->QueuedMission == mission)
+			continue;
+
+		// The first release will take effect unconditionally; subsequent leaks will only be filled when there is no combat to avoid pulling back the attack.
+		if (!fresh && pFoot->Target)
+			continue;
+
+		// Switch the state first and then clear the old destination, otherwise the team member will continue to move to the path point of the previous action.
+		pFoot->QueueMission(mission, true);
+		pFoot->SetDestination(nullptr, true);
+		++assigned;
+	}
+
+	if (fresh)
+	{
+		Debug::Log("[Script] EnterMissionForDuration: team=[%s] mission=%d frames=%d members=%d assigned=%d\n",
+			pTeam->Type ? pTeam->Type->get_ID() : "<none>", missionIndex, duration, total, assigned);
+	}
+
+	if (pExt->TimedMissionLeft > 0)
+	{
+		pTeam->StepCompleted = false;
+	}
+	else
+	{
+		pExt->TimedMissionLeft = 0;
+		pTeam->StepCompleted = true;
+	}
+}
+
+void ScriptExtData::Mission_ScatterAttack(TeamClass* pTeam, int attackAITargetType)
+{
+	auto const pExt = TeamExtContainer::Instance.Find(pTeam);
+
+	// [AITargetTypes] Index out of bounds: No custom target list available, push script directly
+	if (attackAITargetType >= 0
+		&& attackAITargetType >= static_cast<int>(FakeRulesClass::Instance->AITargetTypesLists.size()))
+	{
+		Debug::Log("[Developer warning] ScatterAttackByAITargetTypes: [AITargetTypes] index %d out of range (Count: %d)\n",
+			attackAITargetType, static_cast<int>(FakeRulesClass::Instance->AITargetTypesLists.size()));
+		pExt->ScatterAttackGroups.clear();
+		return;
+	}
+
+	// Collect available members (alive, on the map, not equipped)
+	std::vector<FootClass*> members;
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
 		if (!pUnit->IsAlive || pUnit->Health <= 0 || pUnit->InLimbo || !pUnit->IsOnMap)
@@ -2102,19 +2547,23 @@ void ScriptExtData::Mission_ScatterAttack(TeamClass* pTeam)
 		members.push_back(pUnit);
 	}
 
+	// No available members -> Clear the group and advance the script
 	if (members.empty())
 	{
 		pExt->ScatterAttackGroups.clear();
 		return;
 	}
 
+	// One-time grouping: When entering this action for the first time (or after loading files/after completing a round), sorted by azimuth and divided evenly
 	if (pExt->ScatterAttackGroups.empty())
 	{
-		int groupCount = pTeam->CurrentScript->Type->ScriptActions[pTeam->CurrentScript->CurrentMission].Argument;
+		// Number of groups: lower 16 digits (at least 1 group), if it exceeds the number of members, it will be based on the number of members (one group per person)
+		int groupCount = pTeam->CurrentScript->Type->ScriptActions[pTeam->CurrentScript->CurrentMission].Argument & 0xFFFF;
 		if (groupCount < 1) groupCount = 1;
 		if (groupCount > static_cast<int>(members.size()))
 			groupCount = static_cast<int>(members.size());
 
+		// Squad center (used for orientation sequencing)
 		double teamCenterX = 0.0;
 		double teamCenterY = 0.0;
 		for (auto pFoot : members)
@@ -2126,15 +2575,19 @@ void ScriptExtData::Mission_ScatterAttack(TeamClass* pTeam)
 		teamCenterX /= members.size();
 		teamCenterY /= members.size();
 
-		std::sort(members.begin(), members.end(), [&](FootClass* a, FootClass* b)
-		{
-			const CoordStruct ca = a->GetCoords();
-			const CoordStruct cb = b->GetCoords();
-			const double ba = std::atan2(static_cast<double>(ca.Y) - teamCenterY, static_cast<double>(ca.X) - teamCenterX);
-			const double bb = std::atan2(static_cast<double>(cb.Y) - teamCenterY, static_cast<double>(cb.X) - teamCenterX);
-			return ba < bb;
+		//Sort the members according to their azimuth angle relative to the center of the team, and then divide them into each group continuously:
+		//Each group occupies one direction sector, allowing each group to disperse in different directions.
+		//stable_sort: Maintain the original order when the azimuth angles are parallel, and each machine is consistent
+		std::stable_sort(members.begin(), members.end(), [&](FootClass* a, FootClass* b)
+ {
+	 const CoordStruct ca = a->GetCoords();
+	 const CoordStruct cb = b->GetCoords();
+	 const double ba = std::atan2(static_cast<double>(ca.Y) - teamCenterY, static_cast<double>(ca.X) - teamCenterX);
+	 const double bb = std::atan2(static_cast<double>(cb.Y) - teamCenterY, static_cast<double>(cb.X) - teamCenterX);
+	 return ba < bb;
 		});
 
+		// Evenly divided: the first extra group has 1 more person in each group
 		const int groupBase = static_cast<int>(members.size()) / groupCount;
 		const int groupExtra = static_cast<int>(members.size()) % groupCount;
 
@@ -2142,26 +2595,18 @@ void ScriptExtData::Mission_ScatterAttack(TeamClass* pTeam)
 		for (int g = 0; g < groupCount; ++g)
 		{
 			const int groupSize = groupBase + (g < groupExtra ? 1 : 0);
-
-			// BUGFIX: HelperedVector has no (first,last) range constructor, so
-			// emplace_back(iter, iter) fails overload resolution in construct_at (C2672).
-			// Default-construct the element, then fill it via assign().
-			pExt->ScatterAttackGroups.emplace_back();
-			pExt->ScatterAttackGroups.back().assign(members.begin() + begin, members.begin() + begin + groupSize);
-
+			pExt->ScatterAttackGroups.emplace_back(members.begin() + begin, members.begin() + begin + groupSize);
 			begin += groupSize;
 		}
 	}
 
-	// PERF: O(1) membership test instead of std::find over `members` per group element.
-	std::unordered_set<FootClass*> memberSet(members.begin(), members.end());
-
+	// Check every frame if group members are still valid: removal if not among currently available members, empty group removal
 	for (auto it = pExt->ScatterAttackGroups.begin(); it != pExt->ScatterAttackGroups.end(); )
 	{
 		auto& group = *it;
 		group.erase(std::remove_if(group.begin(), group.end(), [&](FootClass* pFoot)
 			{
-				return memberSet.find(pFoot) == memberSet.end();
+				return std::find(members.begin(), members.end(), pFoot) == members.end();
 			}), group.end());
 
 		if (group.empty())
@@ -2172,185 +2617,208 @@ void ScriptExtData::Mission_ScatterAttack(TeamClass* pTeam)
 
 	if (pExt->ScatterAttackGroups.empty())
 	{
-		pExt->ScatterAttackGroups.clear();
+		pExt->ScatterAttackGroups.clear(); // All groups have been cleared (all members have expired)
 		return;
 	}
 
-	// PERF: precompute the set of already-grouped units once instead of
-	// re-scanning every group (nested std::find) for each member.
-	std::unordered_set<FootClass*> grouped;
-	grouped.reserve(members.size());
-	for (auto& group : pExt->ScatterAttackGroups)
-		for (auto pFoot : group)
-			grouped.insert(pFoot);
-
+	// Newly added members (not in any group) are merged into the group with the fewest members, keeping the groupings from being rearranged.
 	for (auto pFoot : members)
 	{
-		if (grouped.find(pFoot) != grouped.end())
-			continue;
-
-		size_t bestIdx = 0;
-		size_t bestSize = pExt->ScatterAttackGroups[0].size();
-		for (size_t gi = 1; gi < pExt->ScatterAttackGroups.size(); ++gi)
+		bool inGroup = false;
+		for (auto& group : pExt->ScatterAttackGroups)
 		{
-			if (pExt->ScatterAttackGroups[gi].size() < bestSize)
+			if (std::find(group.begin(), group.end(), pFoot) != group.end())
 			{
-				bestSize = pExt->ScatterAttackGroups[gi].size();
-				bestIdx = gi;
+				inGroup = true;
+				break;
 			}
 		}
-		pExt->ScatterAttackGroups[bestIdx].push_back(pFoot);
-		grouped.insert(pFoot);
+		if (!inGroup)
+		{
+			size_t bestIdx = 0;
+			size_t bestSize = pExt->ScatterAttackGroups[0].size();
+			for (size_t gi = 1; gi < pExt->ScatterAttackGroups.size(); ++gi)
+			{
+				if (pExt->ScatterAttackGroups[gi].size() < bestSize)
+				{
+					bestSize = pExt->ScatterAttackGroups[gi].size();
+					bestIdx = gi;
+				}
+			}
+			pExt->ScatterAttackGroups[bestIdx].push_back(pFoot);
+		}
 	}
 
-	// PERF-NOTE: this scan walks the *entire* TechnoClass::Array every tick,
-	// even during the 59 throttled ticks below where the result is thrown away.
-	// This is the single biggest cost in the function. Left enabled every-tick
-	// to preserve exact original behavior (immediate clear when last enemy dies).
-	// If a ~60-frame delay on that clear is acceptable, gate this block behind
-	// the `pExt->ScatterAttackSelectionTimer > 0` check instead:
-#if 0
-	if (pExt->ScatterAttackSelectionTimer > 0)
-	{
-		pExt->ScatterAttackSelectionTimer--;
-		pTeam->StepCompleted = false;
-		return;
-	}
-	pExt->ScatterAttackSelectionTimer = 60;
-	// ... build `enemies` here instead, then continue directly into the
-	// per-group target-selection loop below (the second timer check further
-	// down would then be removed).
-#endif
+	const int targetMask = static_cast<unsigned>(pTeam->CurrentScript->Type->ScriptActions[pTeam->CurrentScript->CurrentMission].Argument) >> 16;
 
-	std::vector<TechnoClass*> enemies;
-	enemies.reserve(members.size() * 2); // VERIFY: rough guess; tune or drop if TechnoClass::Array exposes a count
-	for (auto pTechno : *TechnoClass::Array)
-	{
-		if (!pTechno->IsAlive || pTechno->Health <= 0 || pTechno->InLimbo || !pTechno->IsOnMap)
-			continue;
-		if (pTechno->Transporter)
-			continue;
-		auto const pEnemyOwner = pTechno->Owner;
-		if (!pEnemyOwner || pEnemyOwner == pTeam->OwnerHouse || pEnemyOwner->IsAlliedWith(pTeam->OwnerHouse))
-			continue;
-		enemies.push_back(pTechno);
-	}
+	constexpr DistanceMode threatMode = DistanceMode::idkZero;
 
-	if (enemies.empty())
-	{
-		pExt->ScatterAttackGroups.clear();
-		return;
-	}
+	// A set of targets that have been locked by this group (different groups have priority in using different targets)
+	std::vector<TechnoClass*> assignedTargets;
 
-	if (pExt->ScatterAttackSelectionTimer > 0)
-	{
-		pExt->ScatterAttackSelectionTimer--;
-		pTeam->StepCompleted = false;
-		return;
-	}
-	pExt->ScatterAttackSelectionTimer = 60;
+	// One copy of the enemy search context for each group: group center + whether there is an infiltration agent/engineer in the group (aligned upstream)
+	auto const computeGroupContext = [](const std::vector<FootClass*>& group, CoordStruct& groupCenter) -> bool
+		{
+			groupCenter = CoordStruct { 0, 0, 0 };
 
-	// PERF: was std::vector + std::find (O(n) per lookup, inside a nested loop
-	// over every enemy for every group) — now O(1) average via unordered_set.
-	std::unordered_set<TechnoClass*> assignedTargets;
-	assignedTargets.reserve(pExt->ScatterAttackGroups.size());
+			for (auto pFoot : group)
+			{
+				const CoordStruct c = pFoot->GetCoords();
+				groupCenter.X += c.X;
+				groupCenter.Y += c.Y;
+				groupCenter.Z += c.Z;
+			}
 
+			const int groupSize = static_cast<int>(group.size());
+			groupCenter.X /= groupSize;
+			groupCenter.Y /= groupSize;
+			groupCenter.Z /= groupSize;
+
+			// agentMode：Skip some weapon/immunity determinations when there are infiltration agents or engineers in the group (align upstream)
+			for (auto pFoot : group)
+			{
+				if (pFoot->WhatAmI() == AbstractType::Infantry)
+				{
+					const auto pTypeInf = static_cast<InfantryTypeClass*>(pFoot->GetTechnoType());
+
+					if ((pTypeInf->Agent && pTypeInf->Infiltrate) || pTypeInf->Engineer)
+						return true;
+				}
+			}
+
+			return false;
+		};
+
+	auto CanEngageTarget = [](FootClass* pFoot, TechnoClass* pTarget)
+		{
+			if (!pFoot || !pTarget)
+				return false;
+
+			// 与引擎一致：逐个武器槽判定；空武器槽不参与
+			for (int i = 0; i < 2; ++i)
+			{
+				const auto pWeapon = pFoot->GetWeapon(i);
+				if (!pWeapon || !pWeapon->WeaponType)
+					continue;
+
+				if (pFoot->GetFireError(pTarget, i, true) != FireError::ILLEGAL)
+					return true;
+			}
+
+			return false;
+		};
+
+	// Searching for enemies in this group: GreatestThreat + excluding assigned/unreachable targets + accessibility pathfinding
+	auto const selectGroupTarget = [&](const std::vector<FootClass*>& group, FootClass* const pLeader,
+		const CoordStruct& groupCenter, bool agentMode) -> TechnoClass*
+		{
+			std::vector<TechnoClass*> unreachableTargets;
+
+			while (true)
+			{
+				// Preferred: Exclude "Already assigned to other groups" and "Unavailable" targets
+				std::vector<TechnoClass*> excludedTargets = assignedTargets;
+				excludedTargets.insert(excludedTargets.end(), unreachableTargets.begin(), unreachableTargets.end());
+
+				TechnoClass* candidate = ScriptExtData::GreatestThreat(pLeader, targetMask, threatMode,
+					nullptr, attackAITargetType, -1, agentMode, &excludedTargets, &group, &groupCenter);
+
+				// When the number of targets is less than the number of groups, it degenerates to allow shared targets (only unavailable ones are excluded), which is consistent with the original behavior.
+				if (!candidate && !assignedTargets.empty())
+				{
+					candidate = ScriptExtData::GreatestThreat(pLeader, targetMask, threatMode,
+						nullptr, attackAITargetType , -1, agentMode, &unreachableTargets, &group, &groupCenter);
+				}
+
+				if (!candidate)
+					break; // Candidates exhausted: There are no more targets to hit.
+
+				//At least one member of the group can actually attack the target, otherwise the target will be considered unavailable and removed.
+				//(Align with original enemy detection GetFireError != ILLEGAL: Exclude surface-to-air/air-to-ground ballistics
+				//Do not match targets that cannot be hit, so as to avoid locking the target to units that cannot hit it and causing hangup)
+				bool hasShooter = false;
+				for (auto pFoot : group)
+				{
+					if (CanEngageTarget(pFoot, candidate))
+					{
+						hasShooter = true;
+						break;
+					}
+				}
+
+				if (!hasShooter)
+				{
+					unreachableTargets.push_back(candidate); // The entire group cannot be defeated, so they will be eliminated and then re-selected.
+					continue;
+				}
+
+				// There are already members of the group attacking the target -> It is considered reachable (in combat), no pathfinding check is required
+				bool alreadyEngaging = false;
+				for (auto pFoot : group)
+				{
+					if (pFoot->Target == candidate)
+					{
+						alreadyEngaging = true;
+						break;
+					}
+				}
+
+				if (alreadyEngaging || pLeader->UpdatePathfinding(candidate->GetMapCoords(), false, 0))
+					return candidate;
+
+				unreachableTargets.push_back(candidate); // Unreachable, eliminate and re-select
+			}
+
+			return nullptr;
+		};
+
+	//Align the original behavior: no periodic relocking after locking once, only when the group locks the target
+	//Only when it expires (death/leaving the field/no longer hostile) will the enemy be searched again. In other cases, the original lock will remain unchanged.
 	bool anyGroupActionable = false;
 
 	for (auto& group : pExt->ScatterAttackGroups)
 	{
-		double groupCenterX = 0.0;
-		double groupCenterY = 0.0;
+		FootClass* const pLeader = group.front();
+
+		// Group targets inherit the group member's current lock that is still in effect
+		TechnoClass* pGroupTarget = nullptr;
 		for (auto pFoot : group)
 		{
-			const CoordStruct c = pFoot->GetCoords();
-			groupCenterX += c.X;
-			groupCenterY += c.Y;
+			TechnoClass* const pCurrent = flag_cast_to<TechnoClass*>(pFoot->Target);
+			if (pCurrent && pCurrent->Health > 0 && !pCurrent->InLimbo && pCurrent->IsOnMap
+				&& !pFoot->Owner->IsAlliedWith(pCurrent->Owner))
+			{
+				pGroupTarget = pCurrent;
+				break;
+			}
 		}
-		groupCenterX /= group.size();
-		groupCenterY /= group.size();
 
-		FootClass* const pPathAgent = group.front();
-
-		TechnoClass* pGroupTarget = nullptr;
-		std::unordered_set<TechnoClass*> unreachableTargets;
-
-		while (!pGroupTarget)
+		// The group's target lock fails -> the group searches for the enemy again
+		if (!pGroupTarget)
 		{
-			TechnoClass* bestUnassigned = nullptr;
-			double bestUnassignedDist = 0.0;
-			TechnoClass* bestAny = nullptr;
-			double bestAnyDist = 0.0;
-
-			for (auto pEnemy : enemies)
-			{
-				if (!pEnemy->IsAlive
-					|| pEnemy->Health <= 0
-					|| pEnemy->InLimbo
-					|| pEnemy->IsCrashing
-					|| pEnemy->IsSinking)
-					continue;
-				if (unreachableTargets.find(pEnemy) != unreachableTargets.end())
-					continue;
-
-				const CoordStruct e = pEnemy->GetCoords();
-				const double dx = groupCenterX - e.X;
-				const double dy = groupCenterY - e.Y;
-				const double dist = dx * dx + dy * dy;
-
-				if (!bestAny || dist < bestAnyDist)
-				{
-					bestAny = pEnemy;
-					bestAnyDist = dist;
-				}
-
-				if (assignedTargets.find(pEnemy) == assignedTargets.end())
-				{
-					if (!bestUnassigned || dist < bestUnassignedDist)
-					{
-						bestUnassigned = pEnemy;
-						bestUnassignedDist = dist;
-					}
-				}
-			}
-
-			TechnoClass* const candidate = bestUnassigned ? bestUnassigned : bestAny;
-			if (!candidate)
-				break;
-
-			bool alreadyEngaging = false;
-			for (auto pFoot : group)
-			{
-				if (pFoot->Target == candidate)
-				{
-					alreadyEngaging = true;
-					break;
-				}
-			}
-
-			if (alreadyEngaging || !pPathAgent || pPathAgent->UpdatePathfinding(candidate->GetMapCoords(), false, 0))
-			{
-				pGroupTarget = candidate;
-				break;
-			}
-
-			unreachableTargets.insert(candidate);
+			CoordStruct groupCenter;
+			const bool agentMode = computeGroupContext(group, groupCenter);
+			pGroupTarget = selectGroupTarget(group, pLeader, groupCenter, agentMode);
 		}
 
 		if (!pGroupTarget)
-			continue;
+			continue; // This group cannot find an accessible target and maintains the status quo.
 
 		anyGroupActionable = true;
 
+		//All members in the group lock the same target (newly joined/disbanded members will re-lock to the group target here)
 		for (auto pFoot : group)
 		{
-			if (!pFoot->IsArmed())
+			//Members who cannot attack the target will stay on alert and will not lock the target.
+			//(CanEngageTarget has covered the main/secondary weapon slots, no need to judge IsArmed anymore)
+			if (!CanEngageTarget(pFoot, pGroupTarget))
 			{
 				if (pFoot->GetCurrentMission() != Mission::Guard)
 					pFoot->QueueMission(Mission::Guard, false);
 				continue;
 			}
 
+			//Already in the attack group target -> keep, no interruption
 			if (pFoot->Target == pGroupTarget)
 				continue;
 
@@ -2358,19 +2826,493 @@ void ScriptExtData::Mission_ScatterAttack(TeamClass* pTeam)
 			pFoot->QueueMission(Mission::Attack, true);
 		}
 
-		assignedTargets.insert(pGroupTarget);
+		//This group has locked the target, and subsequent groups will not select it first.
+		assignedTargets.push_back(pGroupTarget);
 	}
 
+	//All groups cannot find reachable targets -> none of the enemies can reach them, marking is completed (clear the group, advance the script)
 	if (!anyGroupActionable)
 	{
 		pExt->ScatterAttackGroups.clear();
 		return;
 	}
 
+	//There are still combatable targets -> stay in this action until the last enemy is destroyed
 	pTeam->StepCompleted = false;
 }
 
-#include <Ext/SWType/Body.h>
+//============================================================================
+//Patrol system (action 5504~5507) assistance and implementation
+//============================================================================
+//Action Argument encoding (aligned to original action 47):
+	//High 16 bits = building type index (0 = first type, such as GAPOWR; 0xFFFF = any type)
+	//Low 16 bits = Search method: 0 smallest threat /1 largest threat /2 nearest /3 farthest
+enum class TargetSelection : int
+{
+	MinimumThreat = 0,
+	MaximumThreat = 1,
+	Closest = 2,
+	Farthest = 3,
+};
+
+//Find the target building of the designated camp and select it from the candidate set according to the enemy search method.
+//typeIndex:BuildingTypeClass::Array index;0xFFFF = any type
+//wantEnemy:true = Belongs to the enemy camp pointed to by HouseClass::EnemyHouseIndex;
+//false = the team owner's own building (TeamClass::Owner)
+static BuildingClass* FindTeamBuilding(TeamClass* pTeam, int typeIndex, TargetSelection selection, bool wantEnemy)
+{
+	if (!pTeam || !pTeam->OwnerHouse)
+		return nullptr;
+
+	BuildingTypeClass* pType = BuildingTypeClass::Array->get_or_default(typeIndex);
+	if (!pType)
+		return nullptr;
+
+	HouseClass* const pOwner = pTeam->OwnerHouse;
+	CoordStruct teamPos { 0, 0, 0 };
+	if (pTeam->FirstUnit)
+		teamPos = pTeam->FirstUnit->GetCoords();
+
+	BuildingClass* best = nullptr;
+	long long bestScore = 0;
+	bool hasBest = false;
+
+	for (BuildingClass* pBuilding : *BuildingClass::Array)
+	{
+		if (!pBuilding || !pBuilding->IsAlive || pBuilding->InLimbo)
+			continue;
+		if (!pBuilding->Owner)
+			continue;
+		if (pType && pBuilding->GetType() != static_cast<ObjectTypeClass*>(pType))
+			continue;
+
+		const bool isOwn = (pBuilding->Owner == pOwner);
+		const bool isEnemy = (pBuilding->Owner->ArrayIndex == pOwner->EnemyHouseIndex);
+		if (wantEnemy ? !isEnemy : !isOwn)
+			continue;
+
+		long long score = 0;
+		switch (selection)
+		{
+		case TargetSelection::MinimumThreat:
+			score = -pBuilding->GetThreatValue();
+			break;
+		case TargetSelection::MaximumThreat:
+			score = pBuilding->GetThreatValue();
+			break;
+		case TargetSelection::Closest:
+		default:
+		{
+			const CoordStruct pos = pBuilding->GetCoords();
+			const long long dx = pos.X - teamPos.X;
+			const long long dy = pos.Y - teamPos.Y;
+			score = -(dx * dx + dy * dy);
+			break;
+		}
+		case TargetSelection::Farthest:
+		{
+			const CoordStruct pos = pBuilding->GetCoords();
+			const long long dx = pos.X - teamPos.X;
+			const long long dy = pos.Y - teamPos.Y;
+			score = dx * dx + dy * dy;
+			break;
+		}
+		}
+
+		if (!hasBest || score > bestScore)
+		{
+			bestScore = score;
+			best = pBuilding;
+			hasBest = true;
+		}
+	}
+
+	return best;
+}
+
+//Enemy camp: "Current enemy" pointed to by HouseClass::EnemyHouseIndex
+//(Original HouseClass+0x5600;= -1 means there are currently no enemies)
+static HouseClass* FindEnemyHouse(TeamClass* pTeam)
+{
+	if (!pTeam || !pTeam->OwnerHouse)
+		return nullptr;
+
+	const int enemyIdx = pTeam->OwnerHouse->EnemyHouseIndex;
+	HouseClass* pHouse = HouseClass::Array->get_or_default(enemyIdx);
+	if (!pHouse || pHouse->ArrayIndex != enemyIdx)
+		return nullptr; //The index is inconsistent with the instance (defense)
+
+	return pHouse;
+}
+
+static bool AllMembersInPosition(TeamClass* pTeam, CellClass* pTarget)
+{
+	if (!pTarget)
+		return false;
+
+	CoordStruct targetPos;
+	pTarget->GetCoords(&targetPos);
+	const CellStruct targetCell = CellClass::Coord2Cell(targetPos);
+
+	const int tolerance = RulesClass::Instance->Stray;
+
+	for (FootClass* pMember = pTeam->FirstUnit; pMember; pMember = pMember->NextTeamMember)
+	{
+		if (!pMember->IsAlive || pMember->Health <= 0 || pMember->InLimbo)
+			continue;
+
+		CoordStruct pos;
+		pMember->GetCoords(&pos);
+		const CellStruct memberCell = CellClass::Coord2Cell(pos);
+
+		const int dx = memberCell.X - targetCell.X;
+		const int dy = memberCell.Y - targetCell.Y;
+
+		int tolerance2 = tolerance;
+		if (pMember->WhatAmI() == AbstractType::Aircraft)
+			tolerance2 *= 2;
+
+		if (dx * dx + dy * dy > tolerance2 * tolerance2)
+			return false;
+	}
+
+	return true;
+}
+
+//The main direction of from → to is quantified as a 4-way grid offset (±1); when the same grid is used, it defaults to north
+static CellStruct CellDeltaToward(const CoordStruct& from, const CoordStruct& to)
+{
+	const int dx = to.X - from.X;
+	const int dy = to.Y - from.Y;
+	const int ax = dx < 0 ? -dx : dx;
+	const int ay = dy < 0 ? -dy : dy;
+
+	if (ax > ay)
+		return CellStruct { static_cast<short>(dx > 0 ? 1 : -1), 0 };
+	if (ay > 0)
+		return CellStruct { 0, static_cast<short>(dy > 0 ? 1 : -1) };
+	return CellStruct { 0, -1 };
+}
+
+//Cells near the building: the cell where the building is located + extrapolate the rangeCells cells toward the team.
+static CellStruct CellNearBuilding(BuildingClass* pBuilding, const CoordStruct& teamPos, int rangeCells)
+{
+	const CellStruct buildingCell = pBuilding->GetMapCoords();
+	if (rangeCells <= 0)
+		return buildingCell;
+
+	const CellStruct delta = CellDeltaToward(pBuilding->GetCoords(), teamPos);
+	return CellStruct {
+		static_cast<short>(buildingCell.X + delta.X * rangeCells),
+		static_cast<short>(buildingCell.Y + delta.Y * rangeCells) };
+}
+
+static bool TryGetEnemyBaseCell(HouseClass* pEnemy, CellStruct& outCell)
+{
+	if (!pEnemy)
+		return false;
+
+	const CellStruct center = pEnemy->BaseCenter;
+	if (center.X != 0 || center.Y != 0)
+	{
+		outCell = center;
+		return true;
+	}
+
+	int sumX = 0, sumY = 0, count = 0;
+	for (BuildingClass* pBuilding : *BuildingClass::Array)
+	{
+		if (!pBuilding || pBuilding->Owner != pEnemy)
+			continue;
+		if (!pBuilding->IsAlive || pBuilding->InLimbo)
+			continue;
+
+		const CellStruct cell = pBuilding->GetMapCoords();
+		sumX += cell.X;
+		sumY += cell.Y;
+		++count;
+	}
+
+	if (count == 0)
+		return false;
+
+	outCell = CellStruct { static_cast<short>(sumX / count), static_cast<short>(sumY / count) };
+	return true;
+}
+
+bool ScriptExtData::PatrolAI(FakeTeamClass* pTeam, CellStruct targetCell, bool fresh)
+{
+	if (!pTeam)
+		return false;
+
+	CellClass* pTarget = MapClass::Instance->GetCellAt(targetCell);
+	if (!pTarget || pTarget == MapClass::InvalidCell.operator->())
+		return false;
+
+	if (fresh)
+		pTeam->_AssignMissionTarget(pTarget);
+
+	if (!pTeam->ArchiveTarget)
+		pTeam->_AssignMissionTarget(pTarget);
+
+	const int dispatchPeriod = static_cast<int>(RulesClass::Instance->PatrolScan * 150.0);
+	if (dispatchPeriod > 0 && Unsorted::CurrentFrame() % dispatchPeriod == 0)
+	{
+		FootClass* pChosen = nullptr;
+		int bestScore = -1;
+
+		for (FootClass* pMember = pTeam->FirstUnit; pMember; pMember = pMember->NextTeamMember)
+		{
+			if (!pMember->IsAlive || pMember->Health <= 0)
+				continue;
+			if (!Unsorted::ScenarioInit() && pMember->InLimbo)
+				continue;
+
+			//Original filter conditions: alive /with health /(scene initializing || non-limbo) /(enlisted || aircraft)
+			const bool isAircraft = (pMember->WhatAmI() == AbstractType::Aircraft);
+			if (!pMember->IsTeamLeader && !isAircraft)
+				continue;
+
+			const int score = pMember->GetTechnoType()->LeadershipRating;
+			if (score > bestScore)
+			{
+				bestScore = score;
+				pChosen = pMember;
+			}
+		}
+
+		if (pChosen)
+		{
+			CoordStruct coords;
+			pChosen->GetCoords(&coords);
+			AbstractClass* pResult = pChosen->GreatestThreat(ThreatType::Range, &coords, false);
+			if (pResult)
+				pTeam->AssignMissionTarget(pResult);
+			else if (pTeam->ArchiveTarget != pTarget)
+				pTeam->_AssignMissionTarget(nullptr);
+		}
+	}
+	if (flag_cast_to<TechnoClass*>(pTeam->ArchiveTarget))
+	{
+		pTeam->_Coordinate_Attack();
+	}
+	else if (AllMembersInPosition(pTeam, pTarget))
+	{
+		ScriptClass* const pScript = pTeam->CurrentScript;
+		if (pScript && pScript->CurrentMission < pScript->Type->ActionsCount)
+		{
+			Debug::Log("[PT] completed, push to line %d\n", pScript->CurrentMission + 1);
+			pScript->CurrentMission += 1;
+			pTeam->_AssignMissionTarget(nullptr);
+			pTeam->StepCompleted = false;
+		}
+	}
+	else
+	{
+		pTeam->_CoordinateMove(); //Not in place: original driver members move/assemble
+	}
+
+	return true;
+}
+
+bool ScriptExtData::PatrolAIBuildingNearby(FakeTeamClass* pTeam, BuildingClass* pBuilding, int rangeCells, bool fresh)
+{
+	if (!pTeam || !pBuilding)
+		return false;
+	if (!pBuilding->IsAlive || pBuilding->InLimbo)
+		return false;
+
+	CoordStruct teamPos { 0, 0, 0 };
+	if (pTeam->FirstUnit)
+		teamPos = pTeam->FirstUnit->GetCoords();
+
+	return PatrolAI(pTeam, CellNearBuilding(pBuilding, teamPos, rangeCells), fresh);
+}
+
+bool ScriptExtData::PatrolAIRally(FakeTeamClass* pTeam, HouseClass* pHouse, bool fresh)
+{
+	if (!pTeam)
+		return false;
+
+	CellStruct baseCell;
+	if (!TryGetEnemyBaseCell(pHouse, baseCell))
+		return false;
+	return PatrolAI(pTeam, baseCell, fresh);
+}
+
+void ScriptExtData::PatrolToBuildingNearby(TeamClass* pTeam, int typeIndex, int selectionMode, bool fresh, bool wantEnemy)
+{
+	if (!pTeam->FirstUnit)
+	{
+		Debug::Log("[PT] skip(no member) type=%d sel=%d enemy=%d\n", typeIndex, selectionMode, wantEnemy);
+		return; //No members → keep StepCompleted, skip this article
+	}
+
+	BuildingClass* pTarget = FindTeamBuilding(
+		pTeam, typeIndex, static_cast<TargetSelection>(selectionMode & 0x3), wantEnemy);
+	if (!pTarget)
+	{
+		Debug::Log("[PT] skip(no target) type=%d sel=%d enemy=%d EHI=%d\n",
+			typeIndex, selectionMode, wantEnemy,
+			pTeam->OwnerHouse ? pTeam->OwnerHouse->EnemyHouseIndex : -999);
+		return; //No target building → Keep StepCompleted, skip this article
+	}
+
+	if (!PatrolAIBuildingNearby((FakeTeamClass*)pTeam, pTarget, 2, fresh))
+	{
+		Debug::Log("[PT] skip(AI fail) target=%s\n",
+			pTarget->GetTechnoType()->get_ID());
+		return; //The building is invalid /the target grid is invalid → keep StepCompleted and skip this article
+	}
+
+	if (fresh)
+	{
+		Debug::Log("[PT] patrolling to building %s (type=%d sel=%d enemy=%d)\n",
+			static_cast<TechnoTypeClass*>(pTarget->GetType())->get_ID(),
+			typeIndex, selectionMode, wantEnemy);
+	}
+
+	//Patrol in progress: stay in this action and wait for the completion of the position check.
+	//Landing point = building grid + offset 2 grids toward the team (to avoid the target grid being occupied by the building body, resulting in pathfinding/abnormal branches)
+	pTeam->StepCompleted = false;
+}
+
+void ScriptExtData::PatrolToRally(TeamClass* pTeam, bool fresh, bool wantEnemy)
+{
+	if (!pTeam->FirstUnit)
+	{
+		Debug::Log("[PT] skip(no member) rally enemy=%d\n", wantEnemy);
+		return; //No members → keep StepCompleted, skip this article
+	}
+
+	HouseClass* pHouse = wantEnemy ? FindEnemyHouse(pTeam) : pTeam->OwnerHouse;
+	if (!pHouse)
+	{
+		Debug::Log("[PT] skip(no house) rally enemy=%d EHI=%d\n",
+			wantEnemy, pTeam->OwnerHouse ? pTeam->OwnerHouse->EnemyHouseIndex : -999);
+		return; //There is no enemy camp (or our own side is invalid) → Keep StepCompleted and skip this article
+	}
+
+	if (!PatrolAIRally((FakeTeamClass*)pTeam, pHouse, fresh))
+	{
+		Debug::Log("[PT] skip(AI fail) rally house=%s\n", pHouse->get_ID());
+		return; //The camp has no base → keep StepCompleted and skip this article
+	}
+
+	if (fresh)
+	{
+		Debug::Log("[PT] patrolling to rally house=%s base=(%d,%d)\n",
+			pHouse->get_ID(), pHouse->BaseCenter.X, pHouse->BaseCenter.Y);
+	}
+
+	//Patrol in progress: stay in this action
+	pTeam->StepCompleted = false;
+}
+
+void ScriptExtData::ApplyAttachEffect(TeamClass* pTeam, int nameIndex, int durationOverride)
+{
+	auto IsEligibleMember = [](TechnoClass* pTechno)
+		{
+			return pTechno
+				&& pTechno->IsAlive
+				&& pTechno->Health > 0
+				&& pTechno->IsOnMap
+				&& !pTechno->InLimbo
+				&& !pTechno->Transporter;
+		};
+
+	auto pAE = PhobosAttachEffectTypeClass::FindFromIndexFix(nameIndex);
+	if (!pAE) {
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	int attached = 0;
+	AEAttachInfoTypeClass _Info { };
+
+	_Info.AttachTypes.push_back(pAE);
+	_Info.DurationOverrides.push_back(durationOverride);
+
+	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember) {
+		if (!IsEligibleMember(pUnit)) {
+			continue;
+		}
+
+		attached += PhobosAttachEffectClass::Attach(pUnit,
+			pTeam->OwnerHouse, nullptr, pTeam,&_Info,false , false);
+	}
+
+	Debug::Log("[AE] Script ApplyAttachEffect: team=[%s] effectKey=%d duration=%d -> attached=%d\n",
+		pTeam->Type ? pTeam->Type->get_ID() : "<none>", nameIndex, durationOverride, attached);
+
+	pTeam->StepCompleted = true;
+}
+
+void ScriptExtData::RemoveAttachEffect(TeamClass* pTeam, int nameIndex)
+{
+	auto IsEligibleMember = [](TechnoClass* pTechno)
+		{
+			return pTechno
+				&& pTechno->IsAlive
+				&& pTechno->Health > 0
+				&& pTechno->IsOnMap
+				&& !pTechno->InLimbo
+				&& !pTechno->Transporter;
+		};
+	auto pAE = PhobosAttachEffectTypeClass::FindFromIndexFix(nameIndex);
+	if (!pAE) {
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	int removed = 0;
+	AEAttachInfoTypeClass _Info { };
+	_Info.RemoveTypes.push_back(pAE);
+
+	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember) {
+		if (!IsEligibleMember(pUnit)) {
+			continue;
+		}
+
+		removed += PhobosAttachEffectClass::Detach(pUnit,&_Info);
+	}
+
+	Debug::Log("[AE] Script RemoveAttachEffect: team=[%s] effectKey=%d -> removed=%d\n",
+		pTeam->Type ? pTeam->Type->get_ID() : "<none>", nameIndex, removed);
+
+	pTeam->StepCompleted = true;
+}
+
+void ScriptExtData::RemoveAllAttachEffects(TeamClass* pTeam)
+{
+	auto IsEligibleMember = [](TechnoClass* pTechno)
+		{
+			return pTechno
+				&& pTechno->IsAlive
+				&& pTechno->Health > 0
+				&& pTechno->IsOnMap
+				&& !pTechno->InLimbo
+				&& !pTechno->Transporter;
+		};
+
+	int removed = 0;
+	AEAttachInfoTypeClass _Info { };
+	for (auto& _AllAE : PhobosAttachEffectTypeClass::Array) {
+		_Info.RemoveTypes.push_back(_AllAE.get());
+	}
+
+	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember) {
+		if (!IsEligibleMember(pUnit)) {
+			continue;
+		}
+
+		removed += PhobosAttachEffectClass::Detach(pUnit, &_Info);
+	}
+
+	Debug::Log("[AE] Script RemoveAllAttachEffects: team=[%s] -> removed=%d\n",
+		pTeam->Type ? pTeam->Type->get_ID() : "<none>", removed);
+	pTeam->StepCompleted = true;
+}
 
 void ScriptExtData::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLeader, AbstractClass* pTarget)
 {

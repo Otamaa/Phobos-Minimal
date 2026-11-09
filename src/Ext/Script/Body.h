@@ -2,6 +2,7 @@
 
 #include <ScriptClass.h>
 
+#include <Utilities/Enum.h>
 #include <Utilities/Container.h>
 #include <Utilities/PhobosFixedString.h>
 #include <Utilities/VectorHelper.h>
@@ -27,6 +28,7 @@ enum class BuildingWithProperty : unsigned int
 class HouseClass;
 class TeamClass;
 class FootClass;
+class FakeTeamClass;
 enum class PhobosScripts : int
 {
 	////https://github.com/FrozenFog/Phobos/commit/449074b15fc846b8545911447aea57fc2964c377
@@ -36,6 +38,35 @@ enum class PhobosScripts : int
 	RallyUnitWithSameGroup = 117,
 
 	ScatterAttack = 5503,
+
+	ScatterAttackByAITargetTypes = 5508,
+
+	PatrolToEnemyBuildingNearby = 5504,   
+	PatrolToEnemyRally = 5505,            
+	PatrolToFriendlyBuildingNearby = 5506,
+	PatrolToFriendlyRally = 5507,         
+
+	ApplyAttachEffect = 5509,     
+	RemoveAttachEffect = 5510,    
+	RemoveAllAttachEffects = 5511,
+
+	ChronoTeleportToWaypoint = 5512,
+
+	EnterMissionForDuration = 5513,
+
+	JumpToLineByLocalVariable = 5514,
+	JumpToLineByGlobalVariable = 5515,
+
+	WaitForLocalVariable = 5516,
+	WaitForGlobalVariable = 5517,
+
+	JumpToLineIfLocalVariableSet = 5518,
+	JumpToLineIfGlobalVariableSet = 5519,
+
+	JumpToLocalLineIfLocalSet = 5520,
+	JumpToGlobalLineIfGlobalSet = 5521,
+	JumpToLocalLineIfGlobalSet = 5522,
+	JumpToGlobalLineIfLocalSet = 5523,
 
 	// Range 10000-10999 are team (aka ingame) actions
 	// Sub-range 10000-10049 is for "attack" actions
@@ -263,6 +294,7 @@ public:
 	static void Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine, int count);
 	static void Stop_ForceJump_Countdown(TeamClass* pTeam);
 	static void ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance);
+	static void ChronoshiftToWaypoint(TeamClass* pTeam, int waypoint);
 	static void ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode);
 
 	static bool IsExtVariableAction(int action);
@@ -276,7 +308,10 @@ public:
 
 	// Mission_Attack.cpp
 	static void Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType, int IdxAITargetTypeItem);
-	static TechnoClass* GreatestThreat(TechnoClass* pTechno, int method, DistanceMode calcThreatMode, HouseClass* onlyTargetThisHouseEnemy, int attackAITargetType, int idxAITargetTypeItem, bool agentMode);
+	static TechnoClass* GreatestThreat(TechnoClass* pTechno, int method, DistanceMode calcThreatMode,
+	HouseClass* onlyTargetThisHouseEnemy = nullptr, int attackAITargetType = -1, int idxAITargetTypeItem = -1, bool agentMode = false,
+	const std::vector<TechnoClass*>* pExcludeTargets = nullptr, const std::vector<FootClass*>* pGroup = nullptr, const CoordStruct* pScoringOrigin = nullptr);
+
 	static bool EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attackAITargetType, int idxAITargetTypeItem, TechnoClass* pTeamLeader);
 	static void Mission_Attack_List(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType);
 	static void Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType);
@@ -340,6 +375,23 @@ public:
 	static void PlaySpeech(TeamClass* pTeam);
 	static bool Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bThirdArd);
 
+	static void JumpToLineByVariable(TeamClass* pTeam, int variableIndex, ScenarioVariableScope scope);
+	static void WaitForVariable(TeamClass* pTeam, int variableIndex, ScenarioVariableScope scope, bool fresh);
+	static void JumpToLineIfVariableSet(TeamClass* pTeam, int argument, ScenarioVariableScope scope);
+	static void JumpToVariableLineIfSet(TeamClass* pTeam, int argument, ScenarioVariableScope conditionScope, ScenarioVariableScope lineScope);
+	static void EnterMissionForDuration(TeamClass* pTeam, int argument, bool fresh, int nodeIndex);
+	static void PatrolToBuildingNearby(TeamClass* pTeam, int typeIndex, int selectionMode, bool fresh, bool wantEnemy);
+	static void PatrolToRally(TeamClass* pTeam, bool fresh, bool wantEnemy);
+	static void ApplyAttachEffect(TeamClass* pTeam, int nameIndex, int durationOverride);
+	static void RemoveAttachEffect(TeamClass* pTeam, int nameIndex);
+	static void RemoveAllAttachEffects(TeamClass* pTeam);
+
+public:
+
+static bool PatrolAI(FakeTeamClass* pTeam, CellStruct targetCell, bool fresh);
+static bool PatrolAIBuildingNearby(FakeTeamClass* pTeam, BuildingClass* pBuilding, int rangeCells, bool fresh);
+static bool PatrolAIRally(FakeTeamClass* pTeam, HouseClass* pHouse, bool fresh);
+
 public:
 	int ScatterAttackSelectionTimer {};
 	std::vector<HelperedVector<FootClass*>> ScatterAttackGroups {};
@@ -379,7 +431,7 @@ private:
 	static void ModifyCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine, double modifier);
 	static bool MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, FootClass* pLeader, int mode);
 	static void ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLeader, AbstractClass* pTarget);
-	static void Mission_ScatterAttack(TeamClass* pTeam);
+	static void Mission_ScatterAttack(TeamClass* pTeam, int attackAITargetType);
 	static ScriptActionNode GetSpecificAction(ScriptClass* pScript, int nIdx);
 
 private:

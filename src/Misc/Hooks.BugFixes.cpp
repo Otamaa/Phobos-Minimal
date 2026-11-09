@@ -2057,7 +2057,19 @@ ASMJIT_PATCH(0x4DFC39, FootClass_FindBioReactor_CheckValid, 0x6)
 	GET(FootClass*, pThis, ESI);
 	GET(BuildingClass*, pBuilding, EDI);
 
-	return pThis->IsInAir() || pThis->IsInSameZoneAs(pBuilding) ? 0 : R->Origin() + 0x6;
+	enum { SkipGameCode = 0x4DFC3F };
+
+	if (TechnoTypeExtContainer::Instance.Find(pBuilding->Type)->NoQueueUpToEnter.Get(
+		FakeRulesClass::Instance->NoQueueUpToEnter_Buildings.Get(FakeRulesClass::Instance->NoQueueUpToEnter)))
+	{
+		if (pBuilding->Type->Grinding)
+			return SkipGameCode;
+
+		if (BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->TunnelType)
+			return SkipGameCode;
+	}
+
+	return pThis->IsInAir() || pThis->IsInSameZoneAs(pBuilding) ? 0 : SkipGameCode;
 }
 
 ASMJIT_PATCH(0x4DFED2, FootClass_FindGarrisonStructure_CheckValid, 0x6)
@@ -2089,7 +2101,20 @@ ASMJIT_PATCH(0x4DFB28, FootClass_FindGrinder_CheckValid, 0x8)
 	GET(FootClass*, pThis, ESI);
 	GET(BuildingClass*, pBuilding, EBX);
 
-	return pThis->IsInAir() || pThis->IsInSameZoneAs(pBuilding) ? 0 : R->Origin() + 0x8;
+	enum { SkipGameCode = 0x4DFB30 };
+
+	if (TechnoTypeExtContainer::Instance.Find(pBuilding->Type)->NoQueueUpToEnter.Get(
+		FakeRulesClass::Instance->NoQueueUpToEnter_Buildings.Get(FakeRulesClass::Instance->NoQueueUpToEnter)))
+	{
+		if (pBuilding->Type->Grinding)
+			return SkipGameCode;
+
+		if (BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->TunnelType)
+			return SkipGameCode;
+	}
+
+
+	return pThis->IsInAir() || pThis->IsInSameZoneAs(pBuilding) ? 0 : SkipGameCode;
 }
 #endif
 

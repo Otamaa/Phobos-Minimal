@@ -142,9 +142,9 @@ void FakeParticleClass::__Gas_Wind()
 
 	// Calculate new position with drift and velocity
 	CoordStruct newPos {
-		.X = currentPos.X + this->GasVelocity.X + windX,
-		.Y = currentPos.Y + this->GasVelocity.Y + windY,
-		.Z = currentPos.Z + this->GasVelocity.Z + static_cast<int>(this->Velocity)
+		.X = currentPos.X + this->GasDrift.X + windX,
+		.Y = currentPos.Y + this->GasDrift.Y + windY,
+		.Z = currentPos.Z + this->GasDrift.Z + static_cast<int>(this->Speed)
 	};
 
 	// Check if gas particle is underwater at a bridge
@@ -161,16 +161,16 @@ void FakeParticleClass::__Fire_Coord_AI()
 {
 	CoordStruct currentPos = this->Location;
 	// Apply movement vector if particle has velocity
-	CoordStruct newPos = this->Velocity > 0.0f ? currentPos + this->Fire100 : currentPos;
+	CoordStruct newPos = this->Speed > 0.0f ? currentPos + this->FireMoveDelta : currentPos;
 
 	// Check if particle hit ground
-	if (this->Velocity > 0.0f) {
+	if (this->Speed > 0.0f) {
 		const int currentTerrainHeight = MapClass::Instance->GetZPos(&currentPos);
 		const int newTerrainHeight = MapClass::Instance->GetZPos(&newPos);
 
 		if (newTerrainHeight > currentTerrainHeight) {
 			// Hit ground - mark for removal
-			this->CoordChange = 1;
+			this->IsBelowGround = 1;
 			this->TimeToDelete = 1;
 		}
 	}
@@ -202,8 +202,8 @@ void FakeParticleClass::ApplyWindEffect(CoordStruct& pos)
 void FakeParticleClass::ApplySmokeDrift(CoordStruct& pos)
 {
 	// Apply accumulated drift
-	pos.X += static_cast<int>(this->SmokeVelocity.X);
-	pos.Y += static_cast<int>(this->SmokeVelocity.Y);
+	pos.X += static_cast<int>(this->GasVelocity.X);
+	pos.Y += static_cast<int>(this->GasVelocity.Y);
 
 	// Descend toward ground if above it
 	const int terrainHeight = MapClass::Instance->GetZPos(&pos);
@@ -217,7 +217,7 @@ void FakeParticleClass::ApplySmokeDrift(CoordStruct& pos)
 	}
 
 	// Apply gas drift
-	pos += this->GasVelocity;
+	pos += this->GasDrift;
 
 	// Ensure smoke stays above ground
 	const int newTerrainHeight = MapClass::Instance->GetZPos(&pos);
@@ -342,23 +342,23 @@ void  FakeParticleClass::ApplyVelocityWithJitter()
 {
 	// Calculate and apply velocity delta
 	const Vector3D<float> delta {
-		this->Spark10C.X * this->Velocity,
-		this->Spark10C.Y * this->Velocity,
-		this->Spark10C.Z * this->Velocity
+		this->MovementDirection.X * this->Speed,
+		this->MovementDirection.Y * this->Speed,
+		this->MovementDirection.Z * this->Speed
 	};
 
 	// Add small random perturbation to velocity (-0.05 to +0.05)
 	double rand = ScenarioClass::Instance->Random.RandomDoubleCentered();
-	this->Velocity += (rand * 0.1);
+	this->Speed += (rand * 0.1);
 
 	// Update accumulated position
-	this->vector3_118 += delta;
+	this->PrecisePosition += delta;
 
 	// Apply new coordinates
 	const CoordStruct newCoord {
-		static_cast<int>(this->vector3_118.X),
-		static_cast<int>(this->vector3_118.Y),
-		static_cast<int>(this->vector3_118.Z)
+		static_cast<int>(this->PrecisePosition.X),
+		static_cast<int>(this->PrecisePosition.Y),
+		static_cast<int>(this->PrecisePosition.Z)
 	};
 
 	this->SetLocation(newCoord);
@@ -450,11 +450,11 @@ void FakeParticleClass::ApplyRandomDrift()
 
 	if (driftInY)
 	{
-		this->GasVelocity.Y = std::clamp(this->GasVelocity.Y + drift, -5, 5);
+		this->GasDrift.Y = std::clamp(this->GasDrift.Y + drift, -5, 5);
 	}
 	else
 	{
-		this->GasVelocity.X = std::clamp(this->GasVelocity.X + drift, -5, 5);
+		this->GasDrift.X = std::clamp(this->GasDrift.X + drift, -5, 5);
 	}
 }
 
@@ -491,22 +491,22 @@ void FakeParticleClass::DecelerateIfNeeded()
 {
 	constexpr float DECEL_THRESHOLD = 3.0f;
 
-	if (this->Velocity > DECEL_THRESHOLD)
+	if (this->Speed > DECEL_THRESHOLD)
 	{
-		this->Velocity -= this->Type->Deacc;
+		this->Speed -= this->Type->Deacc;
 	}
 }
 
 void FakeParticleClass::AdvanceColorAnimation()
 {
 	const double random = ScenarioClass::Instance->Random.RandomDouble();
-	this->ColorSpeedResult += this->Type->ColorSpeed + (random * 0.05);
+	this->ColorAccum += this->Type->ColorSpeed + (random * 0.05);
 
-	if (this->ColorSpeedResult > 1.0)
+	if (this->ColorAccum > 1.0)
 	{
 		const bool isLastColor = this->RefCount >= this->Type->ColorList.Count - 2;
 		this->RefCount = isLastColor ? 0 : this->RefCount + 1;
-		this->ColorSpeedResult = isLastColor ? 1.0 : 0.0;
+		this->ColorAccum = isLastColor ? 1.0 : 0.0;
 	}
 }
 
@@ -574,21 +574,21 @@ void FakeParticleClass::UpdateFireMovement()
 
 	// Apply variation to direction vector and calculate velocity components
 	const Vector3D<double> variedDirection {
-		variationFactor * this->Spark10C.X,
-		variationFactor * this->Spark10C.Y,
-		variationFactor * this->Spark10C.Z
+		variationFactor * this->MovementDirection.X,
+		variationFactor * this->MovementDirection.Y,
+		variationFactor * this->MovementDirection.Z
 	};
 
 	// Update movement vector
-	this->Fire100.X = static_cast<int>(variedDirection.X * this->Velocity);
-	this->Fire100.Y = static_cast<int>(variedDirection.Y * this->Velocity);
-	this->Fire100.Z = static_cast<int>(variedDirection.Z * this->Velocity);
+	this->FireMoveDelta.X = static_cast<int>(variedDirection.X * this->Speed);
+	this->FireMoveDelta.Y = static_cast<int>(variedDirection.Y * this->Speed);
+	this->FireMoveDelta.Z = static_cast<int>(variedDirection.Z * this->Speed);
 }
 
 void FakeParticleClass::__Fire_AI() {
 	// Check if fire has burned out
-	if (this->Velocity <= 0.0f) {
-		this->Velocity = 0.0f;
+	if (this->Speed <= 0.0f) {
+		this->Speed = 0.0f;
 		this->TimeToDelete = 1; // Mark for deletion
 		return;
 	}
@@ -600,7 +600,7 @@ void FakeParticleClass::__Fire_AI() {
 	this->AdvanceAnimationState();
 
 	// Apply deceleration (fire dies down over time)
-	this->Velocity -= this->Type->Deacc;
+	this->Speed -= this->Type->Deacc;
 
 	// Apply damage to nearby units
 	this->ApplyFireDamage();
@@ -632,8 +632,8 @@ void FakeParticleClass::UpdateGasMovement()
 	const auto minDriftSpeedY = &pExt->Gas_DriftSpeedY.Get();
 
 	// Update and clamp gas movement vector
-	this->GasVelocity.X = std::clamp(this->GasVelocity.X + deltaX, maxDriftSpeedX->Min, maxDriftSpeedX->Max);
-	this->GasVelocity.Y = std::clamp(this->GasVelocity.Y + deltaY, minDriftSpeedY->Min, minDriftSpeedY->Max);
+	this->GasDrift.X = std::clamp(this->GasDrift.X + deltaX, maxDriftSpeedX->Min, maxDriftSpeedX->Max);
+	this->GasDrift.Y = std::clamp(this->GasDrift.Y + deltaY, minDriftSpeedY->Min, minDriftSpeedY->Max);
 }
 
 void FakeParticleClass::UpdateGasHeight()
@@ -641,9 +641,9 @@ void FakeParticleClass::UpdateGasHeight()
 	const int height = this->GetHeight();
 
 	if (height <= 5 || (Unsorted::CurrentFrame() % 2)) {
-		this->GasVelocity.Z = std::max(0, this->GasVelocity.Z);
+		this->GasDrift.Z = std::max(0, this->GasDrift.Z);
 	} else {
-		this->GasVelocity.Z = std::max(-5, this->GasVelocity.Z - 1);
+		this->GasDrift.Z = std::max(-5, this->GasDrift.Z - 1);
 	}
 }
 
@@ -746,13 +746,13 @@ void FakeParticleClass::__Smoke_AI() {
 
 	Vector3D<float> position = CoordToVector(this->Location);
 
-	this->SmokeVelocity.X = 0.0f;
-	this->SmokeVelocity.Y = 0.0f;
-	this->SmokeVelocity.Z = -2.0f - RulesClass::Instance->Gravity;
+	this->GasVelocity.X = 0.0f;
+	this->GasVelocity.Y = 0.0f;
+	this->GasVelocity.Z = -2.0f - RulesClass::Instance->Gravity;
 
 	// Calculate current and next positions
 	CoordStruct currentPos = this->Location;
-			     position += this->SmokeVelocity;
+			     position += this->GasVelocity;
 	CoordStruct nextPos = VectorToCoord(position);
 
 	// Get terrain height and cell info
@@ -858,7 +858,7 @@ void FakeParticleClass::__Smoke_AI() {
 
 	// Apply ramp matrix rotation if needed
 	if (needsMatrixRotation) {
-		ReflectOffSurface(nextPos, this->SmokeVelocity, this->SmokeVelocity);
+		ReflectOffSurface(nextPos, this->GasVelocity, this->GasVelocity);
 	}
 
 	// Update gas height based on particle height
@@ -899,7 +899,7 @@ void FakeParticleClass::ProcessGasMovement()
 	}
 
 	// Gas doesn't drift vertically
-	this->GasVelocity.Z = 0;
+	this->GasDrift.Z = 0;
 }
 
 void FakeParticleClass::__Gas_AI() {
@@ -922,11 +922,11 @@ void FakeParticleClass::__Spark_AI() {
 
 	Vector3D<float> position = CoordToVector(this->Location);
 
-	this->Spark10C.Z -= RulesClass::Instance->Gravity;
+	this->MovementDirection.Z -= RulesClass::Instance->Gravity;
 
 	// Calculate current and next positions
 	CoordStruct currentPos = this->Location;
-		position += this->Spark10C;
+		position += this->MovementDirection;
 	CoordStruct nextPos = VectorToCoord(position);
 
 	// Get terrain height and cell info
@@ -1042,7 +1042,7 @@ void FakeParticleClass::__Spark_AI() {
 
 	// Apply ramp matrix rotation if needed
 	if (needsMatrixRotation) {
-		ReflectOffSurface(nextPos, this->SmokeVelocity, this->SmokeVelocity);
+		ReflectOffSurface(nextPos, this->GasVelocity, this->GasVelocity);
 		this->TimeToDelete = true;
 	}
 

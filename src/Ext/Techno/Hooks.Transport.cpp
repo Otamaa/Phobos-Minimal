@@ -526,8 +526,9 @@ ASMJIT_PATCH(0x73DAD8, UnitClass_Mission_Unload_PassengerLeavePosition, 0x5)
 
 
 #pragma region BuildingEnterExtension
+#include <Ext/BuildingType/Body.h>
 
-ASMJIT_PATCH(0x51EE36, InfantryClass_MouseOvetObject_NoQueueUpToEnter, 0x5)
+ASMJIT_PATCH(0x51EE36, InfantryClass_MouseOverObject_NoQueueUpToEnter, 0x5)
 {
 	GET(ObjectClass*, pObject, ESI);
 	enum { NewAction = 0x51EE3B };
@@ -536,19 +537,27 @@ ASMJIT_PATCH(0x51EE36, InfantryClass_MouseOvetObject_NoQueueUpToEnter, 0x5)
 	{
 		const auto pType = pBuilding->Type;
 
-		if (pType->InfantryAbsorb
-			&& TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToEnter.Get(
-				FakeRulesClass::Instance->NoQueueUpToEnter_Buildings.Get(FakeRulesClass::Instance->NoQueueUpToEnter)))
+		if (TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToEnter.Get(
+			FakeRulesClass::Instance->NoQueueUpToEnter_Buildings.Get(FakeRulesClass::Instance->NoQueueUpToEnter)))
 		{
-			R->EBP(Action::Repair);
-			return NewAction;
+			if (pType->Passengers > 0)
+			{
+				R->EBP(Action::Repair);
+				return NewAction;
+			}
+
+			if (const auto pTunnel = BuildingTypeExtContainer::Instance.Find(pType)->TunnelType)
+			{
+				R->EBP(Action::Repair);
+				return NewAction;
+			}
 		}
 	}
 
 	return 0;
 }
 
-ASMJIT_PATCH(0x740375, UnitClass_MouseOvetObject_NoQueueUpToEnter, 0x5)
+ASMJIT_PATCH(0x740375, UnitClass_MouseOverObject_NoQueueUpToEnter, 0x5)
 {
 	GET(ObjectClass*, pObject, EDI);
 	enum { NewAction = 0x74037A };
@@ -557,12 +566,20 @@ ASMJIT_PATCH(0x740375, UnitClass_MouseOvetObject_NoQueueUpToEnter, 0x5)
 	{
 		const auto pType = static_cast<BuildingClass*>(pObject)->Type;
 
-		if (pType->UnitAbsorb
-			&& TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToEnter.Get(
-				FakeRulesClass::Instance->NoQueueUpToEnter_Buildings.Get(FakeRulesClass::Instance->NoQueueUpToEnter)))
+		if (TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToEnter.Get(
+			FakeRulesClass::Instance->NoQueueUpToEnter_Buildings.Get(FakeRulesClass::Instance->NoQueueUpToEnter)))
 		{
-			R->EBX(Action::Repair);
-			return NewAction;
+			if (pType->Passengers > 0)
+			{
+				R->EBP(Action::Repair);
+				return NewAction;
+			}
+
+			if (const auto pTunnel = BuildingTypeExtContainer::Instance.Find(pType)->TunnelType)
+			{
+				R->EBP(Action::Repair);
+				return NewAction;
+			}
 		}
 	}
 
@@ -576,11 +593,14 @@ ASMJIT_PATCH(0x73F63F, UnitClass_IsCellOccupied_NoQueueUpToEnter, 0x6)
 
 	const auto pType = pThis->Type;
 
-	if (pType->UnitAbsorb
-		&& TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToEnter.Get(
-			FakeRulesClass::Instance->NoQueueUpToEnter_Buildings.Get(FakeRulesClass::Instance->NoQueueUpToEnter)))
+	if (TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToEnter.Get(
+		FakeRulesClass::Instance->NoQueueUpToEnter_Buildings.Get(FakeRulesClass::Instance->NoQueueUpToEnter)))
 	{
-		return SkipGameCode;
+		if (pType->UnitAbsorb && pType->Passengers > 0)
+			return SkipGameCode;
+
+		if (const auto pTunnel = BuildingTypeExtContainer::Instance.Find(pType)->TunnelType)
+			return SkipGameCode;
 	}
 
 	return 0;
@@ -596,7 +616,7 @@ ASMJIT_PATCH(0x4DFC83, FootClass_EnterBioReactor_NoQueueUpToUnload, 0x6)
 		FakeRulesClass::Instance->NoQueueUpToEnter_Buildings.Get(FakeRulesClass::Instance->NoQueueUpToEnter))
 		? Mission::Eaten : Mission::Enter;
 
-	pThis->QueueMission(mission, false);
+	pThis->QueueMission(mission, true);
 	return SkipGameCode;
 }
 
@@ -617,25 +637,30 @@ ASMJIT_PATCH(0x519776, InfantryClass_UpdatePosition_NoQueueUpToEnter, 0x5)
 {
 	GET(InfantryClass*, pThis, ESI);
 	GET(BuildingClass*, pBuilding, EBX);
+
 	enum { EnterBuilding = 0x51A2AD, CannotEnter = 0x51A488 };
 
 	const auto pType = pBuilding->Type;
-	if (!pType->InfantryAbsorb)
-		return 0;
 
-	if (pType->Passengers > 0 || HouseExtData::GetTunnelVector(pBuilding->Type, pBuilding->Owner))
+	if (TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToEnter.Get(
+		FakeRulesClass::Instance->NoQueueUpToEnter_Buildings.Get(FakeRulesClass::Instance->NoQueueUpToEnter)))
 	{
-		if (pThis->SendCommand(RadioCommand::QueryCanEnter, pBuilding) == RadioCommand::AnswerPositive) {
-			if (const auto pTag = pBuilding->AttachedTag)
-				pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty);
+		if (BuildingTypeExtContainer::Instance.Find(pType)->TunnelType || pType->Passengers > 0)
+		{
+			if (pThis->SendCommand(RadioCommand::QueryCanEnter, pBuilding) == RadioCommand::AnswerPositive)
+			{
+				if (const auto pTag = pBuilding->AttachedTag)
+					pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty);
+
+				R->EBP(0);
+				R->EDI(pBuilding);
+				return EnterBuilding;
+			}
 
 			R->EBP(0);
-			R->EDI(pBuilding);
-			return EnterBuilding;
-		}
+			return CannotEnter;
 
-		R->EBP(0);
-		return CannotEnter;
+		}
 	}
 
 	return 0;
@@ -706,31 +731,36 @@ ASMJIT_PATCH(0x739FA2, UnitClass_UpdatePosition_NoQueueUpToEnter, 0x5)
 {
 	GET(UnitClass*, pThis, EBP);
 	GET(BuildingClass*, pBuilding, EBX);
+
 	enum { EnterBuilding = 0x73A28A, CannotEnter = 0x73A796, SkipGameCode = 0x73A315 };
 
 	const auto pType = pBuilding->Type;
-	if (!pType->UnitAbsorb)
-		return 0;
+	if (TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToEnter.Get(
+		FakeRulesClass::Instance->NoQueueUpToEnter_Buildings.Get(FakeRulesClass::Instance->NoQueueUpToEnter)))
+	{
+		if (BuildingTypeExtContainer::Instance.Find(pType)->TunnelType || pType->Passengers > 0)
+		{
+			if (pThis->SendCommand(RadioCommand::QueryCanEnter, pBuilding) == RadioCommand::AnswerPositive)
+			{
+				if (const auto pTag = pBuilding->AttachedTag)
+					pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty);
 
-	auto pTunnel = HouseExtData::GetTunnelVector(pBuilding->Type, pBuilding->Owner);
+				// This might fix a bug where hover vehicles enter tunnels.
+				FootExtContainer::Instance.Find(pThis)->ResetLocomotor = true;
 
-	if (pType->Passengers > 0 || pTunnel) {
-		if (pThis->SendCommand(RadioCommand::QueryCanEnter, pBuilding) == RadioCommand::AnswerPositive) {
-			if (const auto pTag = pBuilding->AttachedTag)
-				pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty);
+				if (BuildingTypeExtContainer::Instance.Find(pType)->TunnelType)
+				{
+					const auto pTunnelData = HouseExtData::GetTunnelVector(pBuilding->Type, pBuilding->Owner);
+					if (!pTunnelData)
+						return CannotEnter;
 
-			// This might fix a bug where hover vehicles enter tunnels.
-			TechnoExtContainer::Instance.Find(pThis)->ResetLocomotor = true;
+					HouseExtData::EnterTunnel(&pTunnelData->Vector, pBuilding, pThis);
+					return SkipGameCode;
+				}
 
-			if (pTunnel) 	{
-				HouseExtData::EnterTunnel(&pTunnel->Vector, pBuilding, pThis);
-				return SkipGameCode;
+				return EnterBuilding;
 			}
 
-			return EnterBuilding;
-		}
-		else
-		{
 			return CannotEnter;
 		}
 	}

@@ -1263,7 +1263,7 @@ void FakeParticleSystemClass::SetupRandomVelocity(ParticleClass* particle)
 		velocity *= oldmagnitude;
 	}
 
-	particle->Spark10C = velocity;
+	particle->MovementDirection = velocity;
 }
 
 void FakeParticleSystemClass::__Spark_AI()
@@ -1307,8 +1307,8 @@ void  FakeParticleSystemClass::TransitionToNextParticle(ParticleClass* oldPartic
 	this->Particles.push_back(newParticle);
 
 	// Inherit properties from old particle
-	newParticle->Velocity = oldParticle->Velocity;
-	newParticle->GasVelocity = oldParticle->GasVelocity;
+	newParticle->Speed = oldParticle->Speed;
+	newParticle->GasDrift = oldParticle->GasDrift;
 
 	// Inherit properties from old particle
 }
@@ -1341,7 +1341,7 @@ void FakeParticleSystemClass::SpawnChildParticle(ParticleClass* parent, Particle
 	this->Particles.push_back(child);
 
 	// Inherit properties from parent
-	child->Velocity = parent->Velocity;
+	child->Speed = parent->Speed;
 
 	// Add random translucency variation
 	const int translucencyBonus = ((ScenarioClass::Instance->Random.Random()) % 6 != 0) ? 25 : 0;
@@ -1390,7 +1390,7 @@ void FakeParticleSystemClass::SpawnSmokeParticles()
 		// Adjust velocity based on spawn delay
 		static constexpr float velocityReductionPerFrame = std::bit_cast<float>(0x3EB33333);
 		const float velocityReduction = (this->SpawnFrames - this->Type->SpawnFrames) * velocityReductionPerFrame;
-		particle->Velocity = std::max(2.0f, particle->Velocity - velocityReduction);
+		particle->Speed = std::max(2.0f, particle->Speed - velocityReduction);
 	}
 }
 
@@ -1696,12 +1696,12 @@ void FakeParticleSystemClass::SetupParticleVelocity(ParticleClass* particle, con
 		velocity.Z /= length;
 	}
 
-	particle->Spark10C = velocity;
+	particle->MovementDirection = velocity;
 
 	// Calculate velocity magnitude with perturbation
 	const float baseVelocity = particle->Type->Velocity;
 	const float velocityPert = this->CalculateVelocityPerturbation(progress);
-	particle->Velocity = baseVelocity + velocityPert;
+	particle->Speed = baseVelocity + velocityPert;
 }
 
 float FakeParticleSystemClass::CalculateVelocityPerturbation(float progress) const

@@ -56,6 +56,16 @@ public:
 	ScriptTypeClass* PreviousScript { nullptr };
 	std::vector<BuildingClass*> BridgeRepairHuts {};
 
+	std::vector<std::vector<FootClass*>> ScatterAttackGroups { };
+	int LastProcessedMission { -1 };
+
+	//The script line to which the timing action belongs, -1 means none
+	int TimedMissionNode { -1 };
+	//The remaining number of frames, participate in serialization; continue from here after reading the file
+	int TimedMissionLeft { };
+	// The last settlement frame does not participate in serialization; after reading the file, -1 is added, and the first frame only aligns the frame number
+	int TimedMissionLastFrame { };
+
 	PhobosLuaSlots LuaSlots {};
 #pragma endregion
 

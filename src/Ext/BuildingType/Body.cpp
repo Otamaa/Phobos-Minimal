@@ -162,27 +162,17 @@ int FakeBuildingTypeClass::__Repair_Cost()
 	if (this->Strength <= 0)
 		return 1;
 
-	int cost = this->GetCost();
+	const int cost = this->GetCost();
 
 	if (!cost)
 		return 1;
 
-	int nStep = RulesClass::Instance->RepairStep;
 	auto pTypeExt = this->_GetExtData();
 
-	if (pTypeExt->RepairStep.isset())
-		nStep = pTypeExt->RepairStep.Fetch();
+	const int nStep = MaxImpl(pTypeExt->RepairStep.Get(RulesClass::Instance->RepairStep), 1);
+	const double strengthRatio = MaxImpl(double(this->Strength) / double(nStep), 1.0);
 
-	if (nStep <= 0)
-		nStep = 1;
-
-	int calc = int((double(cost) / (double(this->Strength) / double(nStep))
-		* RulesClass::Instance->RepairPercent));
-
-	if (calc <= 0)
-		calc = 1;
-
-	return nStep;
+	return MaxImpl(int((double(cost) / strengthRatio) * RulesClass::Instance->RepairPercent), 1);
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE , 0x7E4620 , FakeBuildingTypeClass::__Repair_Cost)
