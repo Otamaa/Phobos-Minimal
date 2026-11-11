@@ -43,6 +43,21 @@
 #include <Ext/Team/Body.h>
 #include <Ext/Script/Body.h>
 
+MovementZone __fastcall astarmap_5889F0_getmovezone(MovementZone val1, MovementZone val2) { JMP_FAST(0x5889F0); }
+
+ASMJIT_PATCH(0x6F1FEF, TeamTypeClass_ProcessTaskForce_MovementZone, 0x7)
+{
+	GET(TeamTypeClass*, pTeamType, ESI);
+	GET(TechnoTypeClass*, pTechnoType, EAX);
+
+	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
+
+	for (const auto pPayloadType : pTechnoTypeExt->InitialPayload_Types)
+		pTeamType->MovementZone = astarmap_5889F0_getmovezone(pPayloadType->MovementZone, pTeamType->MovementZone);
+
+	return 0;
+}
+
 ASMJIT_PATCH(0x65DD4E, TeamTypeClass_CreateGroub_MissingOwner, 0x7)
 {
 	//GET(TeamClass*, pCreated, ESI);
