@@ -2860,6 +2860,8 @@ WeaponStruct* TechnoTypeExtData::GetWeaponStruct(TechnoTypeClass* pThis, int nWe
 template<typename T>
 void TechnoTypeExtData::Serialize(T& Stm) {
 	Stm
+		.Process(this->LinkedTechnoInstances)
+
 		.Process(this->Landing_Anim)
 		.Process(this->Landing_AnimOnWater)
 		.Process(this->HealthBar_Hide)

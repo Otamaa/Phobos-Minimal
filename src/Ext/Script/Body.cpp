@@ -4129,3 +4129,104 @@ void FakeScriptClass::__PointerExpired(AbstractClass* pAbstract, bool bremoved)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0FA0, FakeScriptClass::__PointerExpired)
+
+bool ScriptExtData::RequiresTargetReachability(const ScriptTypeClass* pScriptType)
+{
+	if (!pScriptType || pScriptType->ActionsCount <= 0
+		|| pScriptType->ActionsCount > static_cast<int>(std::size(pScriptType->ScriptActions)))
+		return true;
+
+	for (int i = 0; i < pScriptType->ActionsCount; ++i)
+	{
+		const auto& node = pScriptType->ScriptActions[i];
+
+		switch (static_cast<PhobosScripts>(node.Action))
+		{
+		case PhobosScripts::RepeatAttackCloser:
+		case PhobosScripts::SingleAttackCloser:
+		case PhobosScripts::RepeatAttackTypeCloser:
+		case PhobosScripts::SingleAttackTypeCloser:
+		case PhobosScripts::RandomAttackTypeCloser:
+		case PhobosScripts::RepeatAttackFarther:
+		case PhobosScripts::SingleAttackFarther:
+		case PhobosScripts::RepeatAttackTypeFarther:
+		case PhobosScripts::SingleAttackTypeFarther:
+		case PhobosScripts::RandomAttackTypeFarther:
+		case PhobosScripts::RepeatAttackCloserThreat:
+		case PhobosScripts::SingleAttackCloserThreat:
+		case PhobosScripts::RepeatAttackTypeCloserThreat:
+		case PhobosScripts::SingleAttackTypeCloserThreat:
+		case PhobosScripts::RepeatAttackFartherThreat:
+		case PhobosScripts::SingleAttackFartherThreat:
+		case PhobosScripts::RepeatAttackTypeFartherThreat:
+		case PhobosScripts::SingleAttackTypeFartherThreat:
+				return true;
+
+		case PhobosScripts::PickRandomScript:
+		case PhobosScripts::JumpBackToPreviousScript:
+			// The replacement script can introduce attacks or movement.
+			return true;
+
+		case PhobosScripts::MoveToEnemyCloser:
+		case PhobosScripts::MoveToTypeEnemyCloser:
+		case PhobosScripts::RandomMoveToTypeEnemyCloser:
+		case PhobosScripts::MoveToEnemyFarther:
+		case PhobosScripts::MoveToTypeEnemyFarther:
+		case PhobosScripts::RandomMoveToTypeEnemyFarther:
+		case PhobosScripts::MoveToFriendlyFarther:
+		case PhobosScripts::MoveToTypeFriendlyFarther:
+		case PhobosScripts::RandomMoveToTypeFriendlyFarther:
+			return true;
+		default:break;
+		};
+		switch (node.Action)
+		{
+		case TeamMissionType::Attack: // Attack target type
+		case TeamMissionType::Att_waypt: // Attack waypoint
+		case TeamMissionType::Move: // Move to waypoint
+		case TeamMissionType::Movecell: // Move to cell
+		case TeamMissionType::Spy: // Spy on building at waypoint
+		case TeamMissionType::Patrol: // Patrol to waypoint
+		case TeamMissionType::Attack_enemy_building: // Attack enemy building
+		case TeamMissionType::Moveto_enemy_building: // Move to enemy building
+		case TeamMissionType::Scout: // Scout
+		case TeamMissionType::Gather_at_enemy: // Gather at enemy base
+		case TeamMissionType::Attack_building_at_waypoint: // Attack building at waypoint
+			return true;
+
+		case TeamMissionType::Change_script: // Change script
+		case TeamMissionType::Change_team: // Change team
+			// The replacement script can introduce attacks or movement.
+			return true;
+
+		case TeamMissionType::Do: // Assign mission
+			switch (static_cast<Mission>(node.Argument))
+			{
+			case Mission::Attack:
+			case Mission::Move:
+			case Mission::QMove:
+			case Mission::Hunt:
+			case Mission::Patrol:
+			case Mission::AttackMove:
+				return true;
+			default:
+				break;
+			}
+			break;
+
+		default: break;
+		}
+	}
+
+	return false;
+}
+
+
+ASMJIT_PATCH(0x41FF00, AITriggerTypeClass_ConditionMet_ScriptReachability, 0x8)
+{
+	enum { ReturnTrue = 0x41FFC0 };
+
+	GET(TeamTypeClass*, pTeamType, EDI);
+
+	return ScriptExtData::RequiresTargetReachability(pTeamType->ScriptType) ? 0 : ReturnTrue;
+}

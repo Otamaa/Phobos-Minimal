@@ -156,6 +156,7 @@ struct ProductionData
 	std::vector<int> CreationFrames;
 	std::vector<int> Values;
 	std::vector<int> BestChoices;
+	std::vector<int> CandidateIndices;
 
 	bool Load(PhobosStreamReader& stm, bool registerForChange)
 	{
@@ -174,6 +175,7 @@ private:
 			.Process(this->CreationFrames)
 			.Process(this->Values)
 			.Process(this->BestChoices)
+			.Process(this->CandidateIndices)
 			.Success();
 	}
 };
@@ -322,8 +324,7 @@ public:
 	std::bitset<MaxHouseCount> StolenTech {};
 	IndexBitfield<HouseClass*> RadarPersist {};
 	std::array<Nullable<bool>, 3u> RepairBaseNodes {};
-	std::array<ProductionData, 3u> Productions {};
-
+	EnumArray<ProductionData, ProductionTypes , 3u> Productions {};
 	// ============================================================
 	// PhobosMap (likely contains std::unordered_map or similar)
 	// ============================================================

@@ -2717,7 +2717,7 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	for (auto pSuper : *SuperWeaponTypeClass::Array)
 	{
 		const auto pSuperExt = SWTypeExtContainer::Instance.Find(pSuper);
-		Nullable<MouseCursor> _Temp_MouseCursor {};
+		//Nullable<MouseCursor> _Temp_MouseCursor {};
 
 		{
 			//if (auto pNew = pSuperExt->GetNewSWType()) {
@@ -2745,6 +2745,18 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 					Helpers::Alex::remove_non_paradroppables(pVec.Types, pSuper->ID, "ParaDrop.Types");
 				}
 			}
+
+			for (auto* pType : pSuperExt->SW_Designators)
+				pSuperExt->RelevantTypes[pType] |= SWCategory::SW_Designator;
+
+			for (auto* pType : pSuperExt->SW_Attractors)
+				pSuperExt->RelevantTypes[pType] |= SWCategory::SW_Attractor;
+
+			for (auto* pType : pSuperExt->SW_Inhibitors)
+				pSuperExt->RelevantTypes[pType] |= SWCategory::SW_Inhibitor;
+
+			for (auto* pType : pSuperExt->SW_Suppressors)
+				pSuperExt->RelevantTypes[pType] |= SWCategory::SW_Suppressor;
 		}
 	}
 

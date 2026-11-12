@@ -1333,14 +1333,18 @@ void HouseExtData::GetUnitTypeToProduce()
 	if ((skipGround && skipNaval) || (!skipGround && this->UpdateHarvesterProduction()))
 		return;
 
-	auto& creationFrames = this->Productions[0].CreationFrames;
-	auto& values = this->Productions[0].Values;
-	auto& bestChoices = this->Productions[0].BestChoices;
+	auto& creationFrames = this->Productions[ProductionTypes::Unit].CreationFrames;
+	auto& values = this->Productions[ProductionTypes::Unit].Values;
+	auto& bestChoices = this->Productions[ProductionTypes::Unit].BestChoices;
 	auto& bestChoicesNaval = this->BestChoicesNaval;
+	auto& candidateIndices = this->Productions[ProductionTypes::Unit].CandidateIndices;
 
 	auto count = static_cast<size_t>(UnitTypeClass::Array->Count);
 	creationFrames.assign(count, 0x7FFFFFFF);
 	values.assign(count, 0);
+	candidateIndices.clear();
+	candidateIndices.reserve(count);
+
 	std::vector<TechnoTypeClass*> taskForceMembers;
 	taskForceMembers.reserve(UnitTypeClass::Array->Count);
 
@@ -1372,17 +1376,28 @@ void HouseExtData::GetUnitTypeToProduce()
 			const auto index = static_cast<size_t>(((UnitTypeClass*)currentMember)->ArrayIndex);
 			++values[index];
 
+			if (values[index] == 0)
+				candidateIndices.push_back(static_cast<int>(index));
+
 			if (teamCreationFrame < creationFrames[index])
 				creationFrames[index] = teamCreationFrame;
 		}
 	}
 
-	for (int i = 0; i < UnitClass::Array->Count; ++i)
-	{
-		const auto pUnit = UnitClass::Array->Items[i];
+	// The previous scan only touches types that are actually missing from a team.
+	// Sort them once so the following passes keep the original ascending type order.
+	std::sort(candidateIndices.begin(), candidateIndices.end());
 
-		if (values[pUnit->Type->ArrayIndex] > 0 && FakeFootClass::_IsRecruitable(pUnit, discard_t(), pThis))
-			--values[pUnit->Type->ArrayIndex];
+	for (const int typeIndex : candidateIndices) {
+		if (values[typeIndex] <= 0)
+			continue;
+
+		auto const type = UnitTypeClass::Array->Items[typeIndex];
+
+		for (auto const unit : TechnoTypeExtContainer::Instance.Find(type)->LinkedTechnoInstances) {
+			if (FakeFootClass::_IsRecruitable((UnitClass*)unit, discard_t(), pThis))
+				--values[typeIndex];
+		}
 	}
 
 	bestChoices.clear();
@@ -1395,7 +1410,7 @@ void HouseExtData::GetUnitTypeToProduce()
 	int earliestFrame = 0x7FFFFFFF;
 	int earliestFrameNaval = 0x7FFFFFFF;
 
-	for (auto i = 0u; i < count; ++i)
+	for (const int i : candidateIndices)
 	{
 		auto type = UnitTypeClass::Array->Items[static_cast<int>(i)];
 		int currentValue = values[i];
@@ -1464,9 +1479,10 @@ void HouseExtData::GetUnitTypeToProduce()
 
 int HouseExtData::GetAircraftTypeToProduce()
 {
-	auto& CreationFrames = this->Productions[1].CreationFrames;
-	auto& Values = this->Productions[1].Values;
-	auto& BestChoices = this->Productions[1].BestChoices;
+	auto& CreationFrames = this->Productions[ProductionTypes::Aircraft].CreationFrames;
+	auto& Values = this->Productions[ProductionTypes::Aircraft].Values;
+	auto& BestChoices = this->Productions[ProductionTypes::Aircraft].BestChoices;
+	auto& candidateIndices = this->Productions[ProductionTypes::Aircraft].CandidateIndices;
 
 	auto const count = static_cast<unsigned int>(AircraftTypeClass::Array->Count);
 	CreationFrames.assign(count, 0x7FFFFFFF);
@@ -1474,6 +1490,8 @@ int HouseExtData::GetAircraftTypeToProduce()
 	BestChoices.clear();
 	std::vector<TechnoTypeClass*> taskForceMembers;
 	taskForceMembers.reserve(AircraftTypeClass::Array->Count);
+	candidateIndices.clear();
+	candidateIndices.reserve(count);
 
 	//Debug::LogInfo(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] ", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
 	for (auto& CurrentTeam : *TeamClass::Array)
@@ -1506,20 +1524,28 @@ int HouseExtData::GetAircraftTypeToProduce()
 		}
 	}
 
-	for (auto classPos = AircraftClass::Array->begin(); classPos != AircraftClass::Array->end(); ++classPos)
-	{
-		auto const Idx = static_cast<unsigned int>((*classPos)->Type->ArrayIndex);
-		if (Values[Idx] > 0 && FakeFootClass::_IsRecruitable((*classPos), discard_t(), This()))
-		{
-			--Values[Idx];
+	// The previous scan only touches types that are actually missing from a team.
+	// Sort them once so the following passes keep the original ascending type order.
+	std::sort(candidateIndices.begin(), candidateIndices.end());
+
+	for (const int typeIndex : candidateIndices) {
+		if (Values[typeIndex] <= 0)
+			continue;
+
+		auto const type = AircraftTypeClass::Array->Items[typeIndex];
+
+		for (auto const unit : TechnoTypeExtContainer::Instance.Find(type)->LinkedTechnoInstances) {
+			if (FakeFootClass::_IsRecruitable((AircraftClass*)unit, discard_t(), this->This()))
+				--Values[typeIndex];
 		}
 	}
+
 
 	int BestValue = -1;
 	int EarliestTypenameIndex = -1;
 	int EarliestFrame = 0x7FFFFFFF;
 
-	for (auto i = 0u; i < count; ++i)
+	for (const int i : candidateIndices)
 	{
 		auto const TT = AircraftTypeClass::Array->Items[static_cast<int>(i)];
 
@@ -1567,9 +1593,10 @@ int HouseExtData::GetAircraftTypeToProduce()
 
 int HouseExtData::GetInfantryTypeToProduce()
 {
-	auto& CreationFrames = this->Productions[2].CreationFrames;
-	auto& Values = this->Productions[2].Values;
-	auto& BestChoices = this->Productions[2].BestChoices;
+	auto& CreationFrames = this->Productions[ProductionTypes::Infantry].CreationFrames;
+	auto& Values = this->Productions[ProductionTypes::Infantry].Values;
+	auto& BestChoices = this->Productions[ProductionTypes::Infantry].BestChoices;
+	auto& candidateIndices = this->Productions[ProductionTypes::Infantry].CandidateIndices;
 
 	auto const count = static_cast<unsigned int>(InfantryTypeClass::Array->Count);
 	CreationFrames.assign(count, 0x7FFFFFFF);
@@ -1609,12 +1636,22 @@ int HouseExtData::GetInfantryTypeToProduce()
 		}
 	}
 
-	for (auto classPos = InfantryClass::Array->begin(); classPos != InfantryClass::Array->end(); ++classPos)
+
+	// The previous scan only touches types that are actually missing from a team.
+	// Sort them once so the following passes keep the original ascending type order.
+	std::sort(candidateIndices.begin(), candidateIndices.end());
+
+	for (const int typeIndex : candidateIndices)
 	{
-		auto const Idx = static_cast<unsigned int>((*classPos)->Type->ArrayIndex);
-		if (Values[Idx] > 0 && FakeFootClass::_IsRecruitable((*classPos), discard_t(), This()))
+		if (Values[typeIndex] <= 0)
+			continue;
+
+		auto const type = InfantryTypeClass::Array->Items[typeIndex];
+
+		for (auto const unit : TechnoTypeExtContainer::Instance.Find(type)->LinkedTechnoInstances)
 		{
-			--Values[Idx];
+			if (FakeFootClass::_IsRecruitable((InfantryClass*)unit, discard_t(), this->This()))
+				--Values[typeIndex];
 		}
 	}
 
@@ -1622,7 +1659,7 @@ int HouseExtData::GetInfantryTypeToProduce()
 	int EarliestTypenameIndex = -1;
 	int EarliestFrame = 0x7FFFFFFF;
 
-	for (auto i = 0u; i < count; ++i)
+	for (const int i : candidateIndices)
 	{
 		auto const TT = InfantryTypeClass::Array->Items[static_cast<int>(i)];
 

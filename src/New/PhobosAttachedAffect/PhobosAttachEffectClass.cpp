@@ -1210,6 +1210,7 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(
 					currentSourceCount++;
 
 				if (!attachParams.CumulativeRefreshSameSourceOnly || attachEffect->IsFromSource(pInvoker, pSource)) {
+
 					cumulativeMatches->push_back(attachEffect);
 
 					if (!match || attachEffect->Duration < match->Duration)

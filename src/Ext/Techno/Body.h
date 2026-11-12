@@ -34,6 +34,13 @@ struct BurstFLHBundle;
 class FakeWeaponTypeClass;
 struct HijackerData;
 class RadBeam;
+class AircraftTypeClass;
+
+struct SpawnTypeCount
+{
+	AircraftTypeClass* Type;
+	int Count;
+};
 
 struct TintColors
 {
@@ -193,6 +200,7 @@ public:
 	HelperedVector<OnlyAttackStruct> OnlyAttackData {};
 	std::vector<RecoilData> ExtraTurretRecoil {};
 	std::vector<RecoilData> ExtraBarrelRecoil {};
+	HelperedVector<SpawnTypeCount> SpawnQueueCounts {};
 
 	// ============================================================
 	// Large aggregates: Maps
@@ -259,7 +267,7 @@ public:
 	int LastHurtFrame {};
 	int AttackMoveFollowerTempCount;
 	int JumpjetSpeed { 14 };
-
+	AutoDeathFlag AutoDeathSetFlag { AutoDeathFlag::Deactivated };
 	DWORD LastTargetID { 0xFFFFFFFF };
 
 	float HijackerVeterancy {};

@@ -103,6 +103,7 @@ public:
 	using base_type = TechnoTypeClass;
 
 public:
+	std::set<TechnoClass*> LinkedTechnoInstances { };
 
 #pragma region ClassMembers
 	Nullable<AnimTypeClass*> Landing_Anim {};

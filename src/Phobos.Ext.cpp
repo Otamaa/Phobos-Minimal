@@ -167,6 +167,12 @@ void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const rem
 	if(pInvalid->AbstractFlags & AbstractFlags::Techno) {
 		PhobosGlobal::PointerGotInvalid(pInvalid, removed);
 		HugeBar::InvalidatePointer(pInvalid, removed);
+		if(removed){
+			if(auto pType = TechnoTypeExtContainer::Instance.TryFind(((TechnoClass*)pInvalid)->GetTechnoType())) {
+				pType->LinkedTechnoInstances.erase((TechnoClass*)pInvalid);
+			}
+		}
+
 	} else if (pInvalid->AbstractFlags & AbstractFlags::Foot) {
 		PhobosExt::Global::PathfindFail.erase((FootClass*)pInvalid);
 	}

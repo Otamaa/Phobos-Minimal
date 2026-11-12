@@ -34,6 +34,20 @@
 #include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
+enum class AutoDeathFlag : int
+{
+	AlreadyDead = -1,
+	Deactivated = 0,
+	Kill = 1
+};
+enum class ProductionTypes : BYTE
+{
+	Unit = 0,
+	Aircraft = 1,
+	Infantry = 2,
+	count
+};
+
 enum class ScenarioVariableScope : BYTE
 {
 	Local = 0,
@@ -142,6 +156,17 @@ enum class FPSCounterMode : BYTE
 {
 	disabled, Full, FPSOnly, FPSandAVG, FPSandLat, Lat, count
 };
+
+enum class SWCategory : BYTE
+{
+	SW_None = 0,
+	SW_Designator = 1 << 0,
+	SW_Attractor = 1 << 1,
+	SW_Inhibitor = 1 << 2,
+	SW_Suppressor = 1 << 3
+};
+
+MAKE_ENUM_FLAGS(SWCategory);
 
 enum class AffectedSurvivor : BYTE
 {

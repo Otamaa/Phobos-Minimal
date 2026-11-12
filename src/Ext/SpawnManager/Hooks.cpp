@@ -83,22 +83,54 @@ ASMJIT_PATCH(0x6B6D44, SpawnManagerClass_Init_Spawns, 0x5)
 ASMJIT_PATCH(0x6B78D3, SpawnManagerClass_Update_Spawns, 0x6)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
+
+	auto pExt = TechnoExtContainer::Instance.Find(pThis->Owner);
 	auto const pTypeExt = GET_TECHNOTYPEEXT(pThis->Owner);
 
 	if (pTypeExt->Spawns_Queue.empty())
 		return 0;
 
-	std::vector<AircraftTypeClass*> vec = pTypeExt->Spawns_Queue;
+	pExt->SpawnQueueCounts.clear();
+	pExt->SpawnQueueCounts.reserve(static_cast<size_t>(pThis->SpawnedNodes.Count));
 
 	for (auto& pNode : pThis->SpawnedNodes) {
-		if (pNode->Unit) {
-			fast_remove_if(vec, [=](auto pType) { return pType == pNode->Unit->Type; });
-		}
+		if (!pNode->Unit)
+			continue;
+
+		auto const pType = pNode->Unit->Type;
+		auto const it = std::find_if(pExt->SpawnQueueCounts.begin(), pExt->SpawnQueueCounts.end(),
+			[pType](SpawnTypeCount const& item) { return item.Type == pType; });
+
+		if (it != pExt->SpawnQueueCounts.end())
+			++it->Count;
+		else
+			pExt->SpawnQueueCounts.emplace_back(pType, 1);
 	}
 
-	if (vec.empty() || !vec[0])
-		return 0;
+	for (auto const& pType : pTypeExt->Spawns_Queue) {
+		if (!pType) {
+			auto const nullIt = std::find_if(pExt->SpawnQueueCounts.begin(), pExt->SpawnQueueCounts.end(),
+				[](SpawnTypeCount const& item) { return !item.Type; });
 
-	R->EAX(vec[0]->CreateObject(pThis->Owner->GetOwningHouse()));
-	return 0x6B78EA;
+			if (nullIt != pExt->SpawnQueueCounts.end() && nullIt->Count > 0) {
+				--nullIt->Count;
+				continue;
+			}
+
+			return 0;
+		}
+
+		auto const it = std::find_if(pExt->SpawnQueueCounts.begin(), pExt->SpawnQueueCounts.end(),
+			[pType](SpawnTypeCount const& item) { return item.Type == pType; });
+
+		if (it != pExt->SpawnQueueCounts.end() && it->Count > 0) {
+			--it->Count;
+			continue;
+		}
+
+		R->EAX(pType->CreateObject(pThis->Owner->Owner));
+		return 0x6B78EA;
+	}
+
+	return 0;
 }

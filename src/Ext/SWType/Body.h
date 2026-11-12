@@ -490,6 +490,8 @@ public:
 	Nullable<int> DropshipLoadout_VeteranLevel {};
 #pragma endregion
 
+	std::unordered_map<TechnoTypeClass*, SWCategory> RelevantTypes { };
+
 public:
 
 	SWTypeExtData(SuperWeaponTypeClass* pObj);

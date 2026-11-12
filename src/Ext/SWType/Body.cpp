@@ -2764,6 +2764,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->DropshipLoadout_StartingDragDropSound)
 		.Process(this->DropshipLoadout_EndingDragDropSound)
 		.Process(this->DropshipLoadout_VeteranLevel)
+		.Process(this->RelevantTypes)
 		;
 
 }

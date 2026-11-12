@@ -4,6 +4,7 @@
 
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ext/TechnoType/Body.h>
 
 #include "SonarPulse.h"
 #include "UnitDelivery.h"
@@ -517,109 +518,185 @@ std::unique_ptr<TargetingData> SWTypeHandler::GetTargetingData(SWTypeExtData* pD
 #else //loop for each techno and check if it is a designator, attractor, inhibitor or suppressor
 	// for some reason single pass loop will gave different result than the multi pass loop
 
-	if ((!pData->SW_Designators.empty() || pData->SW_AnyDesignator))
+	pResult->NeedsDesignator =
+		!pData->SW_Designators.empty() || pData->SW_AnyDesignator;
+
+	pResult->NeedsAttractors =
+		!pData->SW_Attractors.empty() || pData->SW_AnyAttractor;
+
+	pResult->NeedsInhibitors =
+		!pData->SW_Inhibitors.empty() || pData->SW_AnyInhibitor;
+
+	pResult->NeedsSupressors =
+		!pData->SW_Suppressors.empty() || pData->SW_AnySuppressor;
+
+	// Candidate category flags.
+	struct SWCandidate
 	{
-		pResult->NeedsDesignator = true;
+		TechnoClass* Instance = nullptr;
 
-		for (auto const& pTechno : *TechnoClass::Array) {
-			if (this->IsDesignator(pData, pOwner, pTechno))
+		bool Designator = false;
+		bool Attractor = false;
+		bool Inhibitor = false;
+		bool Suppressor = false;
+	};
+
+	if (pResult->NeedsDesignator
+		|| pResult->NeedsAttractors
+		|| pResult->NeedsInhibitors
+		|| pResult->NeedsSupressors)
+	{
+		std::vector<SWCandidate> Candidates;
+		std::unordered_map<TechnoClass*, size_t> CandidateLookup;
+
+		// Collect candidates and merge duplicate category memberships.
+		auto AddCandidate = [&](TechnoClass* pTechno, auto category)
 			{
-				// get the designator's center
-				auto center = pTechno->GetCoords();
-				if (auto pBuilding = cast_to<BuildingClass*, false>(pTechno))
-				{
-					center = BuildingExtData::GetCenterCoords(pBuilding);
+				if (!pTechno)
+					return;
+
+				auto [it, inserted] = CandidateLookup.try_emplace(
+					pTechno, Candidates.size()
+				);
+
+				if (inserted) {
+					Candidates.emplace_back();
+					Candidates.back().Instance = pTechno;
 				}
 
-				const auto pType = GET_TECHNOTYPE(pTechno);
-				const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
-				auto const range = pExt->DesignatorRange.Get(FakeTechnoClass::_GetSight(pTechno));
+				category(Candidates[it->second]);
+			};
 
-				if (range > 0)
-				{
-					pResult->Designators.emplace_back(range * range, CellClass::Coord2Cell(center));
-				}
+		// Collect from relevan types.
+		for (const auto& types : pData->RelevantTypes) {
+			const auto pExt = TechnoTypeExtContainer::Instance.Find(types.first);
+
+			for (auto* pTechno : pExt->LinkedTechnoInstances) {
+				AddCandidate(pTechno, [types](auto& candidate)  {
+					candidate.Suppressor |= ((types.second & SWCategory::SW_Suppressor) != SWCategory::SW_None);
+					candidate.Inhibitor |= ((types.second & SWCategory::SW_Inhibitor) != SWCategory::SW_None);
+					candidate.Attractor |= ((types.second & SWCategory::SW_Attractor) != SWCategory::SW_None);
+					candidate.Designator |= ((types.second & SWCategory::SW_Designator) != SWCategory::SW_None);
+				});
 			}
 		}
-	}
 
-	if ((!pData->SW_Attractors.empty() || pData->SW_AnyAttractor))
-	{
-		pResult->NeedsAttractors = true;
-
-		for (auto const& pTechno : *TechnoClass::Array)
+		// Handle unrestricted category searches.
+		// These require the global array because any TechnoType can qualify.
+		if (pData->SW_AnyDesignator
+			|| pData->SW_AnyAttractor
+			|| pData->SW_AnyInhibitor
+			|| pData->SW_AnySuppressor)
 		{
-			if (this->IsAttractor(pData, pOwner, pTechno))
+			TechnoClass::Array->for_each([&](TechnoClass* pTechno)
 			{
-				// get the designator's center
-				auto center = pTechno->GetCoords();
-				if (auto pBuilding = cast_to<BuildingClass*, false>(pTechno))
-				{
-					center = BuildingExtData::GetCenterCoords(pBuilding);
-				}
-
-				const auto pType = GET_TECHNOTYPE(pTechno);
-				const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
-				auto const range = pExt->AttractorRange.Get(FakeTechnoClass::_GetSight(pTechno));
-
-				if (range > 0)
-				{
-					pResult->Attractors.emplace_back(range * range, CellClass::Coord2Cell(center));
-				}
-			}
+					AddCandidate(pTechno, [&](auto& candidate)
+					{
+								candidate.Designator |= pData->SW_AnyDesignator;
+								candidate.Attractor |= pData->SW_AnyAttractor;
+								candidate.Inhibitor |= pData->SW_AnyInhibitor;
+								candidate.Suppressor |= pData->SW_AnySuppressor;
+					});
+			});
 		}
-	}
 
-	if (!pData->SW_Inhibitors.empty() || pData->SW_AnyInhibitor)
-	{
-		pResult->NeedsInhibitors = true;
-
-		for (auto const& pTechno : *TechnoClass::Array)
+		// Evaluate each unique candidate only once.
+		for (auto const& candidate : Candidates)
 		{
-			if (this->IsInhibitor(pData, pOwner, pTechno))
+			auto* pTechno = candidate.Instance;
+
+			if (!pTechno)
+				continue;
+
+			// Evaluate applicable categories.
+			const bool isDesignator =
+				candidate.Designator
+				&& this->IsDesignator(pData, pOwner, pTechno);
+
+			const bool isAttractor =
+				candidate.Attractor
+				&& this->IsAttractor(pData, pOwner, pTechno);
+
+			const bool isInhibitor =
+				candidate.Inhibitor
+				&& this->IsInhibitor(pData, pOwner, pTechno);
+
+			const bool isSuppressor =
+				candidate.Suppressor
+				&& this->IsSuppressor(pData, pOwner, pTechno);
+
+			if (!isDesignator && !isAttractor
+				&& !isInhibitor && !isSuppressor)
 			{
-				// get the inhibitor's center
-				auto center = pTechno->GetCoords();
-				if (auto pBuilding = cast_to<BuildingClass*, false>(pTechno))
-				{
-					center = BuildingExtData::GetCenterCoords(pBuilding);
-				}
-
-				const auto pType = GET_TECHNOTYPE(pTechno);
-				const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
-				auto const range = pExt->InhibitorRange.Get(pType->Sight);
-
-				if (range > 0)
-				{
-					pResult->Inhibitors.emplace_back(range * range, CellClass::Coord2Cell(center));
-				}
+				continue;
 			}
-		}
-	}
 
-	if (!pData->SW_Suppressors.empty() || pData->SW_AnySuppressor)
-	{
-		pResult->NeedsSupressors = true;
+			const auto pType = GET_TECHNOTYPE(pTechno);
+			const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-		for (auto const& pTechno : *TechnoClass::Array)
-		{
-			if (this->IsSuppressor(pData, pOwner, pTechno))
+			// Calculate shared properties once.
+			auto center = pTechno->GetCoords();
+
+			if (auto pBuilding = cast_to<BuildingClass*, false>(pTechno))
 			{
-				// get the inhibitor's center
-				auto center = pTechno->GetCoords();
-				if (auto pBuilding = cast_to<BuildingClass*, false>(pTechno))
-				{
-					center = BuildingExtData::GetCenterCoords(pBuilding);
-				}
+				center = BuildingExtData::GetCenterCoords(pBuilding);
+			}
 
-				const auto pType = GET_TECHNOTYPE(pTechno);
-				const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
-				auto const range = pExt->SuppressorRange.Get(FakeTechnoClass::_GetSight(pTechno));
+			const auto thecenter = CellClass::Coord2Cell(center);
+			const auto sightrange = FakeTechnoClass::_GetSight(pTechno);
+
+			// Designator.
+			if (isDesignator)
+			{
+				const auto range =
+					pExt->DesignatorRange.Get(
+						sightrange
+					);
 
 				if (range > 0)
-				{
-					pResult->Suppressors.emplace_back(range * range, CellClass::Coord2Cell(center));
-				}
+					pResult->Designators.emplace_back(
+						range * range, thecenter
+					);
+			}
+
+			// Attractor.
+			if (isAttractor)
+			{
+				const auto range =
+					pExt->AttractorRange.Get(
+						sightrange
+					);
+
+				if (range > 0)
+					pResult->Attractors.emplace_back(
+						range * range, thecenter
+					);
+			}
+
+			// Inhibitor.
+			if (isInhibitor)
+			{
+				const auto range =
+					pExt->InhibitorRange.Get(sightrange);
+
+				if (range > 0)
+					pResult->Inhibitors.emplace_back(
+						range * range, thecenter
+					);
+			}
+
+			// Suppressor.
+			if (isSuppressor)
+			{
+				const auto range =
+					pExt->SuppressorRange.Get(
+						sightrange
+					);
+
+				if (range > 0)
+					pResult->Suppressors.emplace_back(
+						range * range, thecenter
+					);
 			}
 		}
 	}

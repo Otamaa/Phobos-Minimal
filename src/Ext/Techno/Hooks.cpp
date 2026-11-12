@@ -52,6 +52,8 @@ void TechnoExtData::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 
 		TechnoExtData::InitializeLaserTrail(pThis, false);
 	}
+
+	pTypeExt->LinkedTechnoInstances.insert(pThis);
 }
 
 // Skip vanilla animation counter code in 

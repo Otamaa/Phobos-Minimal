@@ -32,6 +32,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <EnumArray.h>
 
 namespace Savegame
 {
@@ -889,6 +890,47 @@ namespace Savegame
 			}
 
 			return 	Stm.RegisterChange(&Value);
+		}
+	};
+
+	template <typename T, typename enum_, size_t count>
+	struct Savegame::PhobosStreamObject<EnumArray<T, enum_, count>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, EnumArray<T, enum_, count>& Value, bool RegisterForChange) const
+		{
+			int Count = 0;
+			if (!Savegame::ReadPhobosStream(Stm, Count, RegisterForChange))
+				return false;
+
+			const int acceptedSize = (int)count;
+
+			//not valid
+			if (Count != acceptedSize)
+				return false;
+
+			for (auto ix = 0; ix < Count; ++ix) {
+				if (!Savegame::ReadPhobosStream(Stm, Value[ix], RegisterForChange)) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const EnumArray<T, enum_, count>& Value) const
+		{
+			//safeguard
+			int Count = (int)count;
+			if (!Savegame::WritePhobosStream(Stm, Count))
+				return false;
+
+			for (auto ix = 0; ix < Count; ++ix) {
+				if (!Savegame::WritePhobosStream(Stm, Value[ix])) {
+					return false;
+				}
+			}
+
+			return true;
 		}
 	};
 

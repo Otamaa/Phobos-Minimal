@@ -240,6 +240,9 @@ enum class PhobosScripts : int
 
 	SimpleDeployerDeploy = 19000,
 
+	// Range 19000-19999 are vanilla equivalent but ID-based actions
+	// these are not real actions
+	// but rather way to call the vanilla actions by ID instead of by index which may shifted from mod to mod 
 	ChangeToScriptByID = 19017,
 	ChangeToTeamTypeByID = 19018,
 	ChangeToHouseByID = 19020,
@@ -385,6 +388,8 @@ public:
 	static void ApplyAttachEffect(TeamClass* pTeam, int nameIndex, int durationOverride);
 	static void RemoveAttachEffect(TeamClass* pTeam, int nameIndex);
 	static void RemoveAllAttachEffects(TeamClass* pTeam);
+
+	static bool RequiresTargetReachability(const ScriptTypeClass* pScriptType);
 
 public:
 

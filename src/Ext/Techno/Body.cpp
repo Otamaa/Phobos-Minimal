@@ -397,6 +397,7 @@ void TechnoExtData::Serialize(T& Stm)
 	debugProcess(this->ForceFullRearmDelay, "ForceFullRearmDelay");
 	debugProcess(this->AttackMoveFollowerTempCount, "AttackMoveFollowerTempCount");
 	debugProcess(this->JumpjetSpeed, "JumpjetSpeed");
+	debugProcess(this->AutoDeathSetFlag, "AutoDeathSetFlag");
 	debugProcess(this->OnlyAttackData, "OnlyAttackData");
 	debugProcess(this->IsSelected, "IsSelected");
 	debugProcess(this->UndergroundTracked, "UndergroundTracked");
@@ -416,6 +417,7 @@ void TechnoExtData::Serialize(T& Stm)
 	debugProcess(this->CanFireWeaponType, "CanFireWeaponType");
 	debugProcess(this->ExtraTurretRecoil, "ExtraTurretRecoil");
 	debugProcess(this->ExtraBarrelRecoil, "ExtraBarrelRecoil");
+	debugProcess(this->SpawnQueueCounts, "SpawnQueueCounts");
 	debugProcess(this->OnParachuted, "OnParachuted");
 	debugProcess(this->HoverShutdown, "HoverShutdown");
 	debugProcess(this->HasDeployConvertedInCurrentSequence, "HasDeployConvertedInCurrentSequence");
@@ -5042,6 +5044,9 @@ bool NOINLINE TechnoExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* 
 
 	const auto pToTypeExt = TechnoTypeExtContainer::Instance.Find(pToType);
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	pOldTypeExt->LinkedTechnoInstances.erase(pThis);
+	pToTypeExt->LinkedTechnoInstances.insert(pThis);
 
 	HouseClass* const pOwner = pThis->Owner;
 
@@ -12157,7 +12162,7 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 {
 	if (!pThis || deathOption == KillMethod::None || !pThis->IsAlive)
 		return;
-
+	
 	if (auto pBld = cast_to<BuildingClass*, false>(pThis)) {
 		auto pBldExt = BuildingExtContainer::Instance.Find(pBld);
 
@@ -12363,9 +12368,14 @@ bool TechnoExtData::CheckDeathConditions()
 		isInLimbo = true;
 	}
 
-	if (this->ShouldBeDead) { //someone cursed this
+	if (this->ShouldBeDead || this->AutoDeathSetFlag == AutoDeathFlag::Kill) { //someone cursed this
 		TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
 		return true;
+	}
+
+	// Already checked and no need to be killed by owner conditions
+	if (this->AutoDeathSetFlag == AutoDeathFlag::AlreadyDead) {
+		return false;
 	}
 
 	const bool Any = pTypeExt->AutoDeath_ContentIfAnyMatch;
@@ -14305,6 +14315,7 @@ TechnoExtData::~TechnoExtData()
 	auto pOwnerExt = pOwner->_GetExtData();
 
 	ScenarioExtData::Instance()->LimboLaunchers.erase(pThis);
+	pTypeExt->LinkedTechnoInstances.erase(pThis);
 
 	if (this->UndergroundTracked)
 		ScenarioExtData::Instance()->UndergroundTracker.erase(pThis);

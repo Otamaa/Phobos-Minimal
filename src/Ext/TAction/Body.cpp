@@ -34,6 +34,7 @@
 #include <Ext/TeamType/Body.h>
 #include <Ext/TaskForce/Body.h>
 #include <Ext/ScriptType/Body.h>
+#include <Ext/TechnoType/Body.h>
 
 #include <TagTypeClass.h>
 #include <WaypointPathClass.h>
@@ -659,7 +660,7 @@ bool TActionExtData::UndeployToWaypoint(TActionClass* pThis, HouseClass* pHouse,
 
 	// Thanks to chaserli for the relevant code!
 	// There should be a more perfect way to do this, but I don't know how.
-	auto canUndeploy = [pThis, pTrigger, allBuilding, allHouse, pBuildingType, vHouse](BuildingClass* pBuilding)
+	auto canUndeploy = [pThis, pTrigger, allBuilding, allHouse, pBuildingType, vHouse](BuildingClass* pBuilding, const bool isConYard)
 		{
 			auto const pType = pBuilding->Type;
 
@@ -671,11 +672,11 @@ bool TActionExtData::UndeployToWaypoint(TActionClass* pThis, HouseClass* pHouse,
 				return false;
 			}
 
-			if (pType->ConstructionYard)
-			{
-				// Conyards can't undeploy if MCVRedeploy=no
-				if (!GameModeOptionsClass::Instance->MCVRedeploy)
-					return false;
+			if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1) {
+				return false;
+			}
+
+			if (isConYard) {
 				// or MindControlledBy YURIX (why? for balance?)
 				if (!FakeRulesClass::Instance()->AllowDeployControlledMCV && pBuilding->MindControlledBy)
 					return false;
@@ -684,17 +685,39 @@ bool TActionExtData::UndeployToWaypoint(TActionClass* pThis, HouseClass* pHouse,
 			return true;
 		};
 
-	for (const auto pBld : *BuildingClass::Array)
-	{
-		if (!canUndeploy(pBld))
-			continue;
+	auto executeUndeploy = [canUndeploy, pCell](BuildingTypeClass* pType)
+		{
+			const bool isConYard = pType->ConstructionYard;
 
-		// Why does having this allow it to undeploy?
-		// Why don't vehicles move when waypoints are placed off the map?
-		const auto old = std::exchange(VocClass::VoicesEnabled(), false);
-		pBld->SetArchiveTarget(pCell);
-		pBld->Sell(true);
-		VocClass::VoicesEnabled = old;
+			// Conyards can't undeploy if MCVRedeploy=no
+			if (isConYard && !GameModeOptionsClass::Instance->MCVRedeploy)
+				return;
+
+			for (const auto pTechno : TechnoTypeExtContainer::Instance.Find(pType)->LinkedTechnoInstances)
+			{
+				const auto pBuilding = static_cast<BuildingClass*>(pTechno);
+
+				if (!canUndeploy(pBuilding, isConYard))
+					continue;
+
+				// Why does having this allow it to undeploy?
+				// Why don't vehicles move when waypoints are placed off the map?
+
+				const bool old = std::exchange(VocClass::VoicesEnabled(), false);
+				pBuilding->SetArchiveTarget(pCell);
+				pBuilding->Sell(true);
+				VocClass::VoicesEnabled = old;
+			}
+		};
+
+	if (pBuildingType) {
+		executeUndeploy(pBuildingType);
+	} else {
+		for (const auto pType : *BuildingTypeClass::Array)
+		{
+			if (pType->UndeploysInto)
+				executeUndeploy(pType);
+		}
 	}
 
 	return true;
