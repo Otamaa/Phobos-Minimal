@@ -2910,55 +2910,6 @@ InfantryTypeClass* FakeBuildingClass::__GetCrew()
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E41C8, FakeBuildingClass::__GetCrew)
 DEFINE_FUNCTION_JUMP(LJMP, 0x44EB10, FakeBuildingClass::__GetCrew)
-
-int FakeBuildingClass::__GetPower()
-{
-	if (!this->HasPower || this->IsUnderEMP() || this->IsBeingWarpedOut() || this->EMPLockRemaining > 0)
-		return 0;
-
-	int powerInitial  = this->Type->PowerBonus;
-
-	if(this->IsOverpowered) {
-		powerInitial += this->Type->ExtraPowerBonus;
-	}
-
-	if(this->Absorber()){
-		for (auto pPas = this->Passengers.GetFirstPassenger();
-			pPas;
-			pPas = flag_cast_to<FootClass*>(pPas->NextObject))
-		{
-
-			powerInitial += Math::abs(GET_TECHNOTYPEEXT(pPas)
-				->ExtraPower_Amount.Get(this->Type->ExtraPowerBonus));
-		}
-	}
-
-	const auto pOwner = this->Owner;
-	auto [power, extraPower] = PowerPlantEnhancerClass::GetEnhancedPower(this->Type, powerInitial, pOwner);
-
-	if (this->UpgradeLevel) {
-		for (const auto pUpgrade : this->Upgrades) {
-			if (pUpgrade) {
-				const auto&[upgradePower, extraUpgradePower] = PowerPlantEnhancerClass::GetEnhancedPower(pUpgrade, pUpgrade->PowerBonus, pOwner);
-				power += upgradePower;
-				extraPower += extraUpgradePower;
-			}
-		}
-	}
-
-	auto pTypeExt = this->_GetTypeExtData();
-	if((power + extraPower) > 0 && pTypeExt->Power_DegradeWithHealth.Get()){
-		const double factor = pTypeExt->PowerPlant_DamageFactor;
-
-		if (factor == 1.0)
-			power = static_cast<int>(power * this->GetHealthRatio());
-		else if (factor != 0.0)
-			power = MaxImpl(static_cast<int>(power * (1.0 - factor + factor * this->GetHealthRatio())), 0);
-	}
-
-	return power + extraPower;
-}
-
 DEFINE_FUNCTION_JUMP(LJMP, 0x44E7B0, FakeBuildingClass::__GetPower);
 
 

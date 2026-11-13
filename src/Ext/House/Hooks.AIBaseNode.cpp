@@ -1,6 +1,32 @@
 #include "Body.h"
 
+#include <Ext/Rules/Body.h>
+#include <Ext/Building/Body.h>
+#include <Ext/BuildingType/Body.h>
+
 #include <FactoryClass.h>
+
+ASMJIT_PATCH(0x42EB65, BaseClass_GetBaseNodeIndex_Rebuild, 0x5)
+{
+	enum { QueryNext = 0x42EB6A, QueryType = 0x42EB9A, SkipNode = 0x42EBAE };
+
+	GET(BaseClass* const, pBase, ESI);
+	GET(const int, nodeIndex, EDI);
+	GET(const int, queryType, EBP);
+
+	auto const& node = pBase->BaseNodes[nodeIndex];
+	const auto typeIndex = node.BuildingTypeIndex;
+
+	// Preserve native base-plan instructions with negative type indices.
+	if (node.Placed && typeIndex >= 0 && typeIndex < BuildingTypeClass::Array->Count
+		&& !BuildingTypeExtContainer::Instance.Find(BuildingTypeClass::Array->Items[typeIndex])
+		->AI_BasePlan_Rebuild.Get(FakeRulesClass::Instance->AI_BasePlan_Rebuild))
+	{
+		return SkipNode;
+	}
+
+	return queryType == -1 ? QueryNext : QueryType;
+}
 
 static void CaptureAuthorizedNodes(HouseExtData* pExt, HouseClass* pThis)
 {

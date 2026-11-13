@@ -1292,6 +1292,10 @@ public:
 	Nullable<AffectedHouse> RevealHouses {};
 
 	Nullable<AffectedSurvivor> Survivors_ReplaceTagTo {};
+
+	Nullable<int> AI_Power {};
+	Nullable<bool> AI_Power_AffectedByEnhancers {};
+
 #pragma endregion
 
 public:

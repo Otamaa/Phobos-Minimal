@@ -21,6 +21,16 @@
 
 #include <SuperWeaponTypeClass.h>
 
+struct PowerAdjustment
+{
+	std::int64_t Net;
+	std::int64_t Drain;
+	std::int64_t OverflowNet;
+	std::int64_t OverflowDrain;
+	bool Adjusted;
+};
+
+
 struct DeferredNodeInfo
 {
 	int BuildingTypeIndex;
@@ -454,6 +464,8 @@ public:
 	short LastFrameTargetX { -1 };
 	short LastFrameTargetY { -1 };
 	std::vector<DeferredNodeInfo> DeferredNodeList {};
+
+	std::int64_t AIPowerDelta { };
 #pragma endregion
 
 public:
@@ -673,6 +685,17 @@ public:
 	static void RemoveAuthorizedNodeByType(HouseClass* pHouse, int buildingTypeIndex);
 	static bool CheckOwnerBitfieldForCurrentPlayer(TechnoTypeClass* pType);
 	static void RecheckOwnerBitfieldForCurrentPlayer();
+
+	static PowerAdjustment UpdateUnitPower(HouseClass* pThis);
+	static void RecordPowerOutputBeforeDrainClamp(HouseClass* pThis);
+	static std::int64_t UpdateAIPower(HouseClass* pThis, const PowerAdjustment& unitPower);
+	static std::int64_t UpdateAIPower(HouseClass* pThis) { return UpdateAIPower(pThis, PowerAdjustment { }); }
+
+	static std::pair<std::int64_t, std::int64_t> GetUnitPower(TechnoTypeClass* pType, std::int64_t power, HouseClass* pHouse, TechnoClass* pSource);
+	static int GetPowerOutput(BuildingClass* pBuilding, int baseOutput);
+	static std::int64_t GetAIPower(BuildingTypeClass* pType);
+	static std::int64_t GetAIPower(BuildingClass* pBuilding, bool defaultAffectedByEnhancers, bool outputDisabled, std::int64_t& drain);
+	static std::int64_t GetAIPowerDelta(BuildingClass* pBuilding, bool defaultAffectedByEnhancers, bool outputDisabled, std::int64_t& drainDelta, bool& aiAdjusted);
 private:
 	bool UpdateHarvesterProduction();
 

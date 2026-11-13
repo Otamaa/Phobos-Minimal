@@ -1044,6 +1044,8 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->DistributeTargetingFrame_AIOnly)
 		.Process(this->CheckUnitBaseNormal)
 		.Process(this->ExtendedBuildingPlacing)
+		.Process(this->AI_BasePlan_Rebuild)
+		.Process(this->AI_Power_AffectedByEnhancers)
 		.Process(this->DefaultExplodeFireAnim)
 		.Process(this->CheckExpandPlaceGrid)
 		.Process(this->ExpandLandGridFrames)
@@ -4038,6 +4040,9 @@ void FakeRulesClass::_ReadAI(CCINIClass* pINI)
 	this->NewTeamsSelector_AirCategoryPercentage.Read(exINI, section, "NewTeamsSelector.AirCategoryPercentage");
 	this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI, section, "NewTeamsSelector.NavalCategoryPercentage");
 	this->PowerSurplus_ScaleToDrainAmount.Read(exINI, section, "PowerSurplus.ScaleToDrainAmount");
+
+	this->AI_BasePlan_Rebuild.Read(exINI, section, "AI.BasePlan.Rebuild");
+	this->AI_Power_AffectedByEnhancers.Read(exINI, section, "AI.Power.AffectedByEnhancers");
 
 	auto ParseBTypeVector= [](DynamicVectorClass<BuildingTypeClass*>&List, INI_EX & IniEx, const char* section, const char* key, const char* message = nullptr)
 	{

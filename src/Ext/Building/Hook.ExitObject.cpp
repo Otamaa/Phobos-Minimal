@@ -1070,6 +1070,25 @@ static void OnBuildingPlacementSuccess(
 	HouseExtData* pHouseExt,
 	const CellStruct& placeCell)
 {
+
+	if (pNode && !pFactoryBuilding->Owner->IsControlledByHuman())
+	{
+		const auto index = pNode->BuildingTypeIndex;
+
+		if (index >= 0 && index < BuildingTypeClass::Array->Count)
+		{
+			const auto pType = BuildingTypeClass::Array->Items[index];
+
+			if (pType->PowersUpBuilding[0]
+				&& !BuildingTypeExtContainer::Instance.Find(pType)->AI_BasePlan_Rebuild.Get(FakeRulesClass::Instance->AI_BasePlan_Rebuild))
+			{
+				// Upgrades bypass the normal Unlimbo node completion path.
+				pNode->Placed = true;
+				pNode->Attempts = 0;
+			}
+		}
+	}
+
 	if (pBuilding->SlaveManager)
 		pBuilding->SlaveManager->Deploy2();
 
@@ -1345,6 +1364,7 @@ static KickOutResult HandleBuildingExit(
 
 	BaseNodeClass* pNode = pFactoryBuilding->Owner->Base.NextBuildable(pBuildingType->ArrayIndex);
 
+
 	// -----------------------------------------------------------------------
 	// Find placement cell
 	// -----------------------------------------------------------------------
@@ -1355,10 +1375,18 @@ static KickOutResult HandleBuildingExit(
 		// Handle power-up building with no valid location
 		if (!BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.empty())
 		{
-			if (pFactoryBuilding->Owner->Base.NextBuildable(-1) == pNode)
+			const auto pNodeHere = pFactoryBuilding->Owner->Base.NextBuildable(-1);
+
+			if (pNodeHere == pNode)
 			{
 				pFactoryBuilding->Owner->Base.BaseNodes.erase_at(
 					pFactoryBuilding->Owner->Base.NextBuildableIdx(-1));
+			}
+			
+			if(!pNodeHere){
+				//0x445639, BuildingClass_KickOutUnit_NoBaseNodeToDelete, 0x6
+				// Skip failed-upgrade cleanup when both node queries returned null.
+				return KickOutResult::Failed;
 			}
 		}
 		return KickOutResult::Failed;

@@ -1070,7 +1070,7 @@ bool ScriptExtData::EvaluateObjectWithMask(
 				return true;
 
 			const auto pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pBldType);
-			if (pBldTypeExt->PowerPlantEnhancer_Buildings.size()
+			if (pBldTypeExt->PowerPlantEnhancer_AffectTypes.size()
 			 && (pBldTypeExt->PowerPlantEnhancer_Amount != 0 || pBldTypeExt->PowerPlantEnhancer_Factor != 1.0f)
 			 && pBldTypeExt->PowerPlantEnhancer_MaxCount > 0)
 			{

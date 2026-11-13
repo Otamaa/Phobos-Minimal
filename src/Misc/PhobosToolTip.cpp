@@ -115,8 +115,17 @@ int PhobosToolTip::GetPower(TechnoTypeClass* pType)
 	case AbstractType::InfantryType:
 	case AbstractType::UnitType:
 	{
-		if(TechnoTypeExtContainer::Instance.Find(pType)->Power.isset())
-		return TechnoTypeExtContainer::Instance.Find(pType)->Power.Fetch();
+		if (!Phobos::Config::UnitPowerDrain)
+			break;
+
+		auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+		if (pExt->Power.isset()) {
+			const auto [output, drain] = HouseExtData::GetUnitPower(pType,
+			static_cast<std::int64_t>(pExt->Power.Fetch()), HouseClass::CurrentPlayer(),nullptr);
+			return static_cast<int>(std::clamp<std::int64_t>(output - drain,
+				std::numeric_limits<int>::min(), std::numeric_limits<int>::max()));
+		}
 
 		break;
 	}

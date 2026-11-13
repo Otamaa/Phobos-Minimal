@@ -41,7 +41,7 @@ public:
 	// ============================================================
 	ValueableVector<BuildingTypeClass*> PowersUp_Buildings {};
 	ValueableIdxVector<SuperWeaponTypeClass*> SuperWeapons {};
-	ValueableVector<BuildingTypeClass*> PowerPlantEnhancer_Buildings {};
+	ValueableVector<TechnoTypeClass*> PowerPlantEnhancer_AffectTypes {};
 
 	std::vector<Point2D> OccupierMuzzleFlashes {};
 	ValueableVector<TechnoTypeClass*> Grinding_AllowTypes {};
@@ -206,6 +206,7 @@ public:
 	Nullable<bool> Units_UseRepairCost {};
 	Nullable<int> BunkerStateUpdateDelay {};
 	Nullable<int> DeployFireDelay {};
+	Nullable<bool> AI_BasePlan_Rebuild { };
 
 	// ============================================================
 	// Valueable<int> (4 bytes each)

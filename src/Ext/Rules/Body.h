@@ -557,6 +557,8 @@ public:
 	Valueable<bool> DistributeTargetingFrame_AIOnly { true };
 	Valueable<bool> CheckUnitBaseNormal { false };
 	Valueable<bool> ExtendedBuildingPlacing { false };
+	Valueable<bool> AI_BasePlan_Rebuild { true };
+	Valueable<bool> AI_Power_AffectedByEnhancers { true };
 	Valueable<bool> CheckExpandPlaceGrid { false };
 	Valueable<bool> EnablePowerSurplus { false };
 	Valueable<bool> ShakeScreenUseTSCalculation { false };

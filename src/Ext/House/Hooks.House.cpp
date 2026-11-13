@@ -424,55 +424,6 @@ ASMJIT_PATCH(0x506306, HouseClass_FindPlaceToBuild_Evaluate, 6)
 	return 0x50630C;
 }
 
-// drain affecting only the drained power plant
-ASMJIT_PATCH(0x508D32, HouseClass_UpdatePower_LocalDrain1, 5)
-{
-	GET(HouseClass*, pThis, ESI);
-	GET(BuildingClass*, pBld, EDI);
-
-	bool fullDrain = true;
-
-	auto output = pBld->GetPowerOutput();
-
-	if (output > 0)
-	{
-		auto pBldTypeExt = TechnoTypeExtContainer::Instance.Find(pBld->Type);
-		auto pDrainTypeExt = GET_TECHNOTYPEEXT(pBld->DrainingMe);
-
-		// local, if any of the participants in the drain is local
-		if (pBldTypeExt->Drain_Local || pDrainTypeExt->Drain_Local)
-		{
-			fullDrain = false;
-
-			// use the sign to select min or max.
-			// 0 means no change (maximum of 0 and a positive value)
-			COMPILETIMEEVAL auto limit = [](int value, int limit)
-				{
-					if (limit <= 0)
-					{
-						return MaxImpl(value, -limit);
-					}
-					else
-					{
-						return MinImpl(value, limit);
-					}
-				};
-
-			// drains the entire output of this building by default
-			// (the local output). building has the last word though.
-			auto drain = limit(output, pDrainTypeExt->Drain_Amount);
-			drain = limit(drain, pBldTypeExt->Drain_Amount);
-
-			if (drain > 0)
-			{
-				pThis->PowerOutput -= drain;
-			}
-		}
-	}
-
-	return fullDrain ? 0 : 0x508D37;
-}
-
 ASMJIT_PATCH(0x688B37, MPGameModeClass_CreateStartingUnits_B, 5)
 {
 	enum { hasBaseUnit = 0x688B75, hasNoBaseUnit = 0x688C09 };
@@ -1144,25 +1095,6 @@ ASMJIT_PATCH(0x509140, HouseClass_Update_Factories_Queues, 5)
 
 	CCToolTip::Bound = 1;
 	return 0;
-}
-
-ASMJIT_PATCH(0x508C7F, HouseClass_UpdatePower_Auxiliary, 6)
-{
-	GET(HouseClass*, pThis, ESI);
-
-	const auto curAux = HouseExtContainer::Instance.Find(pThis)->AuxPower;
-
-	int AuxPowerOutput = 0;
-	if (curAux >= 0)
-		AuxPowerOutput = curAux;
-	pThis->PowerOutput = AuxPowerOutput;
-
-	int AuxPowerDrain = 0;
-	if (curAux <= 0)
-		AuxPowerDrain = -curAux;
-	pThis->PowerDrain = AuxPowerDrain;
-
-	return 0x508C8B;
 }
 
 // #917 - handle the case of no shipyard gracefully

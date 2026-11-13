@@ -39,11 +39,13 @@ public:
 	// ---- Power calculation (static) ----
 
 	//!< Calculates the enhanced power output for a given power plant, considering all active enhancers in range.
-	static std::pair<int, int> GetEnhancedPower(
-		BuildingTypeClass* pBuilding,
-		int output,
+	template<typename OutputType>
+	static std::pair<OutputType, OutputType> GetEnhancedPower(
+		TechnoTypeClass* pType,
+		OutputType output,
 		HouseClass* pHouse,
-		BuildingClass* pPowerPlant = nullptr
+		TechnoClass* pPowerPlant = nullptr,
+		bool enhance = true
 	);
 
 	// ---- Range indicator ----
@@ -51,6 +53,7 @@ public:
 	int GetRangeInCells() const;					//!< Returns the enhancer range in cells for radial indicator display.
 	
 	static void DrawIndicators(BuildingClass* pCurrentBuilding);
+	static void RecheckPower(HouseClass* pHouse);
 
 	// ---- Serialization ----
 

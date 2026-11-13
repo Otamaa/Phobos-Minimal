@@ -1384,7 +1384,8 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->PowersUp_Owner.Read(exINI, pSection, "PowersUp.Owner");
 		this->PowersUp_Buildings.Read(exINI, pSection, "PowersUp.Buildings");
-		this->PowerPlantEnhancer_Buildings.Read(exINI, pSection, "PowerPlantEnhancer.PowerPlants");
+		this->PowerPlantEnhancer_AffectTypes.Read(exINI, pSection, "PowerPlantEnhancer.PowerPlants");
+		this->PowerPlantEnhancer_AffectTypes.Read(exINI, pSection, "PowerPlantEnhancer.AffectTypes");
 		this->PowerPlantEnhancer_Amount.Read(exINI, pSection, "PowerPlantEnhancer.Amount");
 		this->PowerPlantEnhancer_Range.Read(exINI, pSection, "PowerPlantEnhancer.Range");
 		this->PowerPlantEnhancer_Factor.Read(exINI, pSection, "PowerPlantEnhancer.Factor");
@@ -1791,6 +1792,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->BunkerStateUpdateDelay.Read(exINI, pSection, "BunkerStateUpdateDelay");
 		this->DeployFireDelay.Read(exINI, pSection, "DeployFireDelay");
 		this->PowerPlant_DamageFactor.Read(exINI, pSection, "PowerPlant.DamageFactor");
+		this->AI_BasePlan_Rebuild.Read(exINI, pSection, "AI.BasePlan.Rebuild");
 
 		// Next Building
 		{
@@ -2112,8 +2114,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 
 		.Process(this->PrismForwarding)
 		.Process(this->PowersUp_Owner)
-		.Process(this->PowersUp_Buildings)
-		.Process(this->PowerPlantEnhancer_Buildings)
+		.Process(this->PowerPlantEnhancer_AffectTypes)
 		.Process(this->PowerPlantEnhancer_Amount)
 		.Process(this->PowerPlantEnhancer_Range)
 		.Process(this->PowerPlantEnhancer_Factor)
@@ -2350,6 +2351,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->Units_UseRepairCost)
 		.Process(this->BunkerStateUpdateDelay)
 		.Process(this->DeployFireDelay)
+		.Process(this->AI_BasePlan_Rebuild)
 		.Process(this->PowerPlant_DamageFactor)
 
 		.Process(this->NextBuilding_Prev)
@@ -2462,7 +2464,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 	debugProcess(this->PrismForwarding, "PrismForwarding");
 	debugProcess(this->PowersUp_Owner, "PowersUp_Owner");
 	debugProcess(this->PowersUp_Buildings, "PowersUp_Buildings");
-	debugProcess(this->PowerPlantEnhancer_Buildings, "PowerPlantEnhancer_Buildings");
+	debugProcess(this->PowerPlantEnhancer_AffectTypes, "PowerPlantEnhancer_AffectTypes");
 	debugProcess(this->PowerPlantEnhancer_Amount, "PowerPlantEnhancer_Amount");
 	debugProcess(this->PowerPlantEnhancer_Factor, "PowerPlantEnhancer_Factor");
 	debugProcess(this->SuperWeapons, "SuperWeapons");

@@ -311,18 +311,6 @@ ASMJIT_PATCH(0x70DEBA, TechnoClass_UpdateGattling_Cycle, 6)
 
 #include <Ext/Building/Body.h>
 
-// sanitize the power output
-ASMJIT_PATCH(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
-{
-	GET(HouseClass*, pThis, ESI);
-	if (pThis->PowerOutput < 0)
-	{
-		pThis->PowerOutput = 0;
-	}
-	return 0;
-}
-
-
 ASMJIT_PATCH(0x73DE90, UnitClass_Mission_Unload_SimpleDeployer, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);

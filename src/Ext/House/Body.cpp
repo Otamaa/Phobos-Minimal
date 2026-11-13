@@ -3395,6 +3395,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->LastFrameTargetX)
 		.Process(this->LastFrameTargetY)
 		.Process(this->DeferredNodeList)
+		.Process(this->AIPowerDelta)
 		;
 }
 #endif

@@ -551,15 +551,6 @@ ASMJIT_PATCH(0x4F671D, HouseClass_CanAfforBase_MissingPointer, 0x5)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6)
-{
-	GET(BuildingClass*, pBld, EDI);
-
-	if (BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0)
-		return 0x508CEE; // add the power
-
-	return 0x0;
-}
 ASMJIT_PATCH(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 {
 	GET(TechnoClass* const, pProduct, ESI);
