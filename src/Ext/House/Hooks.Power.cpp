@@ -17,6 +17,7 @@
 void __fastcall Recalc_All_Factories_Of_House(HouseClass* house)
 { JMP_FAST(0x4CA6E0); }
 
+
 // The host and each installed slot contribute once, including repeated types.
 template <typename F>
 void ForEachPowerComponent(BuildingClass* pBuilding, F action)
@@ -338,83 +339,105 @@ PowerAdjustment HouseExtData::UpdateUnitPower(HouseClass* const pThis)
 		drain - pThis->PowerDrain, aiAdjusted };
 }
 
+static std::int64_t ApplyLocalDrainLimits(std::int64_t output, int drainerAmount, int buildingAmount)
+{
+	if (output <= 0)
+		return 0;
+
+	// drainer first, building has the last word
+	for (const std::int64_t amount : { static_cast<std::int64_t>(drainerAmount),
+									   static_cast<std::int64_t>(buildingAmount) })
+	{
+		if (amount > 0)
+			output = MinImpl(output, amount);
+		else if (amount != std::numeric_limits<int>::min())
+			output = MaxImpl(output, -amount);
+	}
+
+	return output;
+}
+
+void CollectActiveBuildings(const HouseClass* pHouse, std::vector<BuildingClass*>& out) {
+	out.clear();
+	out.reserve(pHouse->Buildings.Count);
+
+	for (auto* pBld : pHouse->Buildings) {
+		if (!pBld || pBld->InLimbo || !pBld->IsOnMap)
+			continue;
+
+		out.push_back(pBld);
+	}
+}
+
 // Keep the AI adjustment in the same snapshot as the real power totals. Reading
 // live buildings during a later decision could mix new state with an old cache.
-std::int64_t HouseExtData::UpdateAIPower(HouseClass* const pThis, const PowerAdjustment& unitPower)
+std::int64_t HouseExtData::UpdateAIPower(
+	HouseClass* const pThis,
+	const PowerAdjustment& unitPower,
+	int realOutputBeforeClamp,
+	std::vector<BuildingClass*>& activeBuildings)
 {
 	std::int64_t delta = unitPower.Net;
 	std::int64_t aiDrain = static_cast<std::int64_t>(pThis->PowerDrain) + unitPower.Drain;
 	bool adjusted = unitPower.Adjusted;
+
 	const bool affectedByEnhancers = FakeRulesClass::Instance->AI_Power_AffectedByEnhancers;
 	const bool blackout = pThis->PowerBlackoutTimer.GetTimeLeft() != 0;
+	// IsBeingDrained already holds isFullyDrained at this point
 	const bool outputDisabled = blackout || pThis->IsBeingDrained;
-	const bool capturedOutput = powerOutputContext == pThis;
-	const auto realOutputBeforeClamp = powerOutputBeforeDrainClamp;
-	powerOutputContext = nullptr;
+
 	std::int64_t buildingOutputDelta = 0;
 	std::int64_t localDrainDelta = 0;
 	bool aiFullDrain = false;
 
-	for (auto const pBuilding : pThis->Buildings)
+	for (auto const pBuilding : activeBuildings)
 	{
-		if (!pBuilding || pBuilding->Owner != pThis || pBuilding->InLimbo || !pBuilding->IsOnMap)
-		{
-			continue;
-		}
+		std::int64_t drainDelta = 0;
+		bool buildingAdjusted = false;
+		const auto buildingDelta = HouseExtData::GetAIPowerDelta(
+			pBuilding, affectedByEnhancers, false, drainDelta, buildingAdjusted);
 
-		std::int64_t drainDelta;
-		bool buildingAdjusted;
-		const auto buildingDelta = HouseExtData::GetAIPowerDelta(pBuilding, affectedByEnhancers,
-			capturedOutput ? false : outputDisabled, drainDelta, buildingAdjusted);
 		delta += buildingDelta;
 		aiDrain += drainDelta;
 		adjusted |= buildingAdjusted;
 		buildingOutputDelta += buildingDelta + drainDelta;
 
-		if (capturedOutput && pBuilding->IsBeingDrained())
+		if (!pBuilding->IsBeingDrained())
+			continue;
+
+		const auto pDrainer = pBuilding->DrainingMe;
+		if (!pDrainer)
+			continue;
+
+		const auto pBuildingExt = TechnoTypeExtContainer::Instance.Find(pBuilding->Type);
+		const auto pDrainerExt = TechnoTypeExtContainer::Instance.Find(pDrainer->GetTechnoType());
+
+		std::int64_t buildingAIDrain = 0;
+		const std::int64_t realOutput = pBuilding->GetPowerOutput();
+		const auto aiNet = HouseExtData::GetAIPower(pBuilding, affectedByEnhancers, false, buildingAIDrain);
+		const std::int64_t aiOutput = aiNet + buildingAIDrain;
+
+		if (!pBuildingExt->Drain_Local && !pDrainerExt->Drain_Local)
 		{
-			const auto pDrainer = pBuilding->DrainingMe;
-			if (!pDrainer)
-				continue;
-			const auto pBuildingExt = TechnoTypeExtContainer::Instance.Find(pBuilding->Type);
-			const auto pDrainerExt = TechnoTypeExtContainer::Instance.Find(pDrainer->GetTechnoType());
-			const std::int64_t realOutput = pBuilding->GetPowerOutput();
-			std::int64_t buildingAIDrain;
-			const auto aiNet = HouseExtData::GetAIPower(pBuilding, affectedByEnhancers, false, buildingAIDrain);
-			const auto aiOutput = aiNet + buildingAIDrain;
-			if (pBuildingExt->Drain_Local || pDrainerExt->Drain_Local)
-			{
-				auto localDrain = [&](std::int64_t output)
-					{
-						if (output <= 0)
-							return 0LL;
-						for (const std::int64_t amount : { pDrainerExt->Drain_Amount.Get(), pBuildingExt->Drain_Amount.Get() })
-						{
-							if (amount > 0)
-								output = MinImpl(output, amount);
-							else if (amount != std::numeric_limits<int>::min())
-								output = MaxImpl(output, -amount);
-							// Ares negates its signed int before comparison; INT_MIN
-							// stays negative and cannot raise a positive drain amount.
-						}
-						return output;
-					};
-				localDrainDelta += localDrain(realOutput) - localDrain(aiOutput);
-			}
-			else
-				aiFullDrain |= aiOutput > 0;
+			aiFullDrain |= aiOutput > 0;
+			continue;
 		}
+
+		const int drainerAmount = pDrainerExt->Drain_Amount.Get();
+		const int buildingAmount = pBuildingExt->Drain_Amount.Get();
+		localDrainDelta += ApplyLocalDrainLimits(realOutput, drainerAmount, buildingAmount)
+			- ApplyLocalDrainLimits(aiOutput, drainerAmount, buildingAmount);
 	}
 
-	if (capturedOutput)
-	{
-		const auto aiOutput = blackout || aiFullDrain ? 0LL : MaxImpl(0LL,
-			static_cast<std::int64_t>(realOutputBeforeClamp) + buildingOutputDelta + localDrainDelta);
-		// Clamp both output lines independently; actual overdrain was discarded
-		// by Ares before this hook. Unit power is added after that native step.
-		const auto realOutput = outputDisabled ? 0LL : MaxImpl(0LL, static_cast<std::int64_t>(realOutputBeforeClamp));
-		delta += aiOutput - realOutput - buildingOutputDelta;
-	}
+	// Clamp both output lines independently; overdrain was already
+	// discarded by the vanilla floor. Unit power is added after that.
+	const std::int64_t aiOutput = (blackout || aiFullDrain)
+		? 0LL
+		: MaxImpl(0LL, static_cast<std::int64_t>(realOutputBeforeClamp) + buildingOutputDelta + localDrainDelta);
+	const std::int64_t realOutput = outputDisabled
+		? 0LL
+		: MaxImpl(0LL, static_cast<std::int64_t>(realOutputBeforeClamp));
+	delta += aiOutput - realOutput - buildingOutputDelta;
 
 	if (adjusted)
 	{
@@ -670,7 +693,7 @@ void FakeHouseClass::_RecalcPower()
 	}
 	//
 
-	bool has_power = false;
+	bool hasFullPowerDrain = false;
 
 	//0x508D32, HouseClass_UpdatePower_LocalDrain1, 5
 	auto UpdatePower_LocalDrain = [this](BuildingClass* pBld)
@@ -719,63 +742,70 @@ void FakeHouseClass::_RecalcPower()
 		};
 	//
 
-	for (auto& pBld : this->Buildings)
-	{
-		if (pBld && !pBld->InLimbo && pBld->IsOnMap)
+	auto ShouldCountBuilding = [](HouseClass* pHouse, BuildingClass* pBld) -> bool
 		{
-			if (SessionClass::Instance->GameMode != GameMode::Campaign)
+			const bool isCampaign = SessionClass::Instance->GameMode == GameMode::Campaign;
+
+			if (!isCampaign)
 			{
-				if (this != HouseClass::CurrentPlayer()
-					|| !this->IsHumanPlayer && !this->IsInPlayerControl
-					|| pBld->DiscoveredByCurrentPlayer
-					|| SessionClass::Instance->GameMode != GameMode::Campaign
-					// i forgot what it for but i suppose to fix DiscoveredByCurrentPlayer part
-					// it was long time ago 
-					// 0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6
-					|| BuildingExtContainer::Instance.Find(pBld)->LimboID != -1
-					//
-					)
-				{
-
-					this->PowerOutput += pBld->GetPowerOutput();
-					this->PowerDrain += pBld->GetPowerDrain();
-
-					if (pBld->IsBeingDrained() && pBld->GetPowerOutput() > 0)
-					{
-						if (UpdatePower_LocalDrain(pBld))
-							has_power = 1;
-					}
-				}
+				if (pHouse != HouseClass::CurrentPlayer())
+					return true;
 			}
+			else if (!pHouse->IsHumanPlayer && !pHouse->IsInPlayerControl)
+			{
+				return true;
+			}
+
+			// i forgot what it for but i suppose to fix DiscoveredByCurrentPlayer part
+			// it was long time ago 
+			// 0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6
+			if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+				return true;
+
+			if (pBld->DiscoveredByCurrentPlayer)
+				return true;
+
+			// vanilla: jz -> skip only when Session.Type == 0 (campaign)
+			return !isCampaign;
+		};
+
+	std::vector<BuildingClass*> activeBuildings;
+	CollectActiveBuildings(this, activeBuildings);
+
+	for (auto& pBld : activeBuildings) {
+
+		if (!ShouldCountBuilding(this, pBld))
+			continue;
+
+		this->PowerOutput += pBld->GetPowerOutput();
+		this->PowerDrain += pBld->GetPowerDrain();
+
+		if (pBld->IsBeingDrained() && pBld->GetPowerOutput() > 0 && UpdatePower_LocalDrain(pBld)) {
+			hasFullPowerDrain = 1;
 		}
 	}
 
 	//0x508D45, HouseClass_UpdatePower_BeforeDrainClamp, 0x5
-	HouseExtData::RecordPowerOutputBeforeDrainClamp(this);
+	const int outputBeforeDrainClamp = this->PowerOutput;
 	//
 
 	//0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6
-	if (this->PowerOutput < 0)
-	{
+	if (this->PowerOutput < 0) {
 		this->PowerOutput = 0;
 	}
 	//
 
-	this->IsBeingDrained = has_power;
-	if (!this->PowerBlackoutTimer.GetTimeLeft())
-	{
-		if (has_power)
-		{
-			this->PowerOutput = 0;
-		}
-	}
+	this->IsBeingDrained = hasFullPowerDrain;
+
+	if (this->PowerBlackoutTimer.GetTimeLeft() != 0 || hasFullPowerDrain)
+		this->PowerOutput = 0;
 
 	Recalc_All_Factories_Of_House(this);
 
 	//0x508D8D, HouseClass_UpdatePower_Techno, 0x6
 	{
 		const auto unitPower = HouseExtData::UpdateUnitPower(this);
-		const auto aiPowerDrain = HouseExtData::UpdateAIPower(this, unitPower);
+		const auto aiPowerDrain = HouseExtData::UpdateAIPower(this, unitPower, outputBeforeDrainClamp, activeBuildings);
 		CalculatePowerSurplus(this, aiPowerDrain);
 	}
 	//

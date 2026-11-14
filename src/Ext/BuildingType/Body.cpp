@@ -727,7 +727,6 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 		pBuilding->DiscoveredBy(pOwner);
 
 		pOwner->RegisterGain(pBuilding, false);
-		pOwner->UpdatePower();
 		pOwner->RecheckTechTree = true;
 		pOwner->RecheckPower = true;
 		pOwner->RecheckRadar = true;

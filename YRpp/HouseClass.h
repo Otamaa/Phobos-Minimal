@@ -474,6 +474,10 @@ public:
 	int GetUnitSelfHealStep() const
 		{ JMP_THIS(0x50D9F0); }
 
+	// Do NOT call this manually 
+	// let HouseClass::Update handle them gracefully
+	// use RecheckPower=true flag to let the house know that power has changed and need to be recalculated
+	[[deprecated("set RecheckPower = true instead")]]
 	void UpdatePower()
 		{ JMP_THIS(0x508C30); }
 

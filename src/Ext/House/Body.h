@@ -688,7 +688,12 @@ public:
 
 	static PowerAdjustment UpdateUnitPower(HouseClass* pThis);
 	static void RecordPowerOutputBeforeDrainClamp(HouseClass* pThis);
-	static std::int64_t UpdateAIPower(HouseClass* pThis, const PowerAdjustment& unitPower);
+
+	static std::int64_t UpdateAIPower(HouseClass* pThis,
+		const PowerAdjustment& unitPower,
+		int realOutputBeforeClamp,
+		std::vector<BuildingClass*>& activeBuildings
+	);
 
 	static std::pair<std::int64_t, std::int64_t> GetUnitPower(TechnoTypeClass* pType, std::int64_t power, HouseClass* pHouse, TechnoClass* pSource);
 	static int GetPowerOutput(BuildingClass* pBuilding, int baseOutput);

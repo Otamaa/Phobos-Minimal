@@ -1255,7 +1255,6 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 	pBuilding->InLimbo = true;
 	//pBuilding->IsAlive = false;
 	pBuilding->IsOnMap = false;
-	pTargetHouse->UpdatePower();
 
 	if (!pTargetHouse->RecheckTechTree)
 		pTargetHouse->RecheckTechTree = true;
