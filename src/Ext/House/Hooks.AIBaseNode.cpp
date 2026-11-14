@@ -39,7 +39,7 @@ static void CaptureAuthorizedNodes(HouseExtData* pExt, HouseClass* pThis)
 	for (int i = 0; i < pThis->Base.BaseNodes.Count; ++i)
 	{
 		BaseNodeClass& node = pThis->Base.BaseNodes[i];
-		if (node.BuildingTypeIndex < 0)
+		if (node.BuildingTypeIndex < 0)    
 			continue;
 
 		AuthorizedNodeKey key;
@@ -173,7 +173,7 @@ void HouseExtData::RemoveAuthorizedNodeByType(HouseClass* pHouse, int buildingTy
 // 用于跨越 sub_506EF0 入口/出口保存/恢复建筑列表
 // 不太懂逆向工程, 可能有更好的办法, 我这个比较繁琐
 // ============================================================
-static DWORD s_SavedBldgBase = 0;          // Hook A 保存的原 [house+6Ch] 建筑列表指针
+static BuildingClass** s_SavedBldgBase = 0; // Hook A 保存的原 [house+6Ch] 建筑列表指针
 static int s_SavedBldgCount = 0;           // Hook A 保存的原 [house+78h] 建筑数量
 static HouseClass* s_SavedHouse = nullptr; // Hook A 保存的 HouseClass*（Hook B 用，因为出口处 EBP 已变）
 
@@ -193,12 +193,12 @@ ASMJIT_PATCH(0x506EF0, HouseClass_BaseNode_SatisfactionCheck_Entry, 0x6)
 		return 0;
 
 	s_SavedHouse = pThis;                      		     // 保存 House 指针，供 Hook B 出口恢复用
-	s_SavedBldgBase = *(DWORD*)((DWORD)pThis + 0x6C);    // 保存原 [house+6Ch]（AI 自有建筑列表）
-	s_SavedBldgCount = *(int*)((DWORD)pThis + 0x78);     // 保存原 [house+78h]（AI 自有建筑数量）
+	s_SavedBldgBase = pThis->Buildings.Items;    // 保存原 [house+6Ch]（AI 自有建筑列表）
+	s_SavedBldgCount = pThis->Buildings.Count;     // 保存原 [house+78h]（AI 自有建筑数量）
 
 	// 替换为全阵营建筑列表，让 sub_506EF0 能看到玩家的建筑
-	*(DWORD*)((DWORD)pThis + 0x6C) = (DWORD)BuildingClass::Array->Items;   // [house+6Ch] = 全局建筑列表
-	*(int*)((DWORD)pThis + 0x78) = BuildingClass::Array->Count;            // [house+78h] = 全局建筑数量
+	pThis->Buildings.Items = BuildingClass::Array->Items;   // [house+6Ch] = 全局建筑列表
+	pThis->Buildings.Count = BuildingClass::Array->Count;   // [house+78h] = 全局建筑数量
 
 	return 0;
 }
@@ -216,11 +216,11 @@ ASMJIT_PATCH(0x50766E, HouseClass_BaseNode_SatisfactionCheck_Exit, 0xD)
 		return 0;
 
 	// 检查 [house+6Ch] 是否仍是全局列表（防止中间被其他代码改过）
-	if (*(DWORD*)((DWORD)s_SavedHouse + 0x6C) == (DWORD)BuildingClass::Array->Items)
+	if (s_SavedHouse->Buildings.Items == BuildingClass::Array->Items)
 	{
 		// 恢复 AI 自己的建筑列表
-		*(DWORD*)((DWORD)s_SavedHouse + 0x6C) = s_SavedBldgBase;   // [house+6Ch] = 原 AI 建筑列表
-		*(int*)((DWORD)s_SavedHouse + 0x78) = s_SavedBldgCount;    // [house+78h] = 原 AI 建筑数量
+		s_SavedHouse->Buildings.Items = s_SavedBldgBase;   // [house+6Ch] = 原 AI 建筑列表
+		s_SavedHouse->Buildings.Count = s_SavedBldgCount;    // [house+78h] = 原 AI 建筑数量
 	}
 
 	return 0;

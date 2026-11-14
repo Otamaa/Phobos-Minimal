@@ -1529,3 +1529,9 @@ ASMJIT_PATCH(0x550016 ,LaserDrawClass_Remove_InlineDTOR_BB, 0x6 ){
 	GameDelete<false, false>(pLaser);
 	return R->Origin() + 0x52;
 }
+
+// DrawSubtractiveLine_AZ increments the X counter and secondary pixel offset twice
+// when the depth delta exceeds both screen deltas and the line is X-major.
+// Remove the duplicate increments so large LaserZAdjust values do not skew the line.
+// DSurface::Draw_Subtractive_Line__AZ
+DEFINE_PATCH(0x4BD096, 0x90, 0x90, 0x90, 0x90);

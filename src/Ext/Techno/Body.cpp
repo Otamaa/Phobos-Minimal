@@ -6781,7 +6781,7 @@ CoordStruct* __fastcall FakeTechnoClass::__Get_FLH(TechnoClass* pThis, discard_t
 
 	if (pTypeExt->BurstPerTurret > 0)
 		turIdx = ((pThis->CurrentBurstIndex / pTypeExt->BurstPerTurret) % (pTypeExt->ExtraTurretCount + 1)) - 1;
-
+		
 	flh += offset;
 	*pBuffer = TechnoExtData::GetFLHAbsoluteCoords(pThis, flh, allowOnTurret, turIdx);
 

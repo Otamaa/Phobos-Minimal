@@ -11,6 +11,12 @@
 #include <AircraftClass.h>
 #include <AircraftTypeClass.h>
 
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
+
+void __fastcall Recalc_All_Factories_Of_House(HouseClass* house)
+{ JMP_FAST(0x4CA6E0); }
+
 // The host and each installed slot contribute once, including repeated types.
 template <typename F>
 void ForEachPowerComponent(BuildingClass* pBuilding, F action)
@@ -87,10 +93,7 @@ int FakeBuildingClass::__GetPower()
 {
 	int powerInitial = GetBasePowerOutput<int>(this);
 
-	return CalculatePowerOutput<int>(this, [this, powerInitial](BuildingTypeClass* pType, bool host)
-	{
-		return PowerPlantEnhancerClass::GetEnhancedPower<int>(pType, host ? powerInitial : pType->PowerBonus, this->Owner, this);
-	});
+	return HouseExtData::GetPowerOutput(this, powerInitial);
 }
 
 std::pair<std::int64_t, std::int64_t> HouseExtData::GetUnitPower(TechnoTypeClass* pType, std::int64_t power, HouseClass* pHouse, TechnoClass* pSource)
@@ -418,6 +421,7 @@ std::int64_t HouseExtData::UpdateAIPower(HouseClass* const pThis, const PowerAdj
 		delta += unitPower.OverflowNet;
 		aiDrain += unitPower.OverflowDrain;
 	}
+
 	HouseExtContainer::Instance.Find(pThis)->AIPowerDelta = delta;
 	return aiDrain;
 }
@@ -527,111 +531,260 @@ ASMJIT_PATCH(0x4F84D9, HouseClass_AI_RecheckUnitPower, 0x6)
 
 #pragma region UpdatePower Hooks 
 
-ASMJIT_PATCH(0x508D8D, HouseClass_UpdatePower_Techno, 0x6)
-{
-	GET(HouseClass*, pThis, ESI);
-
-	const auto unitPower = HouseExtData::UpdateUnitPower(pThis);
-	const auto aiPowerDrain = HouseExtData::UpdateAIPower(pThis, unitPower);
-	CalculatePowerSurplus(pThis, aiPowerDrain);
-
-	return 0x0;
-}
+//ASMJIT_PATCH(0x508D8D, HouseClass_UpdatePower_Techno, 0x6)
+//{
+//	GET(HouseClass*, pThis, ESI);
+//
+//	const auto unitPower = HouseExtData::UpdateUnitPower(pThis);
+//	const auto aiPowerDrain = HouseExtData::UpdateAIPower(pThis, unitPower);
+//	CalculatePowerSurplus(pThis, aiPowerDrain);
+//
+//	return 0x0;
+//}
 
 // drain affecting only the drained power plant
-ASMJIT_PATCH(0x508D32, HouseClass_UpdatePower_LocalDrain1, 5)
+//ASMJIT_PATCH(0x508D32, HouseClass_UpdatePower_LocalDrain1, 5)
+//{
+//	GET(HouseClass*, pThis, ESI);
+//	GET(BuildingClass*, pBld, EDI);
+//
+//	bool fullDrain = true;
+//
+//	auto output = pBld->GetPowerOutput();
+//
+//	if (output > 0)
+//	{
+//		auto pBldTypeExt = TechnoTypeExtContainer::Instance.Find(pBld->Type);
+//		auto pDrainTypeExt = GET_TECHNOTYPEEXT(pBld->DrainingMe);
+//
+//		// local, if any of the participants in the drain is local
+//		if (pBldTypeExt->Drain_Local || pDrainTypeExt->Drain_Local)
+//		{
+//			fullDrain = false;
+//
+//			// use the sign to select min or max.
+//			// 0 means no change (maximum of 0 and a positive value)
+//			COMPILETIMEEVAL auto limit = [](int value, int limit)
+//				{
+//					if (limit <= 0)
+//					{
+//						return MaxImpl(value, -limit);
+//					}
+//					else
+//					{
+//						return MinImpl(value, limit);
+//					}
+//				};
+//
+//			// drains the entire output of this building by default
+//			// (the local output). building has the last word though.
+//			auto drain = limit(output, pDrainTypeExt->Drain_Amount);
+//			drain = limit(drain, pBldTypeExt->Drain_Amount);
+//
+//			if (drain > 0)
+//			{
+//				pThis->PowerOutput -= drain;
+//			}
+//		}
+//	}
+//
+//	return fullDrain ? 0 : 0x508D37;
+//}
+
+// sanitize the power output
+//ASMJIT_PATCH(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
+//{
+//	GET(HouseClass*, pThis, ESI);
+//	if (pThis->PowerOutput < 0)
+//	{
+//		pThis->PowerOutput = 0;
+//	}
+//	return 0;
+//}
+
+//ASMJIT_PATCH(0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6)
+//{
+//	GET(BuildingClass*, pBld, EDI);
+//
+//	if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+//		return 0x508CEE; // add the power
+//
+//	return 0x0;
+//}
+
+//ASMJIT_PATCH(0x508C7F, HouseClass_UpdatePower_Auxiliary, 6)
+//{
+//	GET(HouseClass*, pThis, ESI);
+//
+//	const auto curAux = HouseExtContainer::Instance.Find(pThis)->AuxPower;
+//
+//	int AuxPowerOutput = 0;
+//	if (curAux >= 0)
+//		AuxPowerOutput = curAux;
+//	pThis->PowerOutput = AuxPowerOutput;
+//
+//	int AuxPowerDrain = 0;
+//	if (curAux <= 0)
+//		AuxPowerDrain = -curAux;
+//	pThis->PowerDrain = AuxPowerDrain;
+//
+//	return 0x508C8B;
+//}
+
+//ASMJIT_PATCH(0x508D45, HouseClass_UpdatePower_BeforeDrainClamp, 0x5)
+//{
+//	GET(HouseClass*, pThis, ESI);
+//	HouseExtData::RecordPowerOutputBeforeDrainClamp(pThis);
+//	return 0;
+//}
+
+#pragma endregion
+
+
+void FakeHouseClass::_RecalcPower()
 {
-	GET(HouseClass*, pThis, ESI);
-	GET(BuildingClass*, pBld, EDI);
-
-	bool fullDrain = true;
-
-	auto output = pBld->GetPowerOutput();
-
-	if (output > 0)
-	{
-		auto pBldTypeExt = TechnoTypeExtContainer::Instance.Find(pBld->Type);
-		auto pDrainTypeExt = GET_TECHNOTYPEEXT(pBld->DrainingMe);
-
-		// local, if any of the participants in the drain is local
-		if (pBldTypeExt->Drain_Local || pDrainTypeExt->Drain_Local)
+	auto GetCurrentPowerState = [this]()
 		{
-			fullDrain = false;
+			int _currentPowerB = this->PowerOutput;
+			int _currentDrainB = this->PowerDrain;
+			return _currentPowerB < _currentDrainB && _currentDrainB && (!_currentPowerB
+				|| (double)this->PowerOutput / (double)this->PowerDrain < 1.0);
+		};
 
-			// use the sign to select min or max.
-			// 0 means no change (maximum of 0 and a positive value)
-			COMPILETIMEEVAL auto limit = [](int value, int limit)
-				{
-					if (limit <= 0)
-					{
-						return MaxImpl(value, -limit);
-					}
-					else
-					{
-						return MinImpl(value, limit);
-					}
-				};
+	const bool lastPowerState = GetCurrentPowerState();
+	this->RecheckPower = false;
 
-			// drains the entire output of this building by default
-			// (the local output). building has the last word though.
-			auto drain = limit(output, pDrainTypeExt->Drain_Amount);
-			drain = limit(drain, pBldTypeExt->Drain_Amount);
+	// 0x508C7F, HouseClass_UpdatePower_Auxiliary, 6
+	{
+		const auto curAux = this->_GetExtData()->AuxPower;
 
-			if (drain > 0)
+		int AuxPowerOutput = 0;
+		if (curAux >= 0)
+			AuxPowerOutput = curAux;
+		this->PowerOutput = AuxPowerOutput;
+
+		int AuxPowerDrain = 0;
+		if (curAux <= 0)
+			AuxPowerDrain = -curAux;
+		this->PowerDrain = AuxPowerDrain;
+	}
+	//
+
+	bool has_power = false;
+
+	//0x508D32, HouseClass_UpdatePower_LocalDrain1, 5
+	auto UpdatePower_LocalDrain = [this](BuildingClass* pBld)
+		{
+			bool fullDrain = true;
+
+			auto output = pBld->GetPowerOutput();
+
+			if (output > 0)
 			{
-				pThis->PowerOutput -= drain;
+				auto pBldTypeExt = TechnoTypeExtContainer::Instance.Find(pBld->Type);
+				auto pDrainTypeExt = GET_TECHNOTYPEEXT(pBld->DrainingMe);
+
+				// local, if any of the participants in the drain is local
+				if (pBldTypeExt->Drain_Local || pDrainTypeExt->Drain_Local)
+				{
+					fullDrain = false;
+
+					// use the sign to select min or max.
+					// 0 means no change (maximum of 0 and a positive value)
+					COMPILETIMEEVAL auto limit = [](int value, int limit)
+						{
+							if (limit <= 0)
+							{
+								return MaxImpl(value, -limit);
+							}
+							else
+							{
+								return MinImpl(value, limit);
+							}
+						};
+
+					// drains the entire output of this building by default
+					// (the local output). building has the last word though.
+					auto drain = limit(output, pDrainTypeExt->Drain_Amount);
+					drain = limit(drain, pBldTypeExt->Drain_Amount);
+
+					if (drain > 0)
+					{
+						this->PowerOutput -= drain;
+					}
+				}
+			}
+
+			return fullDrain;
+		};
+	//
+
+	for (auto& pBld : this->Buildings)
+	{
+		if (pBld && !pBld->InLimbo && pBld->IsOnMap)
+		{
+			if (SessionClass::Instance->GameMode != GameMode::Campaign)
+			{
+				if (this != HouseClass::CurrentPlayer()
+					|| !this->IsHumanPlayer && !this->IsInPlayerControl
+					|| pBld->DiscoveredByCurrentPlayer
+					|| SessionClass::Instance->GameMode != GameMode::Campaign
+					// i forgot what it for but i suppose to fix DiscoveredByCurrentPlayer part
+					// it was long time ago 
+					// 0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6
+					|| BuildingExtContainer::Instance.Find(pBld)->LimboID != -1
+					//
+					)
+				{
+
+					this->PowerOutput += pBld->GetPowerOutput();
+					this->PowerDrain += pBld->GetPowerDrain();
+
+					if (pBld->IsBeingDrained() && pBld->GetPowerOutput() > 0)
+					{
+						if (UpdatePower_LocalDrain(pBld))
+							has_power = 1;
+					}
+				}
 			}
 		}
 	}
 
-	return fullDrain ? 0 : 0x508D37;
-}
+	//0x508D45, HouseClass_UpdatePower_BeforeDrainClamp, 0x5
+	HouseExtData::RecordPowerOutputBeforeDrainClamp(this);
+	//
 
-// sanitize the power output
-ASMJIT_PATCH(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
-{
-	GET(HouseClass*, pThis, ESI);
-	if (pThis->PowerOutput < 0)
+	//0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6
+	if (this->PowerOutput < 0)
 	{
-		pThis->PowerOutput = 0;
+		this->PowerOutput = 0;
 	}
-	return 0;
+	//
+
+	this->IsBeingDrained = has_power;
+	if (!this->PowerBlackoutTimer.GetTimeLeft())
+	{
+		if (has_power)
+		{
+			this->PowerOutput = 0;
+		}
+	}
+
+	Recalc_All_Factories_Of_House(this);
+
+	//0x508D8D, HouseClass_UpdatePower_Techno, 0x6
+	{
+		const auto unitPower = HouseExtData::UpdateUnitPower(this);
+		const auto aiPowerDrain = HouseExtData::UpdateAIPower(this, unitPower);
+		CalculatePowerSurplus(this, aiPowerDrain);
+	}
+	//
+
+	if (lastPowerState != GetCurrentPowerState())
+		FakeHouseClass::__SuperWeaponHandler(this);
+
+	this->RecheckRadar = true;
 }
 
-ASMJIT_PATCH(0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6)
-{
-	GET(BuildingClass*, pBld, EDI);
-
-	if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
-		return 0x508CEE; // add the power
-
-	return 0x0;
-}
-
-ASMJIT_PATCH(0x508C7F, HouseClass_UpdatePower_Auxiliary, 6)
-{
-	GET(HouseClass*, pThis, ESI);
-
-	const auto curAux = HouseExtContainer::Instance.Find(pThis)->AuxPower;
-
-	int AuxPowerOutput = 0;
-	if (curAux >= 0)
-		AuxPowerOutput = curAux;
-	pThis->PowerOutput = AuxPowerOutput;
-
-	int AuxPowerDrain = 0;
-	if (curAux <= 0)
-		AuxPowerDrain = -curAux;
-	pThis->PowerDrain = AuxPowerDrain;
-
-	return 0x508C8B;
-}
-
-ASMJIT_PATCH(0x508D45, HouseClass_UpdatePower_BeforeDrainClamp, 0x5)
-{
-	GET(HouseClass*, pThis, ESI);
-	HouseExtData::RecordPowerOutputBeforeDrainClamp(pThis);
-	return 0;
-}
-
-#pragma endregion
+DEFINE_FUNCTION_JUMP(LJMP, 0x508C30, FakeHouseClass::_RecalcPower);
+DEFINE_FUNCTION_JUMP(CALL, 0x4F84E5, FakeHouseClass::_RecalcPower);

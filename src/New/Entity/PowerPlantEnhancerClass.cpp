@@ -195,9 +195,8 @@ std::pair<OutputType, OutputType> PowerPlantEnhancerClass::GetEnhancedPower(
 
 			auto& counter = applied[pEnhancerType->ArrayIndex];
 
-			if (max > 0) {
-				if (counter >= max)
-					continue;
+			if (max > 0 && counter >= max) {
+				continue;
 			}
 
 			// Accumulate effects
@@ -253,10 +252,8 @@ std::pair<int, int> PowerPlantEnhancerClass::GetEnhancedPower(
 
 			auto& counter = applied[pEnhancerType->ArrayIndex];
 
-			if (max > 0)
-			{
-				if (counter >= max)
-					continue;
+			if (max > 0 && counter >= max) {
+				continue;
 			}
 
 			// Accumulate effects
@@ -309,10 +306,8 @@ std::pair<std::int64_t, std::int64_t> PowerPlantEnhancerClass::GetEnhancedPower(
 
 			auto& counter = applied[pEnhancerType->ArrayIndex];
 
-			if (max > 0)
-			{
-				if (counter >= max)
-					continue;
+			if (max > 0 && counter >= max) {
+				continue;
 			}
 
 			// Accumulate effects
