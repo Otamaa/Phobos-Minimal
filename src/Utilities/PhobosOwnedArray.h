@@ -168,8 +168,7 @@ public:
 	// Removes and destroys a single item. Returns false if it wasn't present.
 	bool Remove(const TBase* pItem)
 	{
-		auto const it = std::find_if(this->Items.begin(), this->Items.end(),
-			[pItem](const Pointer& pOwned) { return pOwned.get() == pItem; });
+		auto const it = std::ranges::find_if(this->Items, [pItem](const Pointer& pOwned) { return pOwned.get() == pItem; });
 
 		if (it == this->Items.end())
 			return false;

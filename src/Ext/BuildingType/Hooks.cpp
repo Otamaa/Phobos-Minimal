@@ -340,7 +340,7 @@ ASMJIT_PATCH(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 
 			// the AI places its base relative to the cell the building is anchored
 			// on, so a foundation that does not cover it cannot be built by the AI
-			if(std::find(pBldext->CustomData.cbegin(), pBldext->CustomData.cend(), CellStruct::Empty) == pBldext->CustomData.cend()) {
+			if(std::ranges::find(pBldext->CustomData, CellStruct::Empty) == pBldext->CustomData.end()) {
 				Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. "
 					"This breaks AI base building.\n", pSection);
 			}

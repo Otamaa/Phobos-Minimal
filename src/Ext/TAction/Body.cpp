@@ -557,7 +557,7 @@ bool TActionExtData::CreateDropshipLoadoutTransport(TActionClass* pThis, HouseCl
 		{
 			for (auto& list : pHouseExt->DropshipLoadout_InitialUnits)
 			{
-				auto it = std::find(list.begin(), list.end(), pObjectType);
+				auto it = std::ranges::find(list, pObjectType);
 
 				if (it != list.end())
 				{

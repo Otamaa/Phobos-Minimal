@@ -679,20 +679,20 @@ COMPILETIMEEVAL bool CheckFactoryOwnersConstraints(
 	HouseTypeClass* ownerType = owner->Type;
 
 	// 1. Forbidden houses: reject immediately
-	if (std::find(forbidden.begin(), forbidden.end(), ownerType) != forbidden.end()) {
+	if (std::ranges::find(forbidden, ownerType) != forbidden.end()) {
 		return false;
 	}
 
 	// 2. Required houses: if not empty -> owner must be in the list
 	if (!required.empty()) {
-		if (std::find(required.begin(), required.end(), ownerType) == required.end()) {
+		if (std::ranges::find(required, ownerType) == required.end()) {
 			return false;
 		}
 	}
 
 	// 3. GatheredPlansOf: owner must have "gathered plans"
 	if (!plansOf.empty()) {
-		if (std::find(plansOf.begin(), plansOf.end(), ownerType) == plansOf.end()) {
+		if (std::ranges::find(plansOf, ownerType) == plansOf.end()) {
 			return false;
 		}
 	}

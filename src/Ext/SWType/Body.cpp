@@ -243,7 +243,7 @@ void SWTypeExtData::ApplyDropshipLoadoutLaunch(HouseClass* pHouse, const CellStr
 	int suffix = 0;
 	while (true)
 	{
-		bool isInUse = std::find(activeSuffixes.begin(), activeSuffixes.end(), suffix) != activeSuffixes.end();
+		bool isInUse = std::ranges::find(activeSuffixes, suffix) != activeSuffixes.end();
 
 		if (!isInUse)
 			break;
@@ -326,7 +326,7 @@ void SWTypeExtData::ApplyDropshipLoadoutLaunch(HouseClass* pHouse, const CellStr
 		if (pObjectType)
 		{
 			auto& swInitialUnits = pHouseExt->DropshipLoadout_SWInitialUnits;
-			auto it = std::find(swInitialUnits.begin(), swInitialUnits.end(), pObjectType);
+			auto it = std::ranges::find(swInitialUnits, pObjectType);
 
 			if (it != swInitialUnits.end())
 				swInitialUnits.erase(it);

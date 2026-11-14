@@ -98,7 +98,7 @@ ASMJIT_PATCH(0x6B78D3, SpawnManagerClass_Update_Spawns, 0x6)
 			continue;
 
 		auto const pType = pNode->Unit->Type;
-		auto const it = std::find_if(pExt->SpawnQueueCounts.begin(), pExt->SpawnQueueCounts.end(),
+		auto const it = std::ranges::find_if(pExt->SpawnQueueCounts,
 			[pType](SpawnTypeCount const& item) { return item.Type == pType; });
 
 		if (it != pExt->SpawnQueueCounts.end())
@@ -109,7 +109,7 @@ ASMJIT_PATCH(0x6B78D3, SpawnManagerClass_Update_Spawns, 0x6)
 
 	for (auto const& pType : pTypeExt->Spawns_Queue) {
 		if (!pType) {
-			auto const nullIt = std::find_if(pExt->SpawnQueueCounts.begin(), pExt->SpawnQueueCounts.end(),
+			auto const nullIt = std::ranges::find_if(pExt->SpawnQueueCounts,
 				[](SpawnTypeCount const& item) { return !item.Type; });
 
 			if (nullIt != pExt->SpawnQueueCounts.end() && nullIt->Count > 0) {
@@ -120,7 +120,7 @@ ASMJIT_PATCH(0x6B78D3, SpawnManagerClass_Update_Spawns, 0x6)
 			return 0;
 		}
 
-		auto const it = std::find_if(pExt->SpawnQueueCounts.begin(), pExt->SpawnQueueCounts.end(),
+		auto const it = std::ranges::find_if(pExt->SpawnQueueCounts,
 			[pType](SpawnTypeCount const& item) { return item.Type == pType; });
 
 		if (it != pExt->SpawnQueueCounts.end() && it->Count > 0) {

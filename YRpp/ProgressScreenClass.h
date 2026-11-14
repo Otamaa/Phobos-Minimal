@@ -5,7 +5,7 @@
 
 class LoadProgressManager;
 struct SHPCaches;
-class ALIGN(4) NOVTABLE ProgressScreenClass {
+class NOVTABLE ProgressScreenClass {
 public:
 
 	virtual void SetLoadmanager(LoadProgressManager* pManager) RX;

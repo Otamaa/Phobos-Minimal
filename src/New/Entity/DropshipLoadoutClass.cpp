@@ -534,7 +534,7 @@ namespace DropshipLoadoutParse
 				continue;
 			}
 
-			if (std::find(indices.begin(), indices.end(), index) == indices.end())
+			if (std::ranges::find(indices, index) == indices.end())
 				indices.push_back(index);
 		}
 
@@ -768,13 +768,13 @@ namespace DropshipLoadoutParse
 
 		for (int index : CollectKeyIndices(pINI, pSection, "DropshipLoadout.AllowableUnits", ""))
 		{
-			if (std::find(indices.begin(), indices.end(), index) == indices.end())
+			if (std::ranges::find(indices, index) == indices.end())
 				indices.push_back(index);
 		}
 
 		for (int index : CollectKeyIndices(pINI, pSection, "DropshipLoadout.AllowableUnitMaximums", ""))
 		{
-			if (std::find(indices.begin(), indices.end(), index) == indices.end())
+			if (std::ranges::find(indices, index) == indices.end())
 				indices.push_back(index);
 		}
 
@@ -1683,7 +1683,7 @@ long DropshipLoadoutClass::AccountPreloadedUnits(
 			continue;
 
 		// Fixed units are free and consume one entry from the fixed pool.
-		auto const itFixed = std::find(fixedRemaining.begin(), fixedRemaining.end(), pUnit);
+		auto const itFixed = std::ranges::find(fixedRemaining, pUnit);
 
 		if (itFixed != fixedRemaining.end())
 		{
@@ -1692,7 +1692,7 @@ long DropshipLoadoutClass::AccountPreloadedUnits(
 		}
 
 		// Free initial units likewise.
-		auto const itInitial = std::find(initialUnitsRemaining.begin(), initialUnitsRemaining.end(), pUnit);
+		auto const itInitial = std::ranges::find(initialUnitsRemaining, pUnit);
 
 		if (itInitial != initialUnitsRemaining.end())
 		{
@@ -1726,7 +1726,7 @@ void DropshipLoadoutClass::EnsureUnitAvailable(TechnoTypeClass* pUnit)
 	if (!pUnit)
 		return;
 
-	if (std::find(availableUnits.begin(), availableUnits.end(), pUnit) != availableUnits.end())
+	if (std::ranges::find(availableUnits, pUnit) != availableUnits.end())
 		return;
 
 	availableUnits.push_back(pUnit);
@@ -2622,7 +2622,7 @@ TechnoTypeClass* DropshipLoadoutClass::ResolveBaySlot(
 		if (!pUnit)
 			return nullptr;
 
-		auto const itFixed = std::find(fixedRemaining.begin(), fixedRemaining.end(), pUnit);
+		auto const itFixed = std::ranges::find(fixedRemaining, pUnit);
 
 		if (itFixed != fixedRemaining.end())
 		{
@@ -2631,7 +2631,7 @@ TechnoTypeClass* DropshipLoadoutClass::ResolveBaySlot(
 			return pUnit;
 		}
 
-		auto const itInitial = std::find(initialRemaining.begin(), initialRemaining.end(), pUnit);
+		auto const itInitial = std::ranges::find(initialRemaining, pUnit);
 
 		if (itInitial != initialRemaining.end())
 			initialRemaining.erase(itInitial);
@@ -3053,7 +3053,7 @@ void DropshipLoadoutClass::UpdateDragState(int buttonID)
 				auto& units = dropshipBayChosenUnitsLists[carrier];
 				auto& fixed = dropshipBayFixedUnitsLists[carrier];
 
-				auto const itNull = std::find(units.begin(), units.end(), nullptr);
+				auto const itNull = std::ranges::find(units, nullptr);
 
 				if (itNull != units.end())
 				{
@@ -4307,7 +4307,7 @@ std::vector<TechnoTypeClass*> DropshipLoadoutClass::RetainInitialUnitsPresentInC
 		if (!pUnit)
 			continue;
 
-		auto const it = std::find(cargoCopy.begin(), cargoCopy.end(), pUnit);
+		auto const it = std::ranges::find(cargoCopy, pUnit);
 
 		if (it == cargoCopy.end())
 			continue;

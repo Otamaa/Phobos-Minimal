@@ -120,7 +120,7 @@ void HugeBar::InvalidatePointer(void* ptr, bool removed)
 {
 	if (removed && !Technos.empty())
 	{
-		const auto it = std::find(Technos.begin(), Technos.end(), ptr);
+		const auto it = std::ranges::find(Technos, ptr);
 
 		if (it != Technos.end())
 			Technos.erase(it);
@@ -203,9 +203,9 @@ void HugeBar::InitializeHugeBar(TechnoClass* pTechno)
 
 	if (pTypeExt->HugeBar)
 	{
-		const auto it = std::find(Technos.cbegin(), Technos.cend(), pTechno);
+		const auto it = std::ranges::find(Technos, pTechno);
 
-		if (it != Technos.cend())
+		if (it != Technos.end())
 			Technos.emplace_back(pTechno);
 	}
 }

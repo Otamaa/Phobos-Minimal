@@ -775,7 +775,7 @@ bool ObserverUIHelpers::IsHotkeyBound(const char* commandName)
 
 std::vector<ObserverPlayerRow>::const_iterator ObserverUIHelpers::FindRow(const std::vector<ObserverPlayerRow>& rows, HouseClass* pHouse)
 {
-	return std::find_if(rows.begin(), rows.end(), [pHouse](const ObserverPlayerRow& row)
+	return std::ranges::find_if(rows, [pHouse](const ObserverPlayerRow& row)
  {
 	 return row.pHouse == pHouse;
 	});
@@ -3348,7 +3348,7 @@ void ObserverUIClass::Render(DSurface* pSurface)
 	// (ONLY for alliances of 2+ players)
 	for (auto const& [teamID, extent] : teamYExtents)
 	{
-		auto const itFirstRow = std::find_if(this->PlayerRows.begin(), this->PlayerRows.end(), [teamID](const ObserverPlayerRow& row)
+		auto const itFirstRow = std::ranges::find_if(this->PlayerRows, [teamID](const ObserverPlayerRow& row)
  {
 	 return row.TeamID == teamID;
 		});

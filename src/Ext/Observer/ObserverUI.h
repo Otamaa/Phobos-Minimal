@@ -430,7 +430,7 @@ struct ObserverUIHelpers
 	template<typename T, typename TPredicate>
 	static bool BringToFrontIf(std::vector<T>& windows, TPredicate predicate)
 	{
-		auto const it = std::find_if(windows.begin(), windows.end(), predicate);
+		auto const it = std::ranges::find_if(windows, predicate);
 		if (it == windows.end())
 			return false;
 

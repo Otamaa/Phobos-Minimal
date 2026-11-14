@@ -22,11 +22,11 @@ COMPILETIMEEVAL bool AEIsEligible(
 		return true;
 
 	if (!allow.empty()
-		&& std::find(allow.begin(), allow.end(), who) == allow.end())
+		&& std::ranges::find(allow, who) == allow.end())
 		return false;
 
 	if (!disallow.empty()
-		&& std::find(disallow.begin(), disallow.end(), who) != disallow.end())
+		&& std::ranges::find(disallow, who) != disallow.end())
 		return false;
 
 	return true;
@@ -43,11 +43,11 @@ COMPILETIMEEVAL bool AEIsEligible(
 		return true;
 
 	if (allow && !allow->empty()
-		&& std::find(allow->begin(), allow->end(), who) == allow->end())
+		&& std::ranges::find(*allow, who) == allow->end())
 		return false;
 
 	if (disallow && !disallow->empty()
-		&& std::find(disallow->begin(), disallow->end(), who) != disallow->end())
+		&& std::ranges::find(*disallow, who) != disallow->end())
 		return false;
 
 	return true;

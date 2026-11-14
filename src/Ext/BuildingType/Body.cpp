@@ -434,10 +434,10 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 			}
 
 			// Step 4.2.2: Mark the cell and push back its surrounded cells, then prepare for the command.
-			if (std::find(BuildingTypeExtData::CleanCheckedCells.begin(), BuildingTypeExtData::CleanCheckedCells.end(), pDestinationCell) == BuildingTypeExtData::CleanCheckedCells.end())
+			if (std::ranges::find(BuildingTypeExtData::CleanCheckedCells, pDestinationCell) == BuildingTypeExtData::CleanCheckedCells.end())
 				BuildingTypeExtData::CleanCheckedCells.push_back(pDestinationCell);
 
-			const auto it = std::find(BuildingTypeExtData::CleanOptionalCells.begin(), BuildingTypeExtData::CleanOptionalCells.end(), pDestinationCell);
+			const auto it = std::ranges::find(BuildingTypeExtData::CleanOptionalCells, pDestinationCell);
 
 			if (it != BuildingTypeExtData::CleanOptionalCells.end())
 			{
@@ -450,8 +450,8 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 					{
 						if (const auto pSearchCell = MapClass::Instance->TryGetCellAt(searchCell))
 						{
-							if (std::find(BuildingTypeExtData::CleanCheckedCells.begin(), BuildingTypeExtData::CleanCheckedCells.end(), pSearchCell) == BuildingTypeExtData::CleanCheckedCells.end()
-								&& std::find(BuildingTypeExtData::CleanOptionalCells.begin(), BuildingTypeExtData::CleanOptionalCells.end(), pSearchCell) == BuildingTypeExtData::CleanOptionalCells.end()
+							if (std::ranges::find(BuildingTypeExtData::CleanCheckedCells, pSearchCell) == BuildingTypeExtData::CleanCheckedCells.end()
+								&& std::ranges::find(BuildingTypeExtData::CleanOptionalCells, pSearchCell) == BuildingTypeExtData::CleanOptionalCells.end()
 								&& !(pSearchCell->OccupationFlags & 0x80)
 								&& pSearchCell->IsClearToMove(SpeedType::Amphibious, true, true, ZoneType::None, MovementZone::Amphibious, -1, false))
 							{

@@ -205,7 +205,10 @@ PowerAdjustment HouseExtData::UpdateUnitPower(HouseClass* const pThis)
 	std::int64_t aiDrainDelta = 0;
 	bool aiAdjusted = false;
 	const bool affectedByEnhancers = FakeRulesClass::Instance->AI_Power_AffectedByEnhancers;
+	
 	std::vector<const TechnoTypeClass*> enhancedTypes;
+	enhancedTypes.reserve(HouseExtContainer::Instance.Find(pThis)->PowerPlantEnhancers.size());
+
 	for (const auto pEnhancer : HouseExtContainer::Instance.Find(pThis)->PowerPlantEnhancers)
 	{
 		if (!TechnoExtData::IsActive(pEnhancer) || !pEnhancer->HasPower)
@@ -215,11 +218,12 @@ PowerAdjustment HouseExtData::UpdateUnitPower(HouseClass* const pThis)
 		{
 			if (pType && pType->WhatAmI() != AbstractType::BuildingType)
 			{
-				if (std::find(enhancedTypes.begin(), enhancedTypes.end(), pType) == enhancedTypes.end())
+				if (std::ranges::find(enhancedTypes, pType) == enhancedTypes.end())
 					enhancedTypes.push_back(pType);
 			}
 		}
 	}
+
 	auto addPower = [&output, &drain](std::int64_t power, int count)
 		{
 			if (power > 0)
@@ -254,7 +258,7 @@ PowerAdjustment HouseExtData::UpdateUnitPower(HouseClass* const pThis)
 				aiDrainDelta += (MaxImpl(-static_cast<std::int64_t>(aiPower), 0LL)
 					- MaxImpl(-static_cast<std::int64_t>(power), 0LL)) * count;
 				aiAdjusted |= aiPower != power;
-				if (std::find(enhancedTypes.begin(), enhancedTypes.end(), pType) != enhancedTypes.end())
+				if (std::ranges::find(enhancedTypes, pType) != enhancedTypes.end())
 					counted.emplace(pType, CountedPower { count, power, aiPower,
 						pExt->AI_Power_AffectedByEnhancers.Get(affectedByEnhancers) });
 			}

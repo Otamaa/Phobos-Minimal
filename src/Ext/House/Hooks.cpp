@@ -318,7 +318,7 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_SetOwningHouse_UpdateTracking, 0x7)
 	if (pType->DeploysInto)
 	{
 		auto& vec = pOldOwnerExt->OwnedDeployingUnits;
-		const auto it = std::find(vec.begin(), vec.end(), static_cast<UnitClass*>(pThis));
+		const auto it = std::ranges::find(vec, static_cast<UnitClass*>(pThis));
 
 		if (it != vec.end()) {
 			vec.erase(it);

@@ -613,8 +613,7 @@ bool  GeneralUtils::IsCellInBuildingFoundation(const BuildingClass* const pBuild
 		false
 	);
 
-	auto it = std::find(foundationCells.begin(), foundationCells.end(), cell);
-	return it != foundationCells.end();
+	return std::ranges::find(foundationCells, cell) != foundationCells.end();
 }
 
 TagClass* GeneralUtils::GetTagClassByIndex(int Index, bool forceNew)

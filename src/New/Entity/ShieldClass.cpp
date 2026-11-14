@@ -107,7 +107,7 @@ ShieldClass::ShieldClass(ShieldClass&& other) noexcept
 	, Type(std::exchange(other.Type, nullptr))
 {
 	// Update tracking array: swap old address for new
-	auto it = std::find(Array.begin(), Array.end(), &other);
+	auto it = std::ranges::find(Array, &other);
 	if (it != Array.end())
 		*it = this;        // replace in-place, no remove + push_back
 	else
@@ -152,7 +152,7 @@ ShieldClass& ShieldClass::operator=(ShieldClass&& other) noexcept
 	this->Type = std::exchange(other.Type, nullptr);
 
 	// Update tracking array: replace the source with us
-	auto it = std::find(Array.begin(), Array.end(), &other);
+	auto it = std::ranges::find(Array, &other);
 	if (it != Array.end())
 		*it = this;
 	else

@@ -2606,7 +2606,7 @@ void ScriptExtData::Mission_ScatterAttack(TeamClass* pTeam, int attackAITargetTy
 		auto& group = *it;
 		group.erase(std::remove_if(group.begin(), group.end(), [&](FootClass* pFoot)
 			{
-				return std::find(members.begin(), members.end(), pFoot) == members.end();
+				return std::ranges::find(members, pFoot) == members.end();
 			}), group.end());
 
 		if (group.empty())
@@ -2627,7 +2627,7 @@ void ScriptExtData::Mission_ScatterAttack(TeamClass* pTeam, int attackAITargetTy
 		bool inGroup = false;
 		for (auto& group : pExt->ScatterAttackGroups)
 		{
-			if (std::find(group.begin(), group.end(), pFoot) != group.end())
+			if (std::ranges::find(group, pFoot) != group.end())
 			{
 				inGroup = true;
 				break;

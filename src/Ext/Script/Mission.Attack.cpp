@@ -518,7 +518,7 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 
 		// This frame has been locked by other groups /the target has been determined to be unreachable, skipped (only for scattered attacks)
 		if (pExcludeTargets
-			&& std::find(pExcludeTargets->begin(), pExcludeTargets->end(), object) != pExcludeTargets->end())
+			&& std::ranges::find(*pExcludeTargets, object) != pExcludeTargets->end())
 		{
 			continue;
 		}

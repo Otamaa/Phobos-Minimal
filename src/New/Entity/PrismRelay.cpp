@@ -449,7 +449,7 @@ static bool IsRelayCandidateEligible(TechnoClass* pProvider, TechnoClass* pHub, 
 	if (pProvider == pHub || pProvider == pMaster)
 		return false;
 
-	if (std::find(marked.begin(), marked.end(), pProvider) != marked.end())
+	if (std::ranges::find(marked, pProvider) != marked.end())
 		return false;
 
 	if (!PrismRelay::CanProvide(pProvider, pType))
@@ -797,7 +797,7 @@ static void ApplyCooldown(const std::vector<TechnoClass*>& chain, int networkId)
 
 static bool IsTechnoInRelayNetwork(TechnoClass* pTechno, const std::vector<TechnoClass*>& nodes)
 {
-	return pTechno && std::find(nodes.begin(), nodes.end(), pTechno) != nodes.end();
+	return pTechno && std::ranges::find(nodes, pTechno) != nodes.end();
 }
 
 static void ClearRelayNetworkUnitState(const std::vector<TechnoClass*>& nodes, TechnoClass* pMaster)
