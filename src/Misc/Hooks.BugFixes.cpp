@@ -3275,3 +3275,17 @@ ASMJIT_PATCH(0x63F080, WaveClass_RasterizePolygon_NonMonotoneFix, 0x5)
 
 	return ReturnFromFunction;
 }
+
+ASMJIT_PATCH(0x522BDF, InfantryClass_CanCheer_SlaveOwner, 0x6)
+{
+	enum { CannotCheer = 0x522BF8, CheckSequence = 0x522BE5 };
+
+	GET(InfantryClass*, pThis, ESI);
+
+	if (pThis->SlaveOwner)
+		return CannotCheer;
+
+	// Restore the overwritten sequence load for the original animation checks.
+	R->EAX(pThis->SequenceAnim);
+	return CheckSequence;
+}

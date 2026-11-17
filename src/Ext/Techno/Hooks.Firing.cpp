@@ -912,7 +912,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 		// ╚═══════════════════════════════════════════════════════════════════════╝
 
 		// Optional runtime dump: define FIREAT_DUMP to enable logging to FireAtCoords.log
-	//#ifdef FIREAT_DUMP
+	#ifdef FIREAT_DUMP
 		{
 			//call original function
 			CoordStruct targetCenter = { };
@@ -944,7 +944,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 			//	pFireAtBullet->Velocity.X, pFireAtBullet->Velocity.Y , pFireAtBullet->Velocity.Z
 			//);
 		}
-		//#endif
+		#endif
 		// 
 		// ╔═══ HOOK: TechnoClass_FireAt_Additionals_Start @ 0x6FF15F ═══════════════╗
 		// W7: §PARTICLES / §ROF / §ANIM / §SOUND are dead code.

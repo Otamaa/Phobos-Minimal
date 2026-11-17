@@ -291,18 +291,6 @@ void FakeRulesClass::LoadAfterTypeData(CCINIClass* pINI)
 
 }
 
-static bool NOINLINE IsVanillaDummy(const char* ID)
-{
-	static COMPILETIMEEVAL const char* exception[] = { "DeathDummy" , "WEEDGUY" , "YDUM" };
-
-	for (auto const& gameDummy : exception) {
-		if (IS_SAME_STR_(ID, gameDummy))
-			return true;
-	}
-
-	return false;
-}
-
 #include <Ext/SWType/NewSuperWeaponType/SWTypeHandler.h>
 
 std::unordered_map<VoxelStruct*, std::string > FakeRulesClass::Owners;
@@ -391,15 +379,6 @@ ASMJIT_PATCH(0x5F61A0 , VoxelStruct_DTOR, 0x6){
 //	R->EAX(this);
 //	return 0x7564CF;
 //}
-
-template<typename T>
-static COMPILETIMEEVAL FORCEDINLINE void FillSecrets(DynamicVectorClass<T>& secrets) {
-
-	for(auto opt : secrets){
-		FakeRulesClass::Instance()->Secrets.emplace_back(opt);
-		//Debug::LogInfo("Adding [{} - {}] onto Global Secrets pool" , Option->ID, Option->GetThisClassName());
-	}
-}
 
 void FakeRulesClass::LoadBeforeTypeData(CCINIClass* pINI)
 {
@@ -1524,7 +1503,7 @@ void FakeRulesClass::_ReadPowerups(CCINIClass* pINI)
 
 void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 {
-	static constexpr const char* section = "General";
+	const char* section = GameStrings::General.get();
 
 	if (!pINI->GetSection(section))
 		return;
@@ -2150,10 +2129,10 @@ ASMJIT_PATCH(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x685005, Game_InitData_GlobalParticleSystem, 0x5)
+ASMJIT_PATCH(0x684FEA, Game_InitData_GlobalParticleSystem, 0x6)
 {
-
-	GET(ParticleSystemClass*, pMem, ESI);
+	if (ParticleSystemClass::Instance.get())
+		return 0x68504D;
 
 	const auto pGlobalType = FakeRulesClass::Instance()->DefaultGlobalParticleInstance;
 
@@ -2164,9 +2143,9 @@ ASMJIT_PATCH(0x685005, Game_InitData_GlobalParticleSystem, 0x5)
 		Debug::FatalErrorAndExit("DefaultGlobalParticleInstance[{}] Lifetime must be -1 , otherwise it will crash the game !", pGlobalType->ID);
 
 	COMPILETIMEEVAL CoordStruct dummycoord { 2688  , 2688  , 0 };
-	pMem->ParticleSystemClass::ParticleSystemClass(pGlobalType.Get(), dummycoord, nullptr, nullptr, CoordStruct::Empty, nullptr);
-	R->EAX(pMem);
-	return 0x685040;
+	ParticleSystemClass::Instance = GameCreate<ParticleSystemClass>(pGlobalType.Get(), dummycoord, nullptr, nullptr, CoordStruct::Empty, nullptr);
+
+	return 0x68504D;
 }
 
 ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
@@ -2186,12 +2165,29 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			Helpers::Alex::remove_non_paradroppables(pExt->ParaDropTypes, SideClass::Array->Items[i]->ID, "ParaDrop.Types");
 	}
 
+	auto FillSecrets = []<typename T>(DynamicVectorClass<T>& secrets) {
+		for (auto opt : secrets) {
+			FakeRulesClass::Instance()->Secrets.emplace_back(opt);
+			//Debug::LogInfo("Adding [{} - {}] onto Global Secrets pool" , Option->ID, Option->GetThisClassName());
+		}
+	};
+
 	FillSecrets(RulesClass::Instance->SecretInfantry);
 	FillSecrets(RulesClass::Instance->SecretUnits);
 	FillSecrets(RulesClass::Instance->SecretBuildings);
 
 	auto pINI = CCINIClass::INI_Rules();
 	INI_EX exINI(pINI);
+	auto IsVanillaDummy = [](const char* ID) {
+			static COMPILETIMEEVAL const char* exception[] = { "DeathDummy" , "WEEDGUY" , "YDUM" };
+
+		for (auto const& gameDummy : exception) {
+			if (IS_SAME_STR_(ID, gameDummy))
+				return true;
+		}
+
+		return false;
+	};
 
 	for (auto pItem : *TechnoTypeClass::Array)
 	{
@@ -2202,21 +2198,24 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		bool WeederAndHarvesterWarning = false;
 
 		pExt->UpdateAdditionalAttributes(pINI);
+		auto ValidateValueableTptr = [myClassName, what]<typename T>(T & pType, const char* section, const char* msg) {
+			if (pType && pType->WhatAmI() != what) {
+				Debug::LogInfo("[{} - {}] has {} [{} - {}] {}",
+					pType->ID, myClassName, section, pType->ID, pType->GetThisClassName(), msg);
+			
+				Debug::RegisterParserError();
+				return false; //invalid
+			}
 
-		if (pExt->Image_Yellow && pExt->Image_Yellow->WhatAmI() != what)
-		{
-			Debug::LogInfo("[{} - {}] has Image.ConditionYellow [{} - {}] but it different ClassType from it!",
-				pItem->ID, myClassName, pExt->Image_Yellow->ID, pExt->Image_Yellow->GetThisClassName());
+			return true; //valid
+		};
+
+		if(!ValidateValueableTptr(pExt->Image_Yellow, "Image.ConditionYellow","but it different ClassType from it!")) {
 			pExt->Image_Yellow = nullptr;
-			Debug::RegisterParserError();
 		}
 
-		if (pExt->Image_Red && pExt->Image_Red->WhatAmI() != what)
-		{
-			Debug::LogInfo("[{} - {}] has Image.ConditionRed [{} - {}] but it different ClassType from it!",
-				pItem->ID, myClassName, pExt->Image_Red->ID, pExt->Image_Red->GetThisClassName());
+		if(!ValidateValueableTptr(pExt->Image_Red, "Image.ConditionRed", "but it different ClassType from it!")) {
 			pExt->Image_Red = nullptr;
-			Debug::RegisterParserError();
 		}
 
 		if (pItem->Strength <= 0)
@@ -2275,12 +2274,8 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			Debug::RegisterParserError();
 		}
 
-		if (pExt->Fake_Of && pExt->Fake_Of->WhatAmI() != what)
-		{
-			Debug::LogInfo("[{} - {}] has FakeOf [{} - {}] but it different ClassType from it!"
-				, pItem->ID, myClassName, pExt->Fake_Of->ID, pExt->Fake_Of->GetThisClassName());
+		if(!ValidateValueableTptr(pExt->Fake_Of, "FakeOf", "but it different ClassType from it!")) {
 			pExt->Fake_Of = nullptr;
-			Debug::RegisterParserError();
 		}
 
 		if (pExt->RecuitedAs.isset())
@@ -2313,30 +2308,17 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			}
 		}
 
-		if (pExt->ClonedAs && pExt->ClonedAs->WhatAmI() != what)
-		{
-			Debug::LogInfo("[{} - {}] has ClonedAs [{} - {}] but it different ClassType from it!", pItem->ID, myClassName, pExt->ClonedAs->ID, pExt->ClonedAs->GetThisClassName());
+		if(!ValidateValueableTptr(pExt->ClonedAs, "ClonedAs", "but it different ClassType from it!")) {
 			pExt->ClonedAs = nullptr;
-			Debug::RegisterParserError();
 		}
 
-		if (pExt->AI_ClonedAs && pExt->AI_ClonedAs->WhatAmI() != what)
-		{
-			Debug::LogInfo("[{} - {}] has AI.ClonedAs [{} - {}] but it different ClassType from it!", pItem->ID, myClassName, pExt->AI_ClonedAs->ID, pExt->AI_ClonedAs->GetThisClassName());
+		if(!ValidateValueableTptr(pExt->AI_ClonedAs, "AI_ClonedAs", "but it different ClassType from it!")) {
 			pExt->AI_ClonedAs = nullptr;
-			Debug::RegisterParserError();
 		}
 
 		if (pExt->ReversedAs.isset()) {
-			auto pReverse = pExt->ReversedAs.Fetch();
-
-			if (pReverse && pReverse->WhatAmI() != what)
-			{
-				Debug::LogInfo("[{} - {}] has ReversedAs [{} - {}] but it different ClassType from it!"
-					, pItem->ID, myClassName, pReverse->ID, pReverse->GetThisClassName());
+			if (!ValidateValueableTptr(pExt->ReversedAs.Fetch(), "ReversedAs", "but it different ClassType from it!"))
 				pExt->ReversedAs.Reset();
-				Debug::RegisterParserError();
-			}
 		}
 
 		if (isFoot && !pExt->IsDummy)
@@ -2423,25 +2405,20 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			ValidateVoxelStruct(&pExt->SpawnAltData, "SpawnAltData");
 		}
 
-		for (size_t ia = 0; ia < pExt->BarrelImageData.size(); ++ia)
-		{
-			if (pExt->BarrelImageData[ia].VXL)
+		auto ValidateVoxelStructs = [&](std::vector<VoxelStruct>& vxlVec, const char* ident)
 			{
-				std::string ident_a("BarrelImageData ");
-				ident_a += std::to_string(ia);
-				ValidateVoxelStruct(&pExt->BarrelImageData[ia], ident_a.c_str());
-			}
-		}
-
-		for (size_t ib = 0; ib < pExt->TurretImageData.size(); ++ib)
-		{
-			if (pExt->TurretImageData[ib].VXL)
-			{
-				std::string ident_b("TurretImageData ");
-				ident_b += std::to_string(ib);
-				ValidateVoxelStruct(&pExt->TurretImageData[ib], ident_b.c_str());
-			}
-		}
+				for (size_t i = 0; i < vxlVec.size(); ++i) {
+					if (vxlVec[i].VXL) {
+						std::string ident_i(ident);
+						ident_i += " ";
+						ident_i += std::to_string(i);
+						ValidateVoxelStruct(&vxlVec[i], ident_i.c_str());
+					}
+				}
+			};
+		
+		ValidateVoxelStructs(pExt->BarrelImageData, "BarrelImageData");
+		ValidateVoxelStructs(pExt->TurretImageData, "TurretImageData");
 
 		if (pItem->PoweredUnit && !pExt->PoweredBy.empty())
 		{
@@ -2632,7 +2609,6 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 	for (auto pBullet : *BulletTypeClass::Array)
 	{
-
 		if (pBullet->Voxel)
 		{
 			if (pBullet->MainVoxel.VXL)
@@ -3014,12 +2990,6 @@ void FakeRulesClass::_ReadLandTypes(CCINIClass* pINI)
 	   "Weeds",    // index 11 — 0x839D94
 	};
 
-	auto ReadSpeedCost = [](INI_EX& exINI, const char* section, const char* key) {
-		double _buffer = 1.0;
-		detail::read<double>(_buffer, exINI, section, key);
-		return float((_buffer >= 1.0) ? 1.0 : _buffer);
-	};
-
 	for (size_t i = 0; i < GroundType::Array.size(); ++i) {
 		const char* section = LandTypeSections[i];
 
@@ -3031,13 +3001,20 @@ void FakeRulesClass::_ReadLandTypes(CCINIClass* pINI)
 			Read(exINI, section, "Bounce.Elasticity");
 
 		auto& grnd = GroundType::Array[i];
-		grnd.Cost[SpeedType::Foot] = ReadSpeedCost(exINI, section, "Foot");
-		grnd.Cost[SpeedType::Track] = ReadSpeedCost(exINI, section, "Track");
-		grnd.Cost[SpeedType::Wheel] = ReadSpeedCost(exINI, section, "Wheel");
-		grnd.Cost[SpeedType::Hover] = ReadSpeedCost(exINI, section, "Hover");
-		grnd.Cost[SpeedType::Float] = ReadSpeedCost(exINI, section, "Float");
-		grnd.Cost[SpeedType::Amphibious] = ReadSpeedCost(exINI, section, "Amphibious");
-		grnd.Cost[SpeedType::FloatBeach] = ReadSpeedCost(exINI, section, "FloatBeach");
+
+		auto ReadSpeedCost = [&](SpeedType speed ,const char* key) {
+				double _buffer = 1.0;
+				detail::read<double>(_buffer, exINI, section, key);
+				grnd.Cost[speed] =  float((_buffer >= 1.0) ? 1.0 : _buffer);
+		};
+
+		ReadSpeedCost(SpeedType::Foot, "Foot");
+		ReadSpeedCost(SpeedType::Track, "Track");
+		ReadSpeedCost(SpeedType::Wheel, "Wheel");
+		ReadSpeedCost(SpeedType::Hover, "Hover");
+		ReadSpeedCost(SpeedType::Float, "Float");
+		ReadSpeedCost(SpeedType::Amphibious, "Amphibious");
+		ReadSpeedCost(SpeedType::FloatBeach, "FloatBeach");
 
 		detail::read<bool>(grnd.Build, exINI, section, "Buildable");
 		Debug::LogInfo("Reading LandTypeData of [{} - {}]", section, i);
@@ -3071,7 +3048,7 @@ void FakeRulesClass::_ReadIQ(CCINIClass* pINI)
 
 void FakeRulesClass::_ReadDifficulty(CCINIClass* pINI)
 {
-	auto DiffGet = [](DifficultyStruct& value, CCINIClass* pINI, const char* section)
+	auto DiffGet = [pINI](DifficultyStruct& value,const char* section)
 		{
 			if (pINI->GetSection(section)) {
 				INI_EX exINI(pINI);
@@ -3094,9 +3071,9 @@ void FakeRulesClass::_ReadDifficulty(CCINIClass* pINI)
 			}
 		};
 
-	DiffGet(this->DifficultyConfigs[ParsedDifficulty::Easy], pINI, "Easy");
-	DiffGet(this->DifficultyConfigs[ParsedDifficulty::Normal], pINI, "Normal");
-	DiffGet(this->DifficultyConfigs[ParsedDifficulty::Hard], pINI, "Difficult");
+	DiffGet(this->DifficultyConfigs[ParsedDifficulty::Easy], "Easy");
+	DiffGet(this->DifficultyConfigs[ParsedDifficulty::Normal], "Normal");
+	DiffGet(this->DifficultyConfigs[ParsedDifficulty::Hard], "Difficult");
 }
 
 void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
@@ -3159,20 +3136,16 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 	// ExtraUnitLight / ExtraInfantryLight / ExtraAircraftLight
 	// Vanilla: default passed as (field / 1000.0), stored as (result * 1000.0)
 	// VERIFY: confirm integer field scaled by 1000 (i.e. stored = INI_double * 1000, not a float field)
+	auto ScaleLight = [&](float& field, const char* key) {
+		double v = field / 1000.0;
+		detail::read(v, exINI, section, key);
+		field = float(v * 1000.0);
+	};
+
 	{
-		double v = this->ExtraUnitLight / 1000.0;
-		detail::read(v, exINI, section, "ExtraUnitLight");
-		this->ExtraUnitLight = float(v * 1000.0);
-	}
-	{
-		double v = this->ExtraInfantryLight / 1000.0;
-		detail::read(v, exINI, section, "ExtraInfantryLight");
-		this->ExtraInfantryLight = float(v * 1000.0);
-	}
-	{
-		double v = this->ExtraAircraftLight / 1000.0;
-		detail::read(v, exINI, section, "ExtraAircraftLight");
-		this->ExtraAircraftLight = float(v * 1000.0);
+		ScaleLight(this->ExtraUnitLight, "ExtraUnitLight");
+		ScaleLight(this->ExtraInfantryLight, "ExtraInfantryLight");
+		ScaleLight(this->ExtraAircraftLight, "ExtraAircraftLight");
 	}
 
 	// -------------------------------------------------------------------------
@@ -3776,24 +3749,6 @@ void FakeRulesClass::_ReadJumpjetControls(CCINIClass* pINI)
 	this->JumpjetCrash_Rotate.Read(exINI, GameStrings::JumpjetControls(), "RotateOnCrash");
 }
 
-template<typename T>
-void ReadArray(CCINIClass* pINI, const char* pSection) {
-
-	Debug::Log("Processing %s.\n" , pSection);
-
-	if (!pINI->GetSection(pSection)) {
-		Debug::Log("Cannot Find %s section.\n", pSection);
-		return;
-	}
-
-	for (int i = 0; i < pINI->GetKeyCount(pSection); ++i) {
-		char _buffer[32];
-		if (pINI->GetString(pSection, pINI->GetKeyName(pSection, i), _buffer) > 0) {
-			T::FindOrAllocate(_buffer);
-		}
-	}
-};
-
 DEFINE_POINTER(RectangleStruct, _SomeRect , 0xB0FC68)
 
 void FakeRulesClass::_Process(CCINIClass* pINI)
@@ -3808,39 +3763,56 @@ void FakeRulesClass::_Process(CCINIClass* pINI)
 	this->_ReadJumpjetControls(pINI);
 	this->_ReadColorAdd(pINI);
 
+	auto ReadArray= [&]<typename T>(std::type_identity<T>, const char* pSection) {
+
+		Debug::Log("Processing %s.\n", pSection);
+
+		if (!pINI->GetSection(pSection)) {
+			Debug::Log("Cannot Find %s section.\n", pSection);
+			return;
+		}
+
+		for (int i = 0; i < pINI->GetKeyCount(pSection); ++i) {
+			char _buffer[32];
+			if (pINI->GetString(pSection, pINI->GetKeyName(pSection, i), _buffer) > 0) {
+				T::FindOrAllocate(_buffer);
+			}
+		}
+	};
+
 	{
-		ReadArray<HouseTypeClass>(pINI, "Countries");
+		ReadArray(std::type_identity<HouseTypeClass>{}, "Countries");
 		//for (int i = 0; i < HouseTypeClass::Array->Count; ++i)
 		//	Debug::Log("House [%s] At %d FP %f\n", HouseTypeClass::Array->Items[i]->ID, i, HouseTypeClass::Array->Items[i]->FirepowerMult);
 
 		this->Read_Sides(pINI);
-		ReadArray<OverlayTypeClass>(pINI, "OverlayTypes");
-		ReadArray<SuperWeaponTypeClass>(pINI, "SuperWeaponTypes");
+		ReadArray(std::type_identity<OverlayTypeClass>{}, "OverlayTypes");
+		ReadArray(std::type_identity<SuperWeaponTypeClass>{}, "SuperWeaponTypes");
 
 		//0x668D86 RulesData_Process_PreFillTypeListData
 
 		{
-			ReadArray<BulletTypeClass>(pINI, "Projectiles");
-			ReadArray<TiberiumClass>(pINI, "Tiberiums");
+			ReadArray(std::type_identity<BulletTypeClass>{}, "Projectiles");
+			ReadArray(std::type_identity<TiberiumClass>{}, "Tiberiums");
 
 			FakeRulesClass::Instance()->DefaultBulletType = BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
 			if (!FakeRulesClass::Instance()->DefaultBulletType)
 				Debug::FatalError("Uneable to Allocate {} BulletType ! ", DEFAULT_STR2);
 
-			ReadArray<WeaponTypeClass>(pINI,"WeaponTypes");
-			ReadArray<WarheadTypeClass>(pINI,"Warheads");		
+			ReadArray(std::type_identity<WeaponTypeClass>{}, "WeaponTypes");
+			ReadArray(std::type_identity<WarheadTypeClass>{}, "Warheads");		
 		}
 
-		ReadArray<SmudgeTypeClass>(pINI,"SmudgeTypes");
-		ReadArray<TerrainTypeClass>(pINI,"TerrainTypes");
-		ReadArray<BuildingTypeClass>(pINI,"BuildingTypes");
-		ReadArray<UnitTypeClass>(pINI,"VehicleTypes");
-		ReadArray<AircraftTypeClass>(pINI,"AircraftTypes");
-		ReadArray<InfantryTypeClass>(pINI,"InfantryTypes");
-		ReadArray<AnimTypeClass>(pINI,"Animations");
-		ReadArray<VoxelAnimTypeClass>(pINI,"VoxelAnims");
-		ReadArray<ParticleTypeClass>(pINI,"Particles");
-		ReadArray<ParticleSystemTypeClass>(pINI,"ParticleSystems");
+		ReadArray(std::type_identity<SmudgeTypeClass>{}, "SmudgeTypes");
+		ReadArray(std::type_identity<TerrainTypeClass>{}, "TerrainTypes");
+		ReadArray(std::type_identity<BuildingTypeClass>{}, "BuildingTypes");
+		ReadArray(std::type_identity<UnitTypeClass>{}, "VehicleTypes");
+		ReadArray(std::type_identity<AircraftTypeClass>{}, "AircraftTypes");
+		ReadArray(std::type_identity<InfantryTypeClass>{}, "InfantryTypes");
+		ReadArray(std::type_identity<AnimTypeClass>{}, "Animations");
+		ReadArray(std::type_identity<VoxelAnimTypeClass>{}, "VoxelAnims");
+		ReadArray(std::type_identity<ParticleTypeClass>{}, "Particles");
+		ReadArray(std::type_identity<ParticleSystemTypeClass>{}, "ParticleSystems");
 	}
 
 	this->_ReadMPlayer(pINI);
@@ -4044,14 +4016,14 @@ void FakeRulesClass::_ReadAI(CCINIClass* pINI)
 	this->AI_BasePlan_Rebuild.Read(exINI, section, "AI.BasePlan.Rebuild");
 	this->AI_Power_AffectedByEnhancers.Read(exINI, section, "AI.Power.AffectedByEnhancers");
 
-	auto ParseBTypeVector= [](DynamicVectorClass<BuildingTypeClass*>&List, INI_EX & IniEx, const char* section, const char* key, const char* message = nullptr)
+	auto ParseBTypeVector= [&](DynamicVectorClass<BuildingTypeClass*>&List, const char* key, const char* message = nullptr)
 	{
-		if (IniEx.ReadString(section, key)) {
-			Debug::LogInfo("Parsing {} - {} -> value : {}",section , key , IniEx.value());
+		if (exINI.ReadString(section, key)) {
+			Debug::LogInfo("Parsing {} - {} -> value : {}",section , key , exINI.value());
 			List.reset();
 			char* context = nullptr;
 
-			for (char* cur = strtok_s(IniEx.value(), Phobos::readDelims, &context); cur;
+			for (char* cur = strtok_s(exINI.value(), Phobos::readDelims, &context); cur;
 				 cur = strtok_s(nullptr, Phobos::readDelims, &context)) {
 				BuildingTypeClass* buffer = BuildingTypeClass::Find(cur);
 
@@ -4069,26 +4041,27 @@ void FakeRulesClass::_ReadAI(CCINIClass* pINI)
 	};
 
 
-	ParseBTypeVector(this->BuildConst, exINI, section, GameStrings::BuildConst(), "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildPower, exINI, section, GameStrings::BuildPower(), "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildRefinery, exINI, section, GameStrings::BuildRefinery(), "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildBarracks, exINI, section, GameStrings::BuildBarracks(), "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildTech, exINI, section, GameStrings::BuildTech(), "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildWeapons, exINI, section, GameStrings::BuildWeapons(), "Expect valid BuildingType");
-	ParseBTypeVector(this->AlliedBaseDefenses, exINI, section, GameStrings::AlliedBaseDefenses(), "Expect valid BuildingType");
-	ParseBTypeVector(this->SovietBaseDefenses, exINI, section, GameStrings::SovietBaseDefenses(), "Expect valid BuildingType");
-	ParseBTypeVector(this->ThirdBaseDefenses, exINI, section, GameStrings::ThirdBaseDefenses(), "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildDefense, exINI, section, GameStrings::BuildDefense(), "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildPDefense, exINI, section, GameStrings::BuildPDefense(), "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildAA, exINI, section, GameStrings::BuildAA(), "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildHelipad, exINI, section, GameStrings::BuildHelipad(), "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildRadar, exINI, section, GameStrings::BuildRadar(), "Expect valid BuildingType");
-	ParseBTypeVector(this->ConcreteWalls, exINI, section, GameStrings::ConcreteWalls(), "Expect valid BuildingType");
-	ParseBTypeVector(this->NSGates, exINI, section, GameStrings::NSGates(), "Expect valid BuildingType");
-	ParseBTypeVector(this->EWGates, exINI, section, GameStrings::EWGates(), "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildNavalYard, exINI, section, GameStrings::BuildNavalYard(), "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildDummy, exINI, section, GameStrings::BuildDummy(), "Expect valid BuildingType");
-	ParseBTypeVector(this->NeutralTechBuildings, exINI, section, GameStrings::NeutralTechBuildings(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildConst, GameStrings::BuildConst(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildPower, GameStrings::BuildPower(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildRefinery, GameStrings::BuildRefinery(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildBarracks, GameStrings::BuildBarracks(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildTech, GameStrings::BuildTech(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildWeapons, GameStrings::BuildWeapons(), "Expect valid BuildingType");
+	ParseBTypeVector(this->AlliedBaseDefenses, GameStrings::AlliedBaseDefenses(), "Expect valid BuildingType");
+	ParseBTypeVector(this->SovietBaseDefenses, GameStrings::SovietBaseDefenses(), "Expect valid BuildingType");
+	ParseBTypeVector(this->ThirdBaseDefenses, GameStrings::ThirdBaseDefenses(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildDefense, GameStrings::BuildDefense(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildPDefense, GameStrings::BuildPDefense(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildAA, GameStrings::BuildAA(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildHelipad, GameStrings::BuildHelipad(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildRadar, GameStrings::BuildRadar(), "Expect valid BuildingType");
+	ParseBTypeVector(this->ConcreteWalls, GameStrings::ConcreteWalls(), "Expect valid BuildingType");
+	ParseBTypeVector(this->NSGates, GameStrings::NSGates(), "Expect valid BuildingType");
+	ParseBTypeVector(this->EWGates, GameStrings::EWGates(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildNavalYard, GameStrings::BuildNavalYard(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildDummy, GameStrings::BuildDummy(), "Expect valid BuildingType");
+	ParseBTypeVector(this->NeutralTechBuildings, GameStrings::NeutralTechBuildings(), "Expect valid BuildingType");
+	
 	detail::ParseVector(this->AIForcePredictionFudge, exINI, section, GameStrings::AIForcePredictionFudge(), "Expect valid number");
 
 	detail::read<double>(this->AttackInterval, exINI, section, "AttackInterval");
@@ -4190,22 +4163,22 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 	detail::read<int>(this->IronCurtainDuration, exINI, section, "IronCurtainDuration");
 	detail::read<int>(this->PsychicRevealRadius, exINI, section, "PsychicRevealRadius");
 
-	auto ReadDoubleToFloat = [](float& value, INI_EX& exINI, const char* section, const char* key)
+	auto ReadDoubleToFloat = [&](float& value, const char* key)
 		{
 			double _buffer = value;
 			if (detail::read<double>(_buffer, exINI, section, key))
 				value = (float)_buffer;
 		};
 
-	ReadDoubleToFloat(this->OccupyDamageMultiplier, exINI, section, "OccupyDamageMultiplier");
-	ReadDoubleToFloat(this->OccupyROFMultiplier, exINI, section, "OccupyROFMultiplier");
+	ReadDoubleToFloat(this->OccupyDamageMultiplier, "OccupyDamageMultiplier");
+	ReadDoubleToFloat(this->OccupyROFMultiplier, "OccupyROFMultiplier");
 	detail::read<int>(this->OccupyWeaponRange, exINI, section, "OccupyWeaponRange");
 
-	ReadDoubleToFloat(this->BunkerDamageMultiplier, exINI, section, "BunkerDamageMultiplier");
-	ReadDoubleToFloat(this->BunkerROFMultiplier, exINI, section, "BunkerROFMultiplier");
+	ReadDoubleToFloat(this->BunkerDamageMultiplier, "BunkerDamageMultiplier");
+	ReadDoubleToFloat(this->BunkerROFMultiplier, "BunkerROFMultiplier");
 	detail::read<int>(this->BunkerWeaponRangeBonus, exINI, section, "BunkerWeaponRangeBonus");
 
-	ReadDoubleToFloat(this->OpenToppedDamageMultiplier, exINI, section, "OpenToppedDamageMultiplier");
+	ReadDoubleToFloat(this->OpenToppedDamageMultiplier, "OpenToppedDamageMultiplier");
 	detail::read<int>(this->OpenToppedRangeBonus, exINI, section, "OpenToppedRangeBonus");
 	detail::read<int>(this->OpenToppedWarpDistance, exINI, section, "OpenToppedWarpDistance");
 
@@ -4220,7 +4193,7 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 	detail::read<int>(this->DrainMoneyFrameDelay, exINI, section, "DrainMoneyFrameDelay");
 	detail::read<int>(this->DrainMoneyAmount, exINI, section, "DrainMoneyAmount");
 
-	ReadDoubleToFloat(this->FallingDamageMultiplier, exINI, section, "FallingDamageMultiplier");
+	ReadDoubleToFloat(this->FallingDamageMultiplier, "FallingDamageMultiplier");
 	detail::read<bool>(this->CurrentStrengthDamage, exINI, section, "CurrentStrengthDamage");
 
 	detail::read(this->ControlledAnimationType, exINI, section, "ControlledAnimationType", true);
@@ -4262,35 +4235,23 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 	detail::read<bool>(this->PlayerScatter, exINI, section, "PlayerScatter");
 	detail::read<bool>(this->TreeTargeting, exINI, section, "TreeTargeting");
 
-	auto ReadIncoming = [](int& value, INI_EX& exINI, const char* section, const char* key) -> void
+	auto ReadIncoming = [&](int& value, const char* key)
 		{
+			int percent = -1;
+			detail::read<int>(percent, exINI, section, key);
 
-			int buffer_ = -1;
-			detail::read<int>(buffer_, exINI, section, key);
+			if (percent == -1)
+				return;
 
-			if (buffer_ != -1)
-			{
-				if (buffer_ >= 100)
-				{
-					buffer_ = 100;
-				}
-
-				buffer_ = ((buffer_ <= 0 ? 0 : buffer_) << 8) / 100;
-
-				if (buffer_ >= 255)
-				{
-					buffer_ = 255;
-				}
-
-				value = buffer_;
-			}
+			percent = std::clamp(percent, 0, 100);
+			value = MinImpl((percent << 8) / 100, 255);
 		};
 
-	ReadIncoming(this->Incoming, exINI, section, "Incoming");
+	ReadIncoming(this->Incoming, "Incoming");
 
 	detail::read<int>(this->CollapseChance, exINI, section, "CollapseChance");
 
-	auto ReadStrictInitVector = [](TypeList<int>& value, INI_EX& exINI, const char* section, const char* key, int minCount, int maxCount)-> void
+	auto ReadStrictInitVector = [&](TypeList<int>& value, const char* key, int minCount, int maxCount)-> void
 		{
 			detail::ParseVector<int>(value, exINI, section, key, "Expect valid integer");
 			if (value.Count < minCount)
@@ -4306,9 +4267,9 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 			}
 		};
 
-	ReadStrictInitVector(this->OverloadCount, exINI, section, "OverloadCount", 4, 4);
-	ReadStrictInitVector(this->OverloadDamage, exINI, section, "OverloadDamage", 4, 4);
-	ReadStrictInitVector(this->OverloadFrames, exINI, section, "OverloadFrames", 4, 4);
+	ReadStrictInitVector(this->OverloadCount, "OverloadCount", 4, 4);
+	ReadStrictInitVector(this->OverloadDamage, "OverloadDamage", 4, 4);
+	ReadStrictInitVector(this->OverloadFrames, "OverloadFrames", 4, 4);
 
 	this->DamageOwnerMultiplier.Read(exINI, section, "DamageOwnerMultiplier");
 	this->DamageAlliesMultiplier.Read(exINI, section, "DamageAlliesMultiplier");

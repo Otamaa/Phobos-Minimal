@@ -173,13 +173,13 @@ void TechnoTypeConvertData::Parse(bool useDevelopversion, std::vector<TechnoType
 				std::string base_("Convert");
 				base_ += std::to_string(i);
 
-				auto convertTo = Nullable<TechnoTypeClass*>()(exINI, pSection, (base_ + ".To").c_str(), false);
+				Nullable<TechnoTypeClass*> convertTo = Nullable<TechnoTypeClass*>()(exINI, pSection, (base_ + ".To").c_str(), false);
 
 				if (!convertTo.isset() || !convertTo.Fetch())
 					break;
 
-				auto convertFrom = ValueableVector<TechnoTypeClass*>()(exINI, pSection, (base_ + ".From").c_str(), false);
-				auto convertAffectedHouses = Nullable<AffectedHouse>()(exINI, pSection, (base_ + ".AffectedHouses").c_str(), false);
+				ValueableVector<TechnoTypeClass*> convertFrom = ValueableVector<TechnoTypeClass*>()(exINI, pSection, (base_ + ".From").c_str(), false);
+				Nullable<AffectedHouse> convertAffectedHouses = Nullable<AffectedHouse>()(exINI, pSection, (base_ + ".AffectedHouses").c_str(), false);
 
 				auto& back = list.emplace_back();
 
@@ -190,12 +190,12 @@ void TechnoTypeConvertData::Parse(bool useDevelopversion, std::vector<TechnoType
 			}
 		}
 
-		auto convertTo = Nullable<TechnoTypeClass*>()(exINI, pSection, "Convert.To", false);
+		 Nullable<TechnoTypeClass*> convertTo = Nullable<TechnoTypeClass*>()(exINI, pSection, "Convert.To", false);
 
 		if (convertTo.isset() && convertTo.Fetch()) {
 
-			auto convertFrom = ValueableVector<TechnoTypeClass*>()(exINI, pSection, "Convert.From", false);
-			auto convertAffectedHouses = Nullable<AffectedHouse>()(exINI, pSection, "Convert.AffectedHouses", false);
+			ValueableVector<TechnoTypeClass*> convertFrom = ValueableVector<TechnoTypeClass*>()(exINI, pSection, "Convert.From", false);
+			Nullable<AffectedHouse> convertAffectedHouses = Nullable<AffectedHouse>()(exINI, pSection, "Convert.AffectedHouses", false);
 
 			if (!convertAffectedHouses.isset())
 				convertAffectedHouses = AffectedHouse::All;

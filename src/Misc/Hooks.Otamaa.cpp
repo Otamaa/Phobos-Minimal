@@ -2659,7 +2659,7 @@ ASMJIT_PATCH(0x6F8A0F, TechnoClass_EvalCell_deadTechno, 0x8)
  *
  *  @author: JoyfulShush
  */
-DEFINE_HOOK(0x004D4251, _Assign_Destination_Hospital_Armory_Queue_Patch, 9)
+ASMJIT_PATCH(0x004D4251, _Assign_Destination_Hospital_Armory_Queue_Patch, 9)
 {
 	GET(InfantryClass*, this_ptr, EBP);
 	GET(BuildingClass*, object, EBX);
@@ -2692,7 +2692,7 @@ DEFINE_HOOK(0x004D4251, _Assign_Destination_Hospital_Armory_Queue_Patch, 9)
 	 *
 	 *  @author: JoyfulShush
 	 */
-DEFINE_HOOK(0x004D72F2, _InfantryClass_What_Action_Hospital_Action_Patch, 0)
+ASMJIT_PATCH(0x004D72F2, _InfantryClass_What_Action_Hospital_Action_Patch, 0)
 {
 	GET(BuildingClass*, object, ESI);
 	GET(InfantryClass*, this_ptr, EDI);
@@ -2722,7 +2722,7 @@ DEFINE_HOOK(0x004D72F2, _InfantryClass_What_Action_Hospital_Action_Patch, 0)
  *
  *  @author: JoyfulShush
  */
-DEFINE_HOOK(0x004D7355, _InfantryClass_What_Action_Armory_Action_Patch, 0)
+ASMJIT_PATCH(0x004D7355, _InfantryClass_What_Action_Armory_Action_Patch, 0)
 {
 	GET(BuildingClass*, object, ESI);
 	GET(InfantryClass*, this_ptr, EDI);
