@@ -502,7 +502,15 @@ ASMJIT_PATCH(0x536438 , TauntCommandClass_Execute , 5)
 ASMJIT_PATCH(0x48da3b , sub_48D1E0_PlayTaunt , 5)
 {
 	GET(TauntDataStruct, data , ECX);
-	PlayWavWrapper(GlobalPacketType::Instance->Command, data.tauntIdx);
+
+	// Ares reads the country index from address 0xA8D671.
+	// GlobalPacket starts at 0xA8D638, so the relative offset is 0x39.
+	//
+	// The existing TauntClass definition does not seem to account for this
+	// data, as its defined size is too small to contain the expected value.
+	const int countryIdx = *reinterpret_cast<int*>(GlobalPacketType::Instance->DataBuffer + 0x39);
+
+	PlayWavWrapper(countryIdx, data.tauntIdx);
 	return 0x48DAD3;
 }
 

@@ -6,6 +6,7 @@
 #include <GeneralDefinitions.h>
 #include <MPGameModeClass.h>
 #include <GameModeOptionsClass.h>
+#include <GlobalPacketType.h>
 #include <Helpers/CompileTime.h>
 #include <MessageListClass.h>
 #include <CCFileClass.h>
@@ -77,75 +78,6 @@ struct SerialSettingsType
 };
 
 static_assert(sizeof(SerialSettingsType) == 0x6F, " Invalid Size ! ");
-
-struct GlobalPacketType
-{
-	static COMPILETIMEEVAL reference<GlobalPacketType, 0xA8D671> const Instance {};
-
-	int Command;
-	char Name[20];
-	char Serial[23];
-	union
-	{
-		struct
-		{
-			unsigned int IsOpen : 1;
-			unsigned int IsFirestorm : 1;
-		} GameInfo;
-		struct
-		{
-			int House;
-			int Color;
-			unsigned long NameCRC;
-			unsigned long MinVersion;
-			unsigned long MaxVersion;
-			int CheatCheck;
-			int AICheatCheck;
-			int ArtCheatCheck;
-			int BuildNumber;
-		} PlayerInfo;
-		struct
-		{
-			char pad[0x83 - 0x2F];
-			unsigned int FileLength;
-			char ShortFileName[12];
-			unsigned char FileDigest[32];
-
-		} ScenarioInfo;
-		struct
-		{
-			char Buf[400];
-			int Color;
-			unsigned long NameCRC;
-		} Message;
-		struct
-		{
-			int OneWay;
-		} ResponseTime;
-		struct
-		{
-			int Why;
-		} Reject;
-		struct
-		{
-			unsigned long ID;
-			int Color;
-		} Chat;
-		struct
-		{
-			int Percent;
-		} Progress;
-		struct
-		{
-			unsigned long ID1;
-			unsigned long ID2;
-		} Kick;
-
-		char padding[455 - sizeof(Command) - sizeof(Name) - sizeof(Serial)];
-	};
-};
-
-static_assert(sizeof(GlobalPacketType) == 0x1C7, "GlobalPacketType has wrong size!");
 
 struct MangledPorts{
 	DWORD OtherMangledPorts;
@@ -222,14 +154,13 @@ class SessionClass
 public:
 	DEFINE_REFERENCE(SessionClass, Instance, 0xA8B238u)
 
-	// Incoming global-packet receive buffers, filled by
-	// IPXManagerClass::Get_Global_Message. GlobalReceivePacket is the raw packet
-	// (engine GlobalPacketType, 0x1C7 bytes; cast to the desired packet struct);
-	// GlobalReceiveAddress is the sender's address.
-	DEFINE_REFERENCE(char, GlobalReceivePacket, 0xA8D638)
-	DEFINE_REFERENCE(IPXAddressClass, GlobalReceiveAddress, 0xA8D804)
 	DEFINE_REFERENCE(DynamicVectorClass<MultiMission*>, MPlayerScenarios, 0xA8B8C8)
 
+	// Incoming global packet, its length, sender address and product identifier.
+	DEFINE_REFERENCE(GlobalPacketType, GlobalReceivePacket, 0xA8D638)
+	DEFINE_REFERENCE(int, GlobalReceivePacketLength, 0xA8D800)
+	DEFINE_REFERENCE(IPXAddressClass, GlobalReceiveAddress, 0xA8D804)
+	DEFINE_REFERENCE(unsigned short, GlobalReceiveProductID, 0xA8D810)
 
 public:
 

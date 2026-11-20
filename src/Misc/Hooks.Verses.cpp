@@ -133,9 +133,6 @@ ASMJIT_PATCH(0x489235, GetTotalDamage_Verses, 0x8)
 }
 #endif
 
-//TechnoClass_What_Action
-DEFINE_JUMP(LJMP, 0x700387, 0x7003BD) //moving attackFfiendlies to somewhere else
-
 #include <Ext/CaptureManager/Body.h>
 
 // ASMJIT_PATCH(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_Verses, 0x6)

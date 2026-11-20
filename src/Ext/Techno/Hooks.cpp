@@ -2091,33 +2091,37 @@ ASMJIT_PATCH(0x4D6874, FootClass_ApproachTarget_NextRadius, 0xC)
 	return searchRadius <= ApproachTargetTemp::SearchRange ? ContinueNextRadius : BreakOut;
 }
 
-ASMJIT_PATCH(0x700358, TechnoClass_MouseOverObject_AttackFriendlies, 0x6)
+ASMJIT_PATCH(0x700387, TechnoClass_MouseOverObject_AttackFriendlies, 0x6)
 {
-	enum { CanAttack = 0x700381, Continue = 0x700385 , CannotAttack = 0x70039B };
-
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBP);
 	GET_STACK(const bool, IvanBomb, STACK_OFFSET(0x1C, -0xC));
+
+	enum { canAttack = 0x7003BB , continueChecks = 0x7003BD };
 
 	const auto pType = pThis->GetTechnoType();
 	const auto pWeaponTypeExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pWeaponTypeExt->AttackFriendlies.Get(pType->AttackFriendlies)
-		|| (pWeaponTypeExt->AttackCursorOnFriendlies.Get(pType->AttackCursorOnFriendlies) && !IvanBomb))
+	|| (pWeaponTypeExt->AttackCursorOnFriendlies.Get(pType->AttackCursorOnFriendlies) && !IvanBomb)
+	|| R->BL() //can attack
+		)
 	{
-
 		if (pTypeExt->AttackFriendlies_WeaponIdx != -1) {
 			const auto pWeapons = pThis->GetWeapon(pTypeExt->AttackFriendlies_WeaponIdx);
-			if (!pWeapons || pWeapon != pWeapons->WeaponType) {
-				return CannotAttack;
+			if (!pWeapons || pWeapon != pWeapons->WeaponType)
+			{
+				R->BL(0); // set false;
+				return continueChecks;
 			}
 		}
 
-		return CanAttack;
+		return canAttack;
 	}
 
-	return Continue;
+	return continueChecks;
+
 }
 
 ASMJIT_PATCH(0x6F8A92, TechnoClass_CheckAutoTarget_AttackFriendlies, 0xA)

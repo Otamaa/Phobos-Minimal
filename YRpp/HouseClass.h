@@ -276,6 +276,7 @@ public:
 	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<HouseClass*>, 0xA80228u> const Array{};
 	static COMPILETIMEEVAL reference<HouseClass*, 0xA83D4Cu> const CurrentPlayer{};
 	static COMPILETIMEEVAL reference<HouseClass*, 0xAC1198u> const Observer{};
+	static COMPILETIMEEVAL reference <bool, 0xA8B538u> const IsCurrentPlayerDefeatedObserver{};
 
 	//IConnectionPointContainer
 	virtual HRESULT __stdcall EnumConnectionPoints(IEnumConnectionPoints** ppEnum) override R0;

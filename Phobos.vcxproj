@@ -1121,6 +1121,7 @@
     <ClInclude Include="src\Utilities\VectorNames.h" />
     <ClInclude Include="src\Utilities\VectorSet.h" />
     <ClInclude Include="src\New\Entity\VersesData.h" />
+    <ClInclude Include="YRpp\HouseClass.h" />
     <ClInclude Include="YRpp\RecoilData.h" />
     <ClInclude Include="YRpp\Syringe.h" />
     <ClInclude Include="YRpp\TurretControl.h" />

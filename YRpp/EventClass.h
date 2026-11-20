@@ -78,7 +78,8 @@ union EventData
 		TargetClass Destination;
 		TargetClass Follow;
 		bool IsPlanningEvent;
-		std::array<BYTE, 0x51> ExtraData;
+		PlanningOrderState PlanningState;
+		std::array<BYTE, 0x50> ExtraData;
 	} MegaMission;
 	static_assert(sizeof(MegaMission) == 0x68);
 
@@ -149,6 +150,302 @@ union EventData
 	} Specific;
 	static_assert(sizeof(Specific) == 0x68);
 
+	struct Poweron
+	{
+		TargetClass Target;
+		std::array<BYTE, 0x63> ExtraData;
+	} Poweron;
+	static_assert(sizeof(Poweron) == 0x68);
+
+	struct Poweroff
+	{
+		TargetClass Target;
+		std::array<BYTE, 0x63> ExtraData;
+	} Poweroff;
+	static_assert(sizeof(Poweroff) == 0x68);
+
+	struct Ally
+	{
+		int HouseID;
+		std::array<BYTE, 0x64> ExtraData;
+	} Ally;
+	static_assert(sizeof(Ally) == 0x68);
+
+	struct Idle
+	{
+		TargetClass Whom;
+		std::array<BYTE, 0x63> ExtraData;
+	} Idle;
+	static_assert(sizeof(Idle) == 0x68);
+
+	struct Scatter
+	{
+		TargetClass Whom;
+		std::array<BYTE, 0x63> ExtraData;
+	} Scatter;
+	static_assert(sizeof(Scatter) == 0x68);
+
+	struct Destruct
+	{
+		std::array<BYTE, 0x68> ExtraData;
+	} Destruct;
+	static_assert(sizeof(Destruct) == 0x68);
+
+	struct Deploy
+	{
+		TargetClass Whom;
+		std::array<BYTE, 0x63> ExtraData;
+	} Deploy;
+	static_assert(sizeof(Deploy) == 0x68);
+
+	struct Detonate
+	{
+		TargetClass Whom;
+		std::array<BYTE, 0x63> ExtraData;
+	} Detonate;
+	static_assert(sizeof(Detonate) == 0x68);
+
+	struct Options
+	{ std::array<BYTE, 0x68> ExtraData; } Options;
+	static_assert(sizeof(Options) == 0x68);
+
+	struct GameSpeed
+	{
+		int m_GameSpeed;
+		std::array<BYTE, 0x64> ExtraData;
+	} GameSpeed;
+	static_assert(sizeof(GameSpeed) == 0x68);
+
+	// This event starts production of the specified object type. The house can
+	// determine from the type and ID value, what object to begin production on and
+	// what factory to use.
+	struct Produce
+	{
+		AbstractType RTTIType;
+		int HeapID;
+		int IsNaval;
+		std::array<BYTE, 0x5C> ExtraData;
+	} Produce;
+	static_assert(sizeof(Produce) == 0x68);
+
+	struct Suspend
+	{
+		AbstractType RTTIType;
+		int HeapID;
+		int IsNaval;
+		std::array<BYTE, 0x5C> ExtraData;
+	} Suspend;
+	static_assert(sizeof(Suspend) == 0x68);
+
+	// This event is generated when the player cancels production of the specified
+	// object type. From the object type, the exact factory can be inferred.
+	struct Abandon
+	{
+		AbstractType RTTIType;
+		int HeapID;
+		int IsNaval;
+		std::array<BYTE, 0x5C> ExtraData;
+	} Abandon;
+	static_assert(sizeof(Abandon) == 0x68);
+
+	// Toggles the primary factory state of the specified building.
+	struct Primary
+	{
+		TargetClass Whom;
+		std::array<BYTE, 0x63> ExtraData;
+	} Primary;
+	static_assert(sizeof(Primary) == 0x68);
+
+	struct Exit
+	{ std::array<BYTE, 0x68> ExtraData; } Exit;
+	static_assert(sizeof(Exit) == 0x68);
+
+	// Starts or stops repair on the specified object. This event is triggered by the
+	// player clicking the repair wrench on a building.
+	struct Repair
+	{
+		TargetClass Whom;
+		std::array<BYTE, 0x63> ExtraData;
+	} Repair;
+	static_assert(sizeof(Repair) == 0x68);
+
+	// Tells a building/unit to sell. This event is triggered by the player clicking the
+	// sell animating cursor over the building or unit.
+	struct Sell
+	{
+		TargetClass Whom;
+		std::array<BYTE, 0x63> ExtraData;
+	} Sell;
+	static_assert(sizeof(Sell) == 0x68);
+
+	// Used to sell walls
+	struct SellCell
+	{
+		CellStruct Location;
+		std::array<BYTE, 0x68 - sizeof(CellStruct)> ExtraData;
+	} SellCell;
+	static_assert(sizeof(SellCell) == 0x68);
+
+	// Update the special control flags. This is necessary so that in a multiplayer
+	// game, all machines will agree on the rules. If these options change during
+	// game play, then all players are informed that options have changed.
+	struct Special
+	{
+		ScenarioFlags SpecialFlags;
+		std::array<BYTE, 0x68 - sizeof(ScenarioFlags)> ExtraData;
+	} Special;
+	static_assert(sizeof(Special) == 0x68);
+
+	struct FrameSync
+	{ std::array<BYTE, 0x68> ExtraData; } FrameSync;
+	static_assert(sizeof(FrameSync) == 0x68);
+
+	struct Message
+	{ std::array<BYTE, 0x68> ExtraData; } Message;
+	static_assert(sizeof(Message) == 0x68);
+
+	struct ResponseTime
+	{
+		char unknown;
+		std::array<BYTE, 0x68 - sizeof(char)> ExtraData;
+	} ResponseTime;
+	static_assert(sizeof(ResponseTime) == 0x68);
+
+	struct SaveGame
+	{ std::array<BYTE, 0x68> ExtraData; } SaveGame;
+	static_assert(sizeof(SaveGame) == 0x68);
+
+	// Update the archive target for this building.
+	struct Archive
+	{
+		struct main
+		{
+			TargetClass Target1;
+			TargetClass Target2;
+		}m_Target;
+		std::array<BYTE, 0x68 - sizeof(Archive::main)> ExtraData;
+	} Archive;
+	static_assert(sizeof(Archive) == 0x68);
+
+	struct AddPlayer
+	{
+		struct main
+		{
+			// Local buffer allocated and filled by the network decoder.
+			void* Data;
+			unsigned int DataSize; // Buffer length in bytes.
+			// Compressed packets carry DataSize followed by the buffer bytes.
+			// Uncompressed packets append the bytes after the full EventClass.
+			// The receiver replaces Data with its own allocation in both formats.
+		}m_Data;
+		std::array<BYTE, 0x68 - sizeof(AddPlayer::main)> ExtraData;
+	} AddPlayer;
+	static_assert(sizeof(AddPlayer) == 0x68);
+
+	struct Timing
+	{
+		struct main
+		{
+			unsigned short RequestedFPS;
+			unsigned short MaxAhead;
+			unsigned char FrameSendRate;
+		}m_Data;
+		std::array<BYTE, 0x68 - sizeof(Timing::main)> ExtraData;
+	} Timing;
+	static_assert(sizeof(Timing) == 0x68);
+
+	struct ProcessTime
+	{
+		unsigned short Time;
+		std::array<BYTE, 0x68 - sizeof(unsigned short)> ExtraData;
+	} ProcessTime;
+	static_assert(sizeof(ProcessTime) == 0x68);
+
+	struct PageUser
+	{ std::array<BYTE, 0x68> ExtraData; } PageUser;
+	static_assert(sizeof(PageUser) == 0x68);
+
+	struct RemovePlayer
+	{
+		int HouseID;
+		std::array<BYTE, 0x64> ExtraData;
+	} RemovePlayer;
+	static_assert(sizeof(RemovePlayer) == 0x68);
+
+	struct LatencyFudge
+	{
+		int LatencyFudge;
+		std::array<BYTE, 0x64> ExtraData;
+	} LatencyFudge;
+	static_assert(sizeof(LatencyFudge) == 0x68);
+
+	struct MegafFameInfo
+	{
+		std::array<BYTE, 0x68> ExtraData;
+	} MegafFameInfo;
+	static_assert(sizeof(MegafFameInfo) == 0x68);
+
+	struct PacketTiming
+	{
+		char Unknown[0x40];
+		std::array<BYTE, 0x68 - 0x40> ExtraData;
+	} PacketTiming;
+	static_assert(sizeof(PacketTiming) == 0x68);
+
+	struct AboutToExit
+	{ std::array<BYTE, 0x68> ExtraData; } AboutToExit;
+	static_assert(sizeof(AboutToExit) == 0x68);
+
+	struct FallbackHost
+	{
+		int m_FallbackHost;
+		std::array<BYTE, 0x64> ExtraData;
+	} FallbackHost;
+	static_assert(sizeof(FallbackHost) == 0x68);
+
+	struct AddressChange
+	{
+		char PlayerID;
+		DWORD Address;
+		std::array<BYTE, 0x63> ExtraData;
+	} AddressChange;
+	static_assert(sizeof(AddressChange) == 0x68);
+
+	struct PlanConnect
+	{
+		struct main
+		{
+			TargetClass Target1;
+			TargetClass Target2;
+		}m_Targets;
+		std::array<BYTE, 0x68 - sizeof(PlanConnect::main)> ExtraData;
+	} PlanConnect;
+	static_assert(sizeof(PlanConnect) == 0x68);
+
+	struct PlanCommit
+	{ std::array<BYTE, 0x68 > ExtraData; } PlanCommit;
+	static_assert(sizeof(PlanCommit) == 0x68);
+
+	struct PlanNodeDelete
+	{
+		TargetClass Target;
+		std::array<BYTE, 0x68 - sizeof(TargetClass)> ExtraData;
+	} PlanNodeDelete;
+	static_assert(sizeof(PlanNodeDelete) == 0x68);
+
+	struct AllCheer
+	{
+		char Unknown[4];
+		std::array<BYTE, 0x64> ExtraData;
+	} AllCheer;
+	static_assert(sizeof(AllCheer) == 0x68);
+
+	struct AbandonAll
+	{
+		char Unknown[12];
+		std::array<BYTE, 0x5C> ExtraData;
+	} AbandonAll;
+	static_assert(sizeof(AbandonAll) == 0x68);
 };
 
 class EventClass;

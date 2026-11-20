@@ -18,6 +18,52 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+struct ScenarioFlags
+{
+	bool bit00 : 1;
+	bool bit01 : 1;
+	bool bit02 : 1;
+	bool bit03 : 1;
+	bool CTFMode : 1; // the base for it does exist...
+	bool Inert : 1;
+	bool TiberiumGrows : 1;
+	bool TiberiumSpreads : 1;
+
+	bool MCVDeploy : 1;
+	bool InitialVeteran : 1;
+	bool FixedAlliance : 1;
+	bool HarvesterImmune : 1;
+	bool FogOfWar : 1;
+	bool bit13 : 1;
+	bool TiberiumExplosive : 1;
+	bool DestroyableBridges : 1;
+
+	bool Meteorites : 1;
+	bool IonStorms : 1;
+	bool Visceroids : 1;
+	bool bit19 : 1;
+	bool bit20 : 1;
+	bool bit21 : 1;
+	bool bit22 : 1;
+	bool bit23 : 1;
+
+	bool bit24 : 1;
+	bool bit25 : 1;
+	bool bit26 : 1;
+	bool bit27 : 1;
+	bool bit28 : 1;
+	bool bit29 : 1;
+	bool bit30 : 1;
+	bool bit31 : 1;
+};
+
+enum class PlanningOrderState : unsigned char
+{
+	None = 0, // Ordinary order.
+	Adding = 1, // Add an order to the planned route.
+	Executing = 2 // Execute an order already stored in the route.
+};
+
 enum class FacingType : char
 {
 	North = 0,
