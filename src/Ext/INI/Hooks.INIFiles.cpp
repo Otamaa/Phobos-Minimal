@@ -31,19 +31,52 @@ GenericNode* AresINIData::NodeCompare;
 
 #include <New/Type/GenericPrerequisite.h>
 
-ASMJIT_PATCH(0x474DEE, INIClass_GetFoundation, 7)
+template<typename ReturnValue>
+ReturnValue __fastcall _Read_Foundation(CCINIClass* pINI , 
+	discard_t ,
+	const char* pSection, 
+	const char* pKey, 
+	GlobalFoundation nDefault)
 {
-	GET_STACK(const char*, Section, 0x2C);
-	GET_STACK(const char*, Key, 0x30);
-	LEA_STACK(const char*, Value, 0x8);
+	static_assert(
+		std::is_same_v<ReturnValue, BuildingFoundation> ||
+		std::is_same_v<ReturnValue, TerrainFoundation>
+	);
 
-	if (!IS_SAME_STR_(Value, "Custom") && !FindFoundation(Value))
-	{
-		Debug::INIParseFailed(Section, Key, Value);
+	char Value[64] = { 0 };
+	const auto& _default = TechnoTypeClass::GlobalFoundationName[(int)nDefault];
+	pINI->ReadString(pSection, pKey, _default.Name, Value);
+	bool isSpecial = false;
+
+	// "Custom" is handled separately from the global foundation definitions.
+	// Building foundations additionally accept registered custom definitions.
+	// Their actual foundation data is handled by the custom initialization logic.
+	if constexpr(std::is_same_v<ReturnValue, BuildingFoundation>) {
+		isSpecial = IS_SAME_STR_(Value, "Custom") || FindFoundation(Value);
+	} else {
+		isSpecial = IS_SAME_STR_(Value, "Custom");
+	}	
+
+	// Resolve regular foundation names against the engine's global definitions.
+	if(!isSpecial){
+		for (auto& foundation : TechnoTypeClass::GlobalFoundationName) {
+			if (IS_SAME_STR_(foundation.Name, Value)) {
+				return (ReturnValue)foundation.Value;
+			}
+		}
+
+		// Report invalid foundation names and fall back to the known-valid default.
+		Debug::INIParseFailed(pSection, pKey, Value);
 	}
 
-	return 0;
+	//default is intentionally returned when custom foundation , as the placehorder value 
+	//that later on will be replaced with special value that indicating it CustomFoundation
+	return (ReturnValue)_default.Value;
 }
+
+DEFINE_FUNCTION_JUMP(CALL, 0x461237, _Read_Foundation<BuildingFoundation>)
+DEFINE_FUNCTION_JUMP(CALL, 0x46124E, _Read_Foundation<BuildingFoundation>)
+DEFINE_FUNCTION_JUMP(CALL, 0x71DF79, _Read_Foundation<TerrainFoundation>)
 
 ASMJIT_PATCH(0x528A10, INIClass_GetString, 5)
 {

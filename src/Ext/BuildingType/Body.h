@@ -558,7 +558,7 @@ public:
 	static bool ContainersInit;
 
 	static const DirStruct DefaultJuggerFacing;
-	static const Foundation CustomFoundation = static_cast<Foundation>(0x7F);
+	static const BuildingFoundation CustomFoundation = static_cast<BuildingFoundation>(0x7F);
 	static const CellStruct FoundationEndMarker;
 };
 

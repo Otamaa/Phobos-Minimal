@@ -85,7 +85,98 @@ bool TerrainTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->TreeFires.Read(exINI, pSection, "TreeFire");
 	this->SpawnsTiberium_Particle.Read(exINI, pSection, "SpawnsTiberium.Particle");
 
+	{
+		INI_EX exArtINI(CCINIClass::INI_Art());
+		const char* pArtSection = pThis->ImageFile;
+
+		if (!exArtINI.ReadString(pArtSection, "Foundation") || _stricmp(exArtINI.value(), "Custom") != 0) {
+			this->CustomFoundation.clear();
+		}
+		else
+		{
+			// Never use the engine's numeric foundation index for a custom foundation.
+			// The engine uses that index to restore its stock data on load and on INI rereads.
+			this->CustomFoundation.clear();
+			int width = 0;
+			int height = 0;
+			bool canCustomFoundation = true;
+
+			if (!exArtINI.ReadInteger(pArtSection, "Foundation.X", &width) || width < 1 || width > MapSide) {
+				Debug::INIParseFailed(pArtSection, "Foundation.X", exArtINI.value(), "Expected a width between 1 and 512");
+				canCustomFoundation = false;
+			} else if(!exArtINI.ReadInteger(pArtSection, "Foundation.Y", &height) || height < 1 || height > MapSide) {
+				Debug::INIParseFailed(pArtSection, "Foundation.Y", exArtINI.value(), "Expected a height between 1 and 512");
+				canCustomFoundation = false;
+			}
+
+			if (canCustomFoundation)
+			{
+				bool parserError = false;
+				// Stored in the executable's .bss segment (zero heap allocation, zero runtime init)
+				// Note: +1 gives room for FoundationEnd if all 512x512 cells are filled
+				static std::array<CellStruct, (MapSide* MapSide) + 1> cells;
+				int count = 0;
+
+				for (int i = 0; i < width * height; ++i)
+				{
+					char key[32];
+					_snprintf_s(key, sizeof(key), "Foundation.%d", i);
+
+					if (!exArtINI.ReadString(pArtSection, key)) {
+						parserError = true;
+						break;
+					}
+
+					int offset[2] { };
+					char trailing = 0;
+
+					if (sscanf_s(exArtINI.value(), " %d , %d %c", &offset[0], &offset[1], &trailing, 1u) != 2
+						|| offset[0] < 0 || offset[0] >= width || offset[1] < 0 || offset[1] >= height)
+					{
+						Debug::INIParseFailed(pArtSection, key, exArtINI.value(), "Expected an X,Y offset inside the foundation dimensions");
+						parserError = true;
+						break;
+					}
+
+					cells[count++] = CellStruct { static_cast<short>(offset[0]), static_cast<short>(offset[1]) };
+				}
+
+				if(!parserError) {
+					auto endIt = cells.begin() + count;
+
+					std::ranges::sort(cells.begin(), endIt, [](const CellStruct& lhs, const CellStruct& rhs) {
+						return lhs.Y != rhs.Y ? lhs.Y < rhs.Y : lhs.X < rhs.X;
+					});
+
+					if (cells.empty() || cells.front() != CellStruct::Empty) {
+						Debug::INIParseFailed(pArtSection, "Foundation", "Custom",
+							"The footprint must include (0,0) because terrain placement and removal update the anchor cell. Falling back to 1x1.");
+					
+					} else {
+						endIt = std::unique(cells.begin(), endIt);
+						*endIt++ = FoundationEnd;
+						this->CustomFoundation.assign(cells.begin(), endIt);
+						pThis->FoundationData = this->CustomFoundation.data();
+					}
+				}
+			}
+		}
+	}
+
 	return true;
+}
+
+TerrainClass* TerrainTypeExtData::FindCustomFoundationTerrain(CellClass* pCell, bool onBridge)
+{
+	// Unlike GetTerrain, this also sees objects while the scenario is loading.
+	for (auto pObject = onBridge ? pCell->AltObject : pCell->FirstObject; pObject; pObject = pObject->NextObject) {
+		if (auto const pTerrain = cast_to<TerrainClass*, true>(pObject)) {
+			if (TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->HasCustomFoundation())
+				return pTerrain;
+		}
+	}
+
+	return nullptr;
 }
 
 void TerrainTypeExtData::PlayDestroyEffects(CoordStruct coords)
@@ -146,6 +237,7 @@ void TerrainTypeExtData::Serialize(T& Stm)
 
 		.Process(this->TreeFires)
 		.Process(this->SpawnsTiberium_Particle)
+		.Process(this->CustomFoundation)
 		;
 
 }
@@ -234,6 +326,12 @@ HRESULT __stdcall FakeTerrainTypeClass::__Load(IStream* pStm)
 	if (SUCCEEDED(hr)) {
 		if (!TerrainTypeExtContainer::Instance.LoadByKey(this, pStm))
 			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+
+		auto pTypeExt = TerrainTypeExtContainer::Instance.Find(this);
+
+		// The footprint lives in the extension, so the owner must point at the loaded storage.
+		if(pTypeExt->HasCustomFoundation())
+			this->FoundationData = pTypeExt->CustomFoundation.data();
 	}
 
 	return hr;

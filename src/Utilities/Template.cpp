@@ -1639,22 +1639,22 @@ bool detail::read<Vector3D<float>>(Vector3D<float>& value, INI_EX& parser, const
 }
 
 template<>
-bool detail::read<Foundation>(Foundation& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+bool detail::read<BuildingFoundation>(BuildingFoundation& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 {
 	if (parser.ReadString(pSection, pKey))
 	{
-		for (size_t i = 0; i < TechnoTypeClass::BuildingFoundationName.size(); ++i)
+		for (size_t i = 0; i < TechnoTypeClass::GlobalFoundationName.size(); ++i)
 		{
-			if (IS_SAME_STR_(TechnoTypeClass::BuildingFoundationName[i].Name, parser.c_str()))
+			if (IS_SAME_STR_(TechnoTypeClass::GlobalFoundationName[i].Name, parser.c_str()))
 			{
-				value = TechnoTypeClass::BuildingFoundationName[i].Value;
+				value = (BuildingFoundation)TechnoTypeClass::GlobalFoundationName[i].Value;
 				return true;
 			}
 		}
 
 		if (IS_SAME_STR_(parser.c_str(), "Custom"))
 		{
-			value = (Foundation)127;
+			value = (BuildingFoundation)127;
 			return true;
 		}
 
@@ -1663,7 +1663,7 @@ bool detail::read<Foundation>(Foundation& value, INI_EX& parser, const char* pSe
 			return true;
 		}
 
-		Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected valid Foundation value");
+		Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected valid BuildingFoundation value");
 	}
 
 	return false;

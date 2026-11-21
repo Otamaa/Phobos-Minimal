@@ -367,7 +367,7 @@ namespace detail
 	bool read<Vector3D<float>>(Vector3D<float>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template<>
-	bool read<Foundation>(Foundation& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
+	bool read<BuildingFoundation>(BuildingFoundation& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template<>
 	bool read<DoTypeFacing>(DoTypeFacing& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);

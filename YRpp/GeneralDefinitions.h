@@ -1339,7 +1339,43 @@ enum class HealthState : uint32_t {
 	Green = 2
 };
 
-enum class Foundation : int
+//building foundations
+enum class BuildingFoundation : int
+{
+	_1x1 = 0,
+	_2x1 = 1,
+	_1x2 = 2,
+	_2x2 = 3,
+	_2x3 = 4,
+	_3x2 = 5,
+	_3x3 = 6,
+	_3x5 = 7,
+	_4x2 = 8,
+	_3x3Refinery = 9,
+	_1x3 = 10,
+	_3x1 = 11,
+	_4x3 = 12,
+	_1x4 = 13,
+	_1x5 = 14,
+	_2x6 = 15,
+	_2x5 = 16,
+	_5x3 = 17,
+	_4x4 = 18,
+	_3x4 = 19,
+	_6x4 = 20,
+	_0x0 = 21,
+
+	count = 22
+};
+
+//terrain are only acceptable on 0x0 foundation, so we don't need to define all the other foundations
+enum class TerrainFoundation : int
+{
+	_0x0 = 21
+};
+
+//original game's enum, used in INI parser
+enum class GlobalFoundation :int
 {
 	_1x1 = 0,
 	_2x1 = 1,

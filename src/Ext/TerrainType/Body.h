@@ -4,6 +4,12 @@
 #include <Ext/ObjectType/Body.h>
 #include <New/Type/PaletteManager.h>
 
+#include <CellStruct.h>
+
+class TerrainClass;
+class CellClass;
+class MapClass;
+
 class TerrainTypeExtData final : public ObjectTypeExtData
 {
 public:
@@ -12,6 +18,8 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "TerrainTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "TerrainTypeClass";
 	static COMPILETIMEEVAL DWORD Canary = 0x83F6CB34;
+	static COMPILETIMEEVAL CellStruct FoundationEnd { 0x7FFF, 0x7FFF };
+	static COMPILETIMEEVAL int MapSide = 512;
 
 public:
 
@@ -56,6 +64,8 @@ public:
 	ValueableIdx<VocClass*> CrumblingSound { -1 };
 	Nullable<int> AnimationLength {};
 	NullableVector<AnimTypeClass*> TreeFires {};
+
+	std::vector<CellStruct> CustomFoundation {}; // Empty for stock foundations, otherwise terminated by FoundationEnd.
 #pragma endregion
 
 	TerrainTypeExtData(TerrainTypeClass* pObj) : ObjectTypeExtData(pObj)
@@ -104,6 +114,14 @@ public:
 	bool IsThisPassable();
 	bool IsThisCanBeBuiltOn();
 
+	bool HasCustomFoundation() const { return !this->CustomFoundation.empty(); }
+	static TerrainClass* FindCustomFoundationTerrain(CellClass* pCell, bool onBridge);
+
+public:
+	static TerrainTypeExtData* GetCustomFoundation(const TerrainClass* pTerrain);
+	static CellClass* GetFoundationCell(MapClass* pMap, CellStruct anchor, CellStruct offset);
+	static bool HasTerrainOrBuilding(const ObjectClass* pFirst);
+	static void UpdateTerrainNeighbours(MapClass* pMap, CellStruct coords, int delta);
 public:
 
 	int GetTiberiumGrowthStage();

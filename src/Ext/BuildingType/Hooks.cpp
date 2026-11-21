@@ -220,6 +220,16 @@ ASMJIT_PATCH(0x502A80, HouseClass_RegisterGain, 0x8)
 	 return 0;
  }ASMJIT_PATCH_AGAIN(0x5025F0, HouseClass_RegisterGain, 0x5) // RegisterLoss
 
+ template <typename T, size_t N>
+ void OPTIONALINLINE AssignFoundationData(
+	 std::vector<T>& destination,
+	 const std::array<T, N>& source,
+	 size_t count)
+ {
+	 destination.assign(source.begin(), source.begin() + count);
+	 destination.push_back(BuildingTypeExtData::FoundationEndMarker);
+ }
+
 ASMJIT_PATCH(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, EBP);
@@ -246,114 +256,85 @@ ASMJIT_PATCH(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 		pBldext->CustomWidth = pAdd->Size.X;
 		pBldext->CustomHeight = pAdd->Size.Y;
 
-		pBldext->CustomData.assign(pAdd->CellCount + 1, CellStruct::Empty);
-		pBldext->OutlineData.assign(pAdd->OutlineCount + 1, CellStruct::Empty);
-
-		for (size_t i = 0; i < pAdd->CellCount; ++i)
-		{
-			pBldext->CustomData[i] = pAdd->Cells[i];
-		}
-
-		for (size_t i = 0; i < pAdd->OutlineCount; ++i)
-		{
-			pBldext->OutlineData[i] = pAdd->Outline[i];
-		}
-
-		pBldext->CustomData[pAdd->CellCount] = BuildingTypeExtData::FoundationEndMarker;
-		pBldext->OutlineData[pAdd->OutlineCount] = BuildingTypeExtData::FoundationEndMarker;
+		AssignFoundationData(pBldext->CustomData, pAdd->Cells, pAdd->CellCount);
+		AssignFoundationData(pBldext->OutlineData, pAdd->Outline, pAdd->OutlineCount);
 
 	}
 	else if (IS_SAME_STR_(Phobos::readBuffer, "Custom"))
 	{
-
 		char strbuff[0x80];
+		pBldext->IsCustom = true;
 
-		if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
+		detail::read(pBldext->CustomWidth, exINi, pSection, "Foundation.X");
+		detail::read(pBldext->CustomHeight, exINi, pSection, "Foundation.Y");
+
+		// Clamp to safe bounds so scratch array & dimension can never overflow
+		pBldext->CustomWidth = std::clamp(pBldext->CustomWidth, 1, 512);
+		pBldext->CustomHeight = std::clamp(pBldext->CustomHeight, 1, 512);
+
+		int outlineLength = std::max(10, exINi->ReadInteger(pSection, "FoundationOutline.Length", 0));
+
+		static std::array<CellStruct, (512 * 512) + 1> scratchCells;
+		int count = 0;
+
+		auto ParsePoint = [](const char* str) -> CellStruct
+			{
+				int x = 0, y = 0;
+				switch (sscanf_s(str, "%d,%d", &x, &y))
+				{
+				case 0:
+					x = 0;
+					[[fallthrough]];
+				case 1:
+					y = 0;
+				}
+				return CellStruct { static_cast<short>(x), static_cast<short>(y) };
+			};
+
+		const int dimension = pBldext->CustomWidth * pBldext->CustomHeight;
+		char key[0x20];
+
+		for (int i = 0; i < dimension; ++i)
 		{
-			//Custom Foundation!
-			pBldext->IsCustom = true;
-
-			//Load Width and Height
-			detail::read(pBldext->CustomWidth, exINi, pSection, "Foundation.X");
-			detail::read(pBldext->CustomHeight, exINi, pSection, "Foundation.Y");
-
-			int outlineLength = exINi->ReadInteger(pSection, "FoundationOutline.Length", 0);
-
-			// at len < 10, things will end very badly for weapons factories
-			if (outlineLength < 10)
+			_snprintf_s(key, sizeof(key), "Foundation.%d", i);
+			if (exINi->ReadString(pSection, key, Phobos::readDefval, strbuff))
 			{
-				outlineLength = 10;
+				scratchCells[count++] = ParsePoint(strbuff);
 			}
-
-			//Allocate CellStruct array
-			const int dimension = pBldext->CustomWidth * pBldext->CustomHeight;
-
-			pBldext->CustomData.assign(dimension + 1, CellStruct::Empty);
-			pBldext->OutlineData.assign(outlineLength + 1, CellStruct::Empty);
-
-			using Iter = std::vector<CellStruct>::iterator;
-
-			auto ParsePoint = [](Iter& cell, const char* str) -> void
-				{
-					int x = 0, y = 0;
-					switch (sscanf_s(str, "%d,%d", &x, &y))
-					{
-					case 0:
-						x = 0;
-						[[fallthrough]];
-					case 1:
-						y = 0;
-					}
-					*cell++ = CellStruct { static_cast<short>(x), static_cast<short>(y) };
-				};
-
-			//Load FoundationData
-			auto itData = pBldext->CustomData.begin();
-			//char key[0x20];
-
-			for (int i = 0; i < dimension; ++i)
+			else
 			{
-				if (exINi->ReadString(pSection, (std::string("Foundation.") + std::to_string(i)).c_str(), Phobos::readDefval, strbuff))
-				{
-					ParsePoint(itData, strbuff);
-				}
-				else
-				{
-					break;
-				}
+				break;
 			}
+		}
 
-			//Sort, remove dupes, add end marker
-			std::sort(pBldext->CustomData.begin(), itData,
-			[](const CellStruct& lhs, const CellStruct& rhs)
+		auto endIt = scratchCells.begin() + count;
+		std::sort(scratchCells.begin(), endIt,
+		[](const CellStruct& lhs, const CellStruct& rhs) {
+			return lhs.Y != rhs.Y ? lhs.Y < rhs.Y : lhs.X < rhs.X;
+		});
+
+		endIt = std::unique(scratchCells.begin(), endIt);
+		*endIt++ = BuildingTypeExtData::FoundationEndMarker;
+
+		// Allocates ONLY the exact number of cells needed (no wasted trailing capacity)
+		pBldext->CustomData.assign(scratchCells.begin(), endIt);
+
+		// Note: since CustomData is sorted, (0,0) would be at front() if all coords >= 0,
+		// or std::ranges::find still works safely even with negative offsets
+		if (std::ranges::find(pBldext->CustomData, CellStruct::Empty) == pBldext->CustomData.end())
+		{
+			Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. "
+				"This breaks AI base building.\n", pSection);
+		}
+
+		// OutlineData already knows its exact final size upfront, so direct assign is optimal
+		pBldext->OutlineData.assign(outlineLength + 1, BuildingTypeExtData::FoundationEndMarker);
+		for (int i = 0; i < outlineLength; ++i)
+		{
+			_snprintf_s(key, sizeof(key), "FoundationOutline.%d", i);
+			if (exINi->ReadString(pSection, key, "", strbuff))
 			{
-				if (lhs.Y != rhs.Y)
-				{
-					return lhs.Y < rhs.Y;
-				}
-				return lhs.X < lhs.X;
-			});
-
-			itData = std::unique(pBldext->CustomData.begin(), itData);
-			*itData = BuildingTypeExtData::FoundationEndMarker;
-			pBldext->CustomData.erase(itData + 1, pBldext->CustomData.end());
-
-			// the AI places its base relative to the cell the building is anchored
-			// on, so a foundation that does not cover it cannot be built by the AI
-			if(std::ranges::find(pBldext->CustomData, CellStruct::Empty) == pBldext->CustomData.end()) {
-				Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. "
-					"This breaks AI base building.\n", pSection);
-			}
-
-			auto itOutline = pBldext->OutlineData.begin();
-			for(int i = 0; i < outlineLength; ++i) {
-				if(exINi->ReadString(pSection, (std::string("FoundationOutline.") + std::to_string(i)).c_str(), "", strbuff)) {
-					ParsePoint(itOutline, strbuff);
-				} else {
-					//Set end vector
-					// can't break, some stupid functions access fixed offsets without checking if that offset is within the valid range
-					*itOutline++ = BuildingTypeExtData::FoundationEndMarker;
-				}
+				pBldext->OutlineData[i] = ParsePoint(strbuff);
 			}
 		}
 	}

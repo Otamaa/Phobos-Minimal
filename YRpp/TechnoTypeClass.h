@@ -118,7 +118,7 @@ public:
 	static const AbstractBaseType AbsTypeBase = AbstractBaseType::TechnoType;
 	static OPTIONALINLINE COMPILETIMEEVAL auto MaxWeapons = 18;
 
-	static COMPILETIMEEVAL reference<NamedValue<Foundation> , 0x81B9D8u , (size_t)Foundation::count> const BuildingFoundationName {};
+	static COMPILETIMEEVAL reference<NamedValue<GlobalFoundation> , 0x81B9D8u , (size_t)GlobalFoundation::count> const GlobalFoundationName {};
 	static COMPILETIMEEVAL reference<NamedValue<int>, 0x81B958u, 11u> const PipsTypeName {};
 	static COMPILETIMEEVAL reference<NamedValue<int>, 0x81B9B0u, 4u> const PipScaleTypeName {};
 	static COMPILETIMEEVAL reference<const char*, 0x81BA88, 13u> const MovementZonesToString {};

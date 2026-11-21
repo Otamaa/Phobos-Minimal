@@ -77,10 +77,10 @@ ASMJIT_PATCH(0x656584, RadarClass_GetFoundationShape, 6)
 	if (fnd == BuildingTypeExtData::CustomFoundation) {
 		const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
 		ret = reinterpret_cast<DWORD*>(&pTypeExt->FoundationRadarShape);
-	} else if(fnd >= Foundation::_1x1 && fnd <= Foundation::_0x0) {
+	} else if(fnd >= BuildingFoundation::_1x1 && fnd <= BuildingFoundation::_0x0) {
 		ret = reinterpret_cast<DWORD*>(pThis->FoundationTypePixels + (int)fnd);
 	} else {
-		ret = reinterpret_cast<DWORD*>(pThis->FoundationTypePixels + (int)Foundation::_2x2);
+		ret = reinterpret_cast<DWORD*>(pThis->FoundationTypePixels + (int)BuildingFoundation::_2x2);
 	}
 
 	R->EAX(ret);
@@ -114,26 +114,6 @@ ASMJIT_PATCH(0x568565, MapClass_AddContentAt_Foundation_OccupyHeight, 5)
 	}
 
 	return 0x568697;
-}
-
-ASMJIT_PATCH(0x568411, MapClass_AddContentAt_Foundation_P1, 6)
-{
-	GET(ObjectClass*, pThis, EDI);
-
-	if (auto pTerrain = cast_to<TerrainClass*, false>(pThis)) {
-		if (pTerrain->Type->Foundation == 21)
-			return 0x5687DF;
-	}
-
-	R->EBP(pThis->GetFoundationData(false));
-	return 0x568432;
-}
-
-ASMJIT_PATCH(0x568841, MapClass_RemoveContentAt_Foundation_P1, 6)
-{
-	GET(BuildingClass*, pThis, EDI);
-	R->EBP(pThis->GetFoundationData(false));
-	return 0x568862;
 }
 
 ASMJIT_PATCH(0x568997, MapClass_RemoveContentAt_Foundation_OccupyHeight, 5)

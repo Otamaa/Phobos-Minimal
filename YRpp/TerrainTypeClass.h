@@ -65,7 +65,7 @@ protected:
 public:
 
 	int ArrayIndex;
-	int Foundation;
+	TerrainFoundation Foundation;
 	ColorStruct RadarColor;
 	int AnimationRate;
 	float AnimationProbability;

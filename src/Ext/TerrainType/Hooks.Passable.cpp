@@ -37,18 +37,23 @@ bool MouseClassExt::__IsAreaFree(RectangleStruct* pRect, int houseID, bool IsEva
 			CellClass* pCell = this->GetCellAt(CellStruct { static_cast<short>(x), static_cast<short>(y) });
 			auto const pTerrain = pCell->GetTerrain(false);
 			bool altPassability = false;
+			bool customFoundationTerrain = false;
 
 			if (pTerrain) {
-				if (!IsEvaluatingBuildLocation || !TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsThisCanBeBuiltOn()) {
+				auto pTypeExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
+
+				if (!IsEvaluatingBuildLocation || !pTypeExt->IsThisCanBeBuiltOn()) {
 					return false;
 				}
 
 				altPassability = true;
+				customFoundationTerrain = pTypeExt->HasCustomFoundation();
 			}
 
 			// If we're evaluating a cell with buildable TerrainType on it, passability check needs some alterations.
 			const bool invalidPassability = altPassability
-				? (pCell->Passability != PassabilityType::Passable && pCell->Passability != PassabilityType::HasFreeSpots)
+				? (pCell->Passability != PassabilityType::Passable && pCell->Passability != PassabilityType::HasFreeSpots
+					&& !(customFoundationTerrain && pCell->Passability == PassabilityType::Destroyable))
 				: (pCell->Passability != PassabilityType::Passable);
 
 			if ((pCell->BaseSpacerOfHouses & mask) != 0
@@ -323,28 +328,46 @@ ASMJIT_PATCH(0x5684B1, MapClass_PlaceDown_BuildableTerrain, 0x6)
 	GET(CellClass*, pCell, EAX);
 
 	if (pPlaceObject->WhatAmI() == AbstractType::Building) {
-		for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject) {
-			const auto absType = pObject->WhatAmI();
+		// Forced placement can bypass the buildability check. Remove the terrain
+		// so both multi-cell objects do not have to share a cell's list tail.
+		if (auto const pTerrainFoundation = TerrainTypeExtData::FindCustomFoundationTerrain(pCell, pPlaceObject->OnBridge)) {
+			TerrainTypeExtData::Remove(pTerrainFoundation);
+		}
+		else
+		{
+			for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject)
+			{
+				const auto absType = pObject->WhatAmI();
 
-			if (const auto pTechno = flag_cast_to<TechnoClass* , false>(pObject)) {
-				const auto pType = GET_TECHNOTYPE(pTechno);
-
-				//TODO: this function can cause bug , since not all stuffs were handled properly
-				if (TechnoTypeExtContainer::Instance.Find(pType)->CanBeBuiltOn) {
-					//int damage = pTechno->Health;
-					//pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
-					pTechno->KillPassengers(nullptr);
-					pTechno->Stun();
-					pTechno->Limbo();
-					pTechno->UnInit();
-				}
-			} else if (absType == AbstractType::Terrain) {
-				auto pTerrain = static_cast<TerrainClass*>(pObject);
-
-				if (pTerrain->Type && TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsThisCanBeBuiltOn())
+				if (const auto pTechno = flag_cast_to<TechnoClass*, false>(pObject))
 				{
-					pCell->RemoveContent(pTerrain, false);
-					TerrainTypeExtData::Remove(pTerrain);
+					const auto pType = GET_TECHNOTYPE(pTechno);
+
+					//TODO: this function can cause bug , since not all stuffs were handled properly
+					if (TechnoTypeExtContainer::Instance.Find(pType)->CanBeBuiltOn)
+					{
+						//int damage = pTechno->Health;
+						//pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
+						pTechno->KillPassengers(nullptr);
+						pTechno->Stun();
+						pTechno->Limbo();
+						pTechno->UnInit();
+					}
+				}
+				else if (absType == AbstractType::Terrain)
+				{
+					auto pTerrain = static_cast<TerrainClass*>(pObject);
+
+					if (pTerrain->Type)
+					{
+						auto pTypeExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
+
+						if (!pTypeExt->HasCustomFoundation() && pTypeExt->IsThisCanBeBuiltOn())
+						{
+							pCell->RemoveContent(pTerrain, false);
+							TerrainTypeExtData::Remove(pTerrain);
+						}
+					}
 				}
 			}
 		}
@@ -360,21 +383,18 @@ ASMJIT_PATCH(0x5FD2B6, OverlayClass_Unlimbo_SkipTerrainCheck, 0x9)
 
 	GET(CellClass* const, pCell, EAX);
 
-	if (!Game::IsActive.get())
-		return Unlimbo;
-
-	auto pCellObject = pCell->FirstObject;
-
-	for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject)
+	if (auto const pTerrain = Game::IsActive() ? pCell->GetTerrain(false) : 
+		TerrainTypeExtData::FindCustomFoundationTerrain(pCell, false))
 	{
-		if (const auto pTerrain = cast_to<TerrainClass*, false>(pCellObject))
-		{
-			if (!TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsThisCanBeBuiltOn())
-				return NoUnlimbo;
+		auto pTypeExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
 
+		if (!pTypeExt->IsThisCanBeBuiltOn())
+			return NoUnlimbo;
+
+		if (!pTypeExt->HasCustomFoundation())
 			pCell->RemoveContent(pTerrain, false);
-			TerrainTypeExtData::Remove(pTerrain);
-		}
+
+		TerrainTypeExtData::Remove(pTerrain);
 	}
 
 	return Unlimbo;
@@ -508,15 +528,18 @@ ASMJIT_PATCH(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 
 		for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject)
 		{
-			const auto absType = pObject->WhatAmI();
-
-			if (absType == AbstractType::Building)
+			if (const auto pBuilding = cast_to<BuildingClass*>(pObject))
 			{
-				const auto pBuilding = static_cast<BuildingClass*>(pObject);
 				const auto pType = pBuilding->Type;
 				const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 				if (!pTypeExt->CanBeBuiltOn)
+					return CanNotExistHere;
+			}else if (const auto pTerrain = cast_to<TerrainClass*, true>(pObject))
+			{
+				const auto pType = pTerrain->Type;
+				const auto pExt = TerrainTypeExtContainer::Instance.Find(pType);
+				if (pExt->HasCustomFoundation() && !pExt->IsThisCanBeBuiltOn())
 					return CanNotExistHere;
 			}
 		}
@@ -1380,4 +1403,32 @@ ASMJIT_PATCH(0x45EF3A, BuildingTypeClass_FlushForPlacement_BuildableTerrain, 0x7
 	}
 
 	return Continue;
+}
+
+
+// BuildingClass::Mark creates its wall with the overlay constructor, which
+// has an inlined terrain check and does not call OverlayClass::Unlimbo.
+ASMJIT_PATCH(0x5FC49C, OverlayClass_CTOR_CustomTerrainWall, 0x9)
+{
+	enum { PlaceOverlay = 0x5FC4A9, SkipOverlay = 0x5FC4B6 };
+
+	GET(OverlayClass*, pOverlay, ESI);
+	GET(CellClass*, pCell, EAX);
+
+	if (!pOverlay->Type->Wall)
+		return 0;
+
+	auto const pTerrain = TerrainTypeExtData::FindCustomFoundationTerrain(pCell, false);
+	if (!pTerrain)
+		return 0;
+
+	auto const pType = pTerrain->Type;
+	auto const pExt = TerrainTypeExtContainer::Instance.Find(pType);
+	if (!pExt->IsThisCanBeBuiltOn())
+		return SkipOverlay;
+
+	TerrainTypeExtData::Remove(pTerrain);
+	// Keep the wall's default facing when bypassing the stock placement path.
+	R->EAX(0);
+	return PlaceOverlay;
 }
