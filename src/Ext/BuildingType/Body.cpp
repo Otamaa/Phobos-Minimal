@@ -1584,7 +1584,8 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->SpyEffect_SuperWeapon.Read(exINI, pSection, "SpyEffect.SuperWeapon");
 		this->SpyEffect_SuperWeaponPermanent.Read(exINI, pSection, "SpyEffect.SuperWeaponPermanent");
 		this->SpyEffect_UnReverseEngineer.Read(exINI, pSection, "SpyEffect.UndoReverseEngineer");
-
+		this->SpyEffect_PossibleBoons.Read(exINI, pSection, "SpyEffect.PossibleBoons");
+		this->SpyEffect_UndoBoons.Read(exINI, pSection, "SpyEffect.UndoBoons");
 		this->SpyEffect_InfantryVeterancy.Read(exINI, pSection, "SpyEffect.InfantryVeterancy"); { }
 		this->SpyEffect_VehicleVeterancy.Read(exINI, pSection, "SpyEffect.VehicleVeterancy");
 		this->SpyEffect_NavalVeterancy.Read(exINI, pSection, "SpyEffect.NavalVeterancy");
@@ -2205,6 +2206,8 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->SpyEffect_RevealRadarPersist)
 		.Process(this->SpyEffect_GainVeterancy)
 		.Process(this->SpyEffect_UnReverseEngineer)
+		.Process(this->SpyEffect_PossibleBoons)
+		.Process(this->SpyEffect_UndoBoons)
 		.Process(this->SpyEffect_StolenTechIndex_result)
 		.Process(this->SpyEffect_StolenMoneyAmount)
 		.Process(this->SpyEffect_StolenMoneyPercentage)
@@ -2554,6 +2557,8 @@ void BuildingTypeExtData::Serialize(T& Stm)
 	debugProcess(this->SpyEffect_RevealRadarPersist, "SpyEffect_RevealRadarPersist");
 	debugProcess(this->SpyEffect_GainVeterancy, "SpyEffect_GainVeterancy");
 	debugProcess(this->SpyEffect_UnReverseEngineer, "SpyEffect_UnReverseEngineer");
+	debugProcess(this->SpyEffect_PossibleBoons, "SpyEffect_PossibleBoons");
+	debugProcess(this->SpyEffect_UndoBoons, "SpyEffect_UndoBoons");
 	debugProcess(this->SpyEffect_StolenTechIndex_result, "SpyEffect_StolenTechIndex_result");
 	debugProcess(this->SpyEffect_StolenMoneyAmount, "SpyEffect_StolenMoneyAmount");
 	debugProcess(this->SpyEffect_StolenMoneyPercentage, "SpyEffect_StolenMoneyPercentage");

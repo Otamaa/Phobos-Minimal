@@ -3417,7 +3417,7 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 		}
 
 	}
-	else // Extended effects // DIFF: fixed typo "affects" -> "effects"
+	else // Extended effects
 	{
 		if (pTypeExt->SpyEffect_ResetRadar)
 		{
@@ -3475,6 +3475,41 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 			if (evaForOwner || evaForEnterer)
 			{
 				playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
+			}
+
+			effectApplied = true;
+		}
+
+		if (pTypeExt->SpyEffect_UndoBoons) {
+			HouseExtContainer::Instance.Find(this->Owner)->SpyBoons.clear();
+			this->Owner->RecheckTechTree = true;
+
+			if (evaForOwner || evaForEnterer)
+			{
+				playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
+			}
+
+			effectApplied = true;
+		}
+
+		if (!pTypeExt->SpyEffect_PossibleBoons.empty())
+		{
+			auto& _boons = HouseExtContainer::Instance.Find(this->Owner)->SpyBoons;
+
+			size_t boons_was = _boons.size();
+			for (auto& pBoons : pTypeExt->SpyEffect_PossibleBoons) {
+				if (pBoons) {
+					_boons.emplace(pBoons);
+				}
+			}
+
+			if(boons_was != _boons.size() && !_boons.empty())
+				this->Owner->RecheckTechTree = true;
+
+			if (evaForOwner || evaForEnterer)
+			{
+				playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
+				playEvaOnce(GameStrings::EVA_NewTechAcquired());
 			}
 
 			effectApplied = true;

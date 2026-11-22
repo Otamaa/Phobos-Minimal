@@ -4,7 +4,59 @@
 #include <Utilities/Cast.h>
 #include <Utilities/Macro.h>
 
-#include <TerrainTypeClass.h>
+#include <Ext/TerrainType/Body.h>
+#include <Ext/OverlayType/Body.h>
+
+ASMJIT_PATCH(0x706085, TechnoClass_DrawShape_Disguise_Palette, 0x7)
+{
+	enum { ApplyLightConvert = 0x706106, Others = 0x7060A9 };
+
+	GET(ObjectTypeClass*, pDisguise, EAX);
+	const auto whatAmDisguise = pDisguise->WhatAmI();
+
+	if (whatAmDisguise == AbstractType::OverlayType || whatAmDisguise == AbstractType::TerrainType)
+	{
+		GET(TechnoClass*, pThis, ESI);
+		const auto pCell = pThis->GetCell();
+		ConvertClass* pConvert = nullptr;
+		WORD intensity = 0;
+
+		const CustomPalette* pPalettes = whatAmDisguise == TerrainTypeClass::AbsID
+			? &TerrainTypeExtContainer::Instance.Find(static_cast<TerrainTypeClass*>(pDisguise))->CustomPalette
+			: &OverlayTypeExtContainer::Instance.Find(static_cast<OverlayTypeClass*>(pDisguise))->Palette;
+
+		if (auto pCustom = pPalettes->GetColorschemeDataVector())
+		{
+			const int wallOwnerIndex = pCell->WallOwnerIndex;
+			int colorSchemeIndex = -1;
+
+			if (wallOwnerIndex != -1)
+				colorSchemeIndex = HouseClass::Array->Items[wallOwnerIndex]->ColorSchemeIndex;
+			else
+				colorSchemeIndex = HouseClass::CurrentPlayer->ColorSchemeIndex;
+
+			pConvert = pCustom->Items[colorSchemeIndex]->LightConvert;
+			intensity = pCell->Color1.Red;
+		}
+		else if (pCell->LightConvert)
+		{
+			pConvert = pCell->LightConvert;
+			intensity = pCell->Color1.Green;
+		}
+		else
+		{
+			pCell->InitLightConvert();
+			pConvert = pCell->LightConvert;
+			intensity = pCell->Color1.Green;
+		}
+
+		R->EBX(pConvert);
+		R->ECX(intensity);
+		return ApplyLightConvert;
+	}
+
+	return Others;
+}
 
 ASMJIT_PATCH(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 {

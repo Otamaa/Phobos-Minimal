@@ -351,6 +351,7 @@ public:
 	VectorSet<BuildingClass*> Academies {};
 	VectorSet<BuildingClass*> TunnelsBuildings {};
 	VectorSet<TechnoTypeClass*> Reversed {};
+	VectorSet<TechnoTypeClass*> SpyBoons {};
 	VectorSet<TechnoClass*> OwnedCountedHarvesters {};
 	VectorSet<BuildingClass*> RestrictedFactoryPlants {};
 	VectorSet<BuildingClass*> PowerPlantEnhancers {};

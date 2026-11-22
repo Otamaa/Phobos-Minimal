@@ -301,6 +301,8 @@ public:
 	Valueable<bool> SpyEffect_RevealRadarPersist { false };
 	Valueable<bool> SpyEffect_GainVeterancy { false };
 	Valueable<bool> SpyEffect_UnReverseEngineer { false };
+	ValueableVector<TechnoTypeClass*> SpyEffect_PossibleBoons {};
+	Valueable<bool> SpyEffect_UndoBoons { false };
 	Valueable<bool> SpyEffect_SuperWeaponPermanent { false };
 	Valueable<bool> SpyEffect_InfantryVeterancy { false };
 	Valueable<bool> SpyEffect_VehicleVeterancy { false };

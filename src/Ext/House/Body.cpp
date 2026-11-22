@@ -406,11 +406,8 @@ RequirementStatus HouseExtData::RequirementsMet(
 			if (Prereqs::HouseOwnsAny(pHouse, pData->Prerequisite_Negative))
 				return RequirementStatus::Forbidden;
 
-			for (auto pRever : pHouseExt->Reversed) {
-				if (pRever == pItem) {
-					return RequirementStatus::Overridden;
-				}
-			}
+			if(pHouseExt->Reversed.contains(pItem))
+				return RequirementStatus::Overridden;
 
 			if (pData->RequiredStolenTech.any()) {
 				if ((pHouseExt->StolenTech & pData->RequiredStolenTech) != pData->RequiredStolenTech) {
@@ -3331,6 +3328,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->SWLastIndex)
 		.Process(this->Batteries)
 		.Process(this->AvaibleDocks)
+		.Process(this->SpyBoons)
 		.Process(this->StolenTech)
 		.Process(this->RadarPersist)
 		.Process(this->FactoryOwners_GatheredPlansOf)
@@ -3766,6 +3764,13 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x505360, FakeHouseClass::_AllPrerequisitesAvailable)
 CanBuildResult FakeHouseClass::_Can_Build(TechnoTypeClass* type, char buildLimitOnly, char includeInProduction)
 {
 	auto validationResult = HouseExtData::PrereqValidate(this, type, buildLimitOnly, includeInProduction);
+
+
+	const bool useBoon = !buildLimitOnly
+		&& HouseExtContainer::Instance.Find(this)->SpyBoons.contains(type);
+
+	if (useBoon && HouseExtData::ReachedBuildLimit(this, type, includeInProduction))
+		validationResult = CanBuildResult::TemporarilyUnbuildable;
 
 	if (validationResult == CanBuildResult::Buildable)
 	{
