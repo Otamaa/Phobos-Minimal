@@ -59,7 +59,7 @@ void SelectCapturedCommandClass::Execute(WWKey eInput) const
 					MapClass::UnselectAll();
 				}
 
-				pCurrentObject->Select();
+				Unsorted::MoveFeedback = !pCurrentObject->Select();
 			}
 		}
 
@@ -77,4 +77,5 @@ void SelectCapturedCommandClass::Execute(WWKey eInput) const
 	}
 
 	GeneralUtils::PrintMessage(pMessage);
+	Unsorted::MoveFeedback = true;
 }
